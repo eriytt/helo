@@ -863,21 +863,21 @@ void Car::setInput(control_data_t &cdata)
   // rayCastVehicle->setAccelerationTorque(BACK_LEFT, drive_force / 2.0);
 }
 
-float Car::CalculateDriveForce(void)
-{
-  // float wheel_rpm_bl = rayCastVehicle->getWheelRotationSpeed(BACK_LEFT);
-  // float wheel_rpm_br = rayCastVehicle->getWheelRotationSpeed(BACK_RIGHT);
+// float Car::CalculateDriveForce(void)
+// {
+//   // float wheel_rpm_bl = rayCastVehicle->getWheelRotationSpeed(BACK_LEFT);
+//   // float wheel_rpm_br = rayCastVehicle->getWheelRotationSpeed(BACK_RIGHT);
 
-  // wheel_rpm_bl = wheel_rpm_bl / (2 * M_PI) * 60;
-  // wheel_rpm_br = wheel_rpm_br / (2 * M_PI) * 60;
+//   // wheel_rpm_bl = wheel_rpm_bl / (2 * M_PI) * 60;
+//   // wheel_rpm_br = wheel_rpm_br / (2 * M_PI) * 60;
 
-  // //printf("rpm: %f\n",(wheel_rpm_br + wheel_rpm_bl) / 2.0);
-  // differential->setRPM((wheel_rpm_br + wheel_rpm_bl) / 2.0);
-  // speed = (wheel_rpm_br + wheel_rpm_bl) * M_PI * TIRE_RADIUS / 60.0;
+//   // //printf("rpm: %f\n",(wheel_rpm_br + wheel_rpm_bl) / 2.0);
+//   // differential->setRPM((wheel_rpm_br + wheel_rpm_bl) / 2.0);
+//   // speed = (wheel_rpm_br + wheel_rpm_bl) * M_PI * TIRE_RADIUS / 60.0;
 
-  // return differential->getTorque();
-  return 0;
-}
+//   // return differential->getTorque();
+//   return 0;
+// }
 
 static float long_mu_max = 1.0;
 static float lat_mu_max = 1.0;

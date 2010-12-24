@@ -315,8 +315,253 @@ int heloApp::main(int argc, char *argv[])
   Car *m93a1 = new Car(cd, mRoot);
   physics->addObject(m93a1);
 
+
+  cd.name = "abrams";
+  cd.meshname = "hmmwv.mesh";
+  cd.position = Ogre::Vector3(1780.96, 2.0, 1650.3);
+  cd.size = Ogre::Vector3(3.66, 2.44, 7.93);
+  cd.weight = 61300.0;
+
+  cd.wheelData.resize(14);
+  wheelupdown = 0.306;
+  wheelrev = -3.0;
+  float wheeldist = 1.0;
+  wheelrl = 1.125;
+  spring = 200000;
+  damping = 20000.0;
+  suspension_length = 0.9;
+  // 1st right wheel
+  cd.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 6 * wheeldist);
+  cd.wheelData[0].suspensionLength = suspension_length;
+  cd.wheelData[0].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[0].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[0].direction = wheeldown;
+  cd.wheelData[0].axle = wheel_axle;
+  cd.wheelData[0].radius = 0.45;
+  cd.wheelData[0].spring = spring;
+  cd.wheelData[0].dampUp = damping;
+  cd.wheelData[0].dampDown = damping;
+  cd.wheelData[0].steerCoeff = 0.0;
+  cd.wheelData[0].driveCoeff = 5.0;
+  cd.wheelData[0].brakeCoeff = 5.0;
+  cd.wheelData[0].momentOfInertia = 300.0;
+
+  // 1st left wheel
+  cd.wheelData[1].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 6 *wheeldist);
+  cd.wheelData[1].suspensionLength = suspension_length;
+  cd.wheelData[1].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[1].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[1].direction = wheeldown;
+  cd.wheelData[1].axle = wheel_axle;
+  cd.wheelData[1].radius = 0.45;
+  cd.wheelData[1].spring = spring;
+  cd.wheelData[1].dampUp = damping;
+  cd.wheelData[1].dampDown = damping;
+  cd.wheelData[1].steerCoeff = 0.0;
+  cd.wheelData[1].driveCoeff = 5.0;
+  cd.wheelData[1].brakeCoeff = 5.0;
+  cd.wheelData[1].momentOfInertia = 300.0;
+
+  // 2nd right wheel
+  cd.wheelData[2].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 5 * wheeldist);
+  cd.wheelData[2].suspensionLength = suspension_length;
+  cd.wheelData[2].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[2].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[2].direction = wheeldown;
+  cd.wheelData[2].axle = wheel_axle;
+  cd.wheelData[2].radius = 0.45;
+  cd.wheelData[2].spring = spring;
+  cd.wheelData[2].dampUp = damping;
+  cd.wheelData[2].dampDown = damping;
+  cd.wheelData[2].steerCoeff = 0.0;
+  cd.wheelData[2].driveCoeff = 5.0;
+  cd.wheelData[2].brakeCoeff = 5.0;
+  cd.wheelData[2].momentOfInertia = 300.0;
+
+  // 2nd left wheel
+  cd.wheelData[3].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 5 *wheeldist);
+  cd.wheelData[3].suspensionLength = suspension_length;
+  cd.wheelData[3].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[3].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[3].direction = wheeldown;
+  cd.wheelData[3].axle = wheel_axle;
+  cd.wheelData[3].radius = 0.45;
+  cd.wheelData[3].spring = spring;
+  cd.wheelData[3].dampUp = damping;
+  cd.wheelData[3].dampDown = damping;
+  cd.wheelData[3].steerCoeff = 0.0;
+  cd.wheelData[3].driveCoeff = 5.0;
+  cd.wheelData[3].brakeCoeff = 5.0;
+  cd.wheelData[3].momentOfInertia = 300.0;
+
+  // 3rd right wheel
+  cd.wheelData[4].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 4 * wheeldist);
+  cd.wheelData[4].suspensionLength = suspension_length;
+  cd.wheelData[4].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[4].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[4].direction = wheeldown;
+  cd.wheelData[4].axle = wheel_axle;
+  cd.wheelData[4].radius = 0.45;
+  cd.wheelData[4].spring = spring;
+  cd.wheelData[4].dampUp = damping;
+  cd.wheelData[4].dampDown = damping;
+  cd.wheelData[4].steerCoeff = 0.0;
+  cd.wheelData[4].driveCoeff = 5.0;
+  cd.wheelData[4].brakeCoeff = 5.0;
+  cd.wheelData[4].momentOfInertia = 300.0;
+
+  // 3rd left wheel
+  cd.wheelData[5].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 4 *wheeldist);
+  cd.wheelData[5].suspensionLength = suspension_length;
+  cd.wheelData[5].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[5].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[5].direction = wheeldown;
+  cd.wheelData[5].axle = wheel_axle;
+  cd.wheelData[5].radius = 0.45;
+  cd.wheelData[5].spring = spring;
+  cd.wheelData[5].dampUp = damping;
+  cd.wheelData[5].dampDown = damping;
+  cd.wheelData[5].steerCoeff = 0.0;
+  cd.wheelData[5].driveCoeff = 5.0;
+  cd.wheelData[5].brakeCoeff = 5.0;
+  cd.wheelData[5].momentOfInertia = 300.0;
+
+  // 4th right wheel
+  cd.wheelData[6].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 3 * wheeldist);
+  cd.wheelData[6].suspensionLength = suspension_length;
+  cd.wheelData[6].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[6].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[6].direction = wheeldown;
+  cd.wheelData[6].axle = wheel_axle;
+  cd.wheelData[6].radius = 0.45;
+  cd.wheelData[6].spring = spring;
+  cd.wheelData[6].dampUp = damping;
+  cd.wheelData[6].dampDown = damping;
+  cd.wheelData[6].steerCoeff = 0.0;
+  cd.wheelData[6].driveCoeff = 5.0;
+  cd.wheelData[6].brakeCoeff = 5.0;
+  cd.wheelData[6].momentOfInertia = 300.0;
+
+  // 4th left wheel
+  cd.wheelData[7].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 3 *wheeldist);
+  cd.wheelData[7].suspensionLength = suspension_length;
+  cd.wheelData[7].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[7].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[7].direction = wheeldown;
+  cd.wheelData[7].axle = wheel_axle;
+  cd.wheelData[7].radius = 0.45;
+  cd.wheelData[7].spring = spring;
+  cd.wheelData[7].dampUp = damping;
+  cd.wheelData[7].dampDown = damping;
+  cd.wheelData[7].steerCoeff = 0.0;
+  cd.wheelData[7].driveCoeff = 5.0;
+  cd.wheelData[7].brakeCoeff = 5.0;
+  cd.wheelData[7].momentOfInertia = 300.0;
+
+  // 5th right wheel
+  cd.wheelData[8].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 2 * wheeldist);
+  cd.wheelData[8].suspensionLength = suspension_length;
+  cd.wheelData[8].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[8].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[8].direction = wheeldown;
+  cd.wheelData[8].axle = wheel_axle;
+  cd.wheelData[8].radius = 0.45;
+  cd.wheelData[8].spring = spring;
+  cd.wheelData[8].dampUp = damping;
+  cd.wheelData[8].dampDown = damping;
+  cd.wheelData[8].steerCoeff = 0.0;
+  cd.wheelData[8].driveCoeff = 5.0;
+  cd.wheelData[8].brakeCoeff = 5.0;
+  cd.wheelData[8].momentOfInertia = 300.0;
+
+  // 5th left wheel
+  cd.wheelData[9].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 2 * wheeldist);
+  cd.wheelData[9].suspensionLength = suspension_length;
+  cd.wheelData[9].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[9].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[9].direction = wheeldown;
+  cd.wheelData[9].axle = wheel_axle;
+  cd.wheelData[9].radius = 0.45;
+  cd.wheelData[9].spring = spring;
+  cd.wheelData[9].dampUp = damping;
+  cd.wheelData[9].dampDown = damping;
+  cd.wheelData[9].steerCoeff = 0.0;
+  cd.wheelData[9].driveCoeff = 5.0;
+  cd.wheelData[9].brakeCoeff = 5.0;
+  cd.wheelData[9].momentOfInertia = 300.0;
+
+  // 6th right wheel
+  cd.wheelData[10].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 1 * wheeldist);
+  cd.wheelData[10].suspensionLength = suspension_length;
+  cd.wheelData[10].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[10].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[10].direction = wheeldown;
+  cd.wheelData[10].axle = wheel_axle;
+  cd.wheelData[10].radius = 0.45;
+  cd.wheelData[10].spring = spring;
+  cd.wheelData[10].dampUp = damping;
+  cd.wheelData[10].dampDown = damping;
+  cd.wheelData[10].steerCoeff = 0.0;
+  cd.wheelData[10].driveCoeff = 5.0;
+  cd.wheelData[10].brakeCoeff = 5.0;
+  cd.wheelData[10].momentOfInertia = 300.0;
+
+  // 6th left wheel
+  cd.wheelData[11].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 1 * wheeldist);
+  cd.wheelData[11].suspensionLength = suspension_length;
+  cd.wheelData[11].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[11].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[11].direction = wheeldown;
+  cd.wheelData[11].axle = wheel_axle;
+  cd.wheelData[11].radius = 0.45;
+  cd.wheelData[11].spring = spring;
+  cd.wheelData[11].dampUp = damping;
+  cd.wheelData[11].dampDown = damping;
+  cd.wheelData[11].steerCoeff = 0.0;
+  cd.wheelData[11].driveCoeff = 5.0;
+  cd.wheelData[11].brakeCoeff = 5.0;
+  cd.wheelData[11].momentOfInertia = 300.0;
+
+  // 7th right wheel
+  cd.wheelData[12].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 0 * wheeldist);
+  cd.wheelData[12].suspensionLength = suspension_length;
+  cd.wheelData[12].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[12].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[12].direction = wheeldown;
+  cd.wheelData[12].axle = wheel_axle;
+  cd.wheelData[12].radius = 0.45;
+  cd.wheelData[12].spring = spring;
+  cd.wheelData[12].dampUp = damping;
+  cd.wheelData[12].dampDown = damping;
+  cd.wheelData[12].steerCoeff = 0.0;
+  cd.wheelData[12].driveCoeff = 5.0;
+  cd.wheelData[12].brakeCoeff = 5.0;
+  cd.wheelData[12].momentOfInertia = 300.0;
+
+  // 7th left wheel
+  cd.wheelData[13].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 0 * wheeldist);
+  cd.wheelData[13].suspensionLength = suspension_length;
+  cd.wheelData[13].maxLengthUp = suspension_length - 0.5;
+  cd.wheelData[13].maxLengthDown = suspension_length + 0.35;
+  cd.wheelData[13].direction = wheeldown;
+  cd.wheelData[13].axle = wheel_axle;
+  cd.wheelData[13].radius = 0.45;
+  cd.wheelData[13].spring = spring;
+  cd.wheelData[13].dampUp = damping;
+  cd.wheelData[13].dampDown = damping;
+  cd.wheelData[13].steerCoeff = 0.0;
+  cd.wheelData[13].driveCoeff = 5.0;
+  cd.wheelData[13].brakeCoeff = 5.0;
+  cd.wheelData[13].momentOfInertia = 300.0;
+
+
+  Car *abrams = new Car(cd, mRoot);
+  physics->addObject(abrams);
+
+
+
   current_vehicle = defender;
-  current_car = m93a1;
+  current_car = abrams;
   cam->setAutoTracking(true, current_vehicle->getSceneNode());
   //cam->setAutoTracking(true, current_car->getSceneNode());
 

@@ -253,33 +253,29 @@ public:
 
  public:
   Car(const CarData &data, Ogre::Root *root);
-  void finishPhysicsConfiguration(Physics *phys);
-  Ogre::SceneNode *getSceneNode() {return node;}
-  void setSteer(Ogre::Real radians_right);
-  void setThrottle(Ogre::Real fraction);
-  Ogre::Vector3 getPosition();
-  Ogre::Vector3 getVelocity();
-  //const irr::core::matrix4 getTransformation();
-  class Input *getDriver();
-  float getRPM();
-  float getSpeed();
-  //Input *getInput() {return controller;}
-  car_data_t getCarData();
-  void setInput(control_data_t &cdata);
-  void doDynamics(void);
-  void update(void);
-  void physicsUpdate() {}
+  virtual void finishPhysicsConfiguration(Physics *phys);
+  virtual Ogre::SceneNode *getSceneNode() {return node;}
+  virtual void setSteer(Ogre::Real radians_right);
+  virtual void setThrottle(Ogre::Real fraction);
+  virtual Ogre::Vector3 getPosition();
+  virtual Ogre::Vector3 getVelocity();
+  virtual float getRPM();
+  virtual float getSpeed();
+  virtual car_data_t getCarData();
+  virtual void setInput(control_data_t &cdata);
+  virtual void update(void);
+  virtual void physicsUpdate() {}
 
 protected:
   void SetAccel(int direction);
 
   /*Driveline functions*/
-  int GetTorqueWheelEnergy(int rpm);
-  int GetTorqueWheelRPM(int energy);
-  float GetMotorTorque(float rpm, int throttle);
-  float CalculateDriveForce(void);
-  void GetWheelFriction(void);
-  void DetermineCalculationModel(void);
+  //virtual int GetTorqueWheelEnergy(int rpm);
+  //virtual int GetTorqueWheelRPM(int energy);
+  //virtual float GetMotorTorque(float rpm, int throttle);
+  //virtual float CalculateDriveForce(void);
+  //virtual void GetWheelFriction(void);
+  //virtual void DetermineCalculationModel(void);
 };
 
 #endif /*CAR_H*/
