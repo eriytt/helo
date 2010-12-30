@@ -188,15 +188,15 @@ protected:
     void updateRotation(btScalar timeStep, btRigidBody *chassisBody);
     btScalar lateralEquilibrium(btScalar timeStep, btRigidBody *chassisBody);
     btScalar longitudinalEquilibrium(btScalar timeStep,btRigidBody *chassisBody);
-    btVector3 sumForces();
+    virtual btVector3 sumForces();
     void setSteer(btScalar right_radians);
     void setTorque(btScalar torque);
     const btVector3 &getContactPoint();
     const btTransform &getTransform() const;
     void setMotionState(btMotionState *ms) {motionState = ms;}
 
-    const btVector3 &getLinearVelocity() {return currentLinearVelocity;}
-    const btVector3 &getForward() {return currentForward;}
+    btScalar getAngularSpeed() {return currentAngularSpeed;}
+    btScalar getRadius() {return d.radius;}
     bool isAirborne() {return airborne;}
     btScalar getSuspensionForce() {return currentSuspensionForce;}
     void addRotation(btScalar rotationSpeed, btScalar rotationAngleDelta)

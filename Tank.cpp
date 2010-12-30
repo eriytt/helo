@@ -48,68 +48,68 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
 
 RaycastTank::RaycastTank(btRigidBody *chassis) : CBRaycastVehicle(chassis)
 {
-  rightDriveWheel.radius = 0.35;
-  rightDriveWheel.currentAngularSpeed = 0.0;
-  rightDriveWheel.momentOfInertia = 2000.0;
-  rightDriveWheel.currentBrakeTorque = 0.0;
-  rightDriveWheel.currentDriveTorque = 0.0;
-  rightDriveWheel.currentAngle = 0.0;
-  rightDriveWheel.currentLinearVelocity = btVector3(0.0, 0.0, 0.0);
-  rightDriveWheel.currentAccelerationForce = 0.0;
+  DriveWheelData d;
 
-  leftDriveWheel.radius = 0.35;
-  leftDriveWheel.currentAngularSpeed = 0.0;
-  leftDriveWheel.momentOfInertia = 2000.0;
-  leftDriveWheel.currentBrakeTorque = 0.0;
-  leftDriveWheel.currentDriveTorque = 0.0;
-  leftDriveWheel.currentAngle = 0.0;
-  leftDriveWheel.currentLinearVelocity = btVector3(0.0, 0.0, 0.0);
-  leftDriveWheel.currentAccelerationForce = 0.0;
+  d.relPos = btVector3(-1.125, 0.0, 0.0);
+  d.suspensionLength = 50.0;
+  d.maxLengthUp = 0.0;
+  d.maxLengthDown = 100.0; // We always want to get a ground contact
+  d.direction = btVector3(0.0, -1.0, 0.0);
+  d.axle = btVector3(1.0, 0.0, 0.0);
+  d.radius = 0.35;
+  d.spring = 0.0;
+  d.dampUp = 0.0;
+  d.dampDown = 0.0;
+  d.steerCoeff = 0.0;
+  d.driveCoeff = 1.0;
+  d.brakeCoeff = 1.0;
+  d.momentOfInertia = 2000.0; // TODO: should sum the other wheels inertia and then some
+  driveWheels.push_back(DriveWheel(d));
+
+  d.relPos = btVector3(1.125, 0.0, 0.0);
+  driveWheels.push_back(DriveWheel(d));
+
   currentSteerAngle = 0.0;
   currentDriveTorque = 0.0;
   steerSensitivity = 700000.0;
 }
 
-void RaycastTank::updateTread(bool right, btScalar suspensionForce, btScalar timestep)
+void RaycastTank::DriveWheel::updateTread(btScalar timeStep, btRigidBody *chassisBody)
 {
-  unsigned int idx = right ? 0 : 1;
-  FakeWheel &fw = right ? rightDriveWheel : leftDriveWheel;
-
-#warning linear velocity may be zero if wheel 0 is airborne
-  btScalar vel_forward = wheels[idx].getLinearVelocity().dot(wheels[idx].getForward());
-  btScalar long_slip = LongitudinalSlip(vel_forward, fw.currentAngularSpeed * fw.radius);
+  btScalar vel_forward = currentLinearVelocity.dot(currentForward);
+  btScalar long_slip = LongitudinalSlip(vel_forward, currentAngularSpeed * d.radius);
   btScalar long_idx = long_slip * 10.0;
 
-  assert(fw.currentBrakeTorque >= 0);
+  assert(currentBrakeTorque >= 0);
 
   btScalar longitudinal_stick_threshold = 0.5;
   btScalar wheel_rotation_stick_threshold = 0.7;
 
-  btScalar friction_torque = long_idx * suspensionForce * fw.radius;
-  btScalar wMOI = fw.momentOfInertia;
+  btScalar friction_torque = long_idx * currentSuspensionForce * d.radius;
+  btScalar wMOI = d.momentOfInertia;
 
-  btScalar brakeTorque = fw.currentBrakeTorque;
-  if (fw.currentAngularSpeed < 0.0)
+  btScalar brakeTorque = currentBrakeTorque;
+  if (currentAngularSpeed < 0.0)
     brakeTorque *= btScalar(-1.0);
 
   // Figure out how much torque it take to stop the wheel from spinning
   // And clamp the brakeing torque to this value
-  btScalar maxBrakeTorque = (fw.currentDriveTorque - friction_torque
-			     + (fw.currentAngularSpeed * wMOI / timestep));
+  btScalar maxBrakeTorque = (currentDriveTorque - friction_torque
+			     + (currentAngularSpeed * wMOI / timeStep));
   if ((brakeTorque > 0.0 and brakeTorque > maxBrakeTorque)
     or (brakeTorque < 0.0 and brakeTorque < maxBrakeTorque))
       brakeTorque = maxBrakeTorque;
 
-  btScalar wheel_torque = fw.currentDriveTorque - friction_torque - brakeTorque;
+  btScalar wheel_torque = currentDriveTorque - friction_torque - brakeTorque;
   //printf("Wheel Torque: %f\n", wheel_torque);
 
   // Angular acceleration = Torque / Moment of inerita
   btScalar omega = wheel_torque / wMOI;
   // Angular velocity += Angular acceleration * time
-  fw.currentAngularSpeed += omega * timestep;
+  currentAngularSpeed += omega * timeStep;
   // Angle += Angular velocity * time + (Angular  acceleration * time^2) / 2
-  fw.currentAngle += fw.currentAngularSpeed * timestep
-    +  (omega * HeloUtils::POW2(timestep) / 2.0);
+  currentAngle += currentAngularSpeed * timeStep
+    +  (omega * HeloUtils::POW2(timeStep) / 2.0);
 
   // If there is no ground contact, this tire will not assert a force
   // on the car
@@ -122,20 +122,19 @@ void RaycastTank::updateTread(bool right, btScalar suspensionForce, btScalar tim
   //   }
 
   btScalar force = 0.0;
-  if (fw.currentLinearVelocity.length() < longitudinal_stick_threshold
-      and not fabs(fw.currentAngularSpeed) < wheel_rotation_stick_threshold
+  if (currentLinearVelocity.length() < longitudinal_stick_threshold
+      and not fabs(currentAngularSpeed) < wheel_rotation_stick_threshold
       and brakeTorque)
-#warning equilibrium not calculated
     // We are moving very slowly, wheel is not rolling and breaks are
     // applied, calculate equilibrium instead of using normal impulse
     // calculation.
     //if (not currentSuspensionForce == 0.0)
-    force = friction_torque / fw.radius; //longitudinalEquilibrium(timestep, chassisBody);
+    force = longitudinalEquilibrium(timeStep, chassisBody);
   else
     // This is the normal case when vehicle is moving.
-    force = friction_torque / fw.radius;
+    force = friction_torque / d.radius;
 
-  fw.currentAccelerationForce = force;
+  currentAccelerationForce = force;
 }
 
 void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
@@ -162,27 +161,25 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
 	right_side_force += wheels[i].getSuspensionForce();
     }
 
-  rightDriveWheel.currentDriveTorque = (currentDriveTorque * 40.0) - (currentSteerAngle * steerSensitivity);
-  leftDriveWheel.currentDriveTorque =  (currentDriveTorque * 40.0) + (currentSteerAngle * steerSensitivity);
+  driveWheels[0].updateContact(collisionWorld, chassisBody);
+  driveWheels[1].updateContact(collisionWorld, chassisBody);
 
-  updateTread(true, right_side_force, timeStep);
-  updateTread(false, left_side_force, timeStep);
+  driveWheels[0].setSuspensionForce(right_side_force);
+  driveWheels[1].setSuspensionForce(left_side_force);
 
-  // for each _side_, figure out the friction index to use
+  driveWheels[0].setTorque((currentDriveTorque * 40.0) - (currentSteerAngle * steerSensitivity));
+  driveWheels[1].setTorque((currentDriveTorque * 40.0) + (currentSteerAngle * steerSensitivity));
+
+  driveWheels[0].updateTread(timeStep, chassisBody);
+  driveWheels[1].updateTread(timeStep, chassisBody);
 
 
-  // for each _side_, update all wheels' rotations on that
-  //  side to be consistent with the radius of the wheel and
-  //  the friction of that side
-
+  // Set a matching rotation for all the normal wheels
+  btScalar right_rotation = driveWheels[0].getAngularSpeed() * driveWheels[0].getRadius();
+  btScalar left_rotation = driveWheels[1].getAngularSpeed() * driveWheels[1].getRadius();
   for (int i = 0; i < wheels.size(); ++i)
     {
-      float rotation;
-      if (i & 0x1) // left side
-	rotation = leftDriveWheel.currentAngularSpeed * leftDriveWheel.radius;
-      else
-	rotation = rightDriveWheel.currentAngularSpeed * rightDriveWheel.radius;
-
+      btScalar rotation = i & 1 ? left_rotation : right_rotation;
       wheels[i].addRotation(rotation, rotation * timeStep);
     }
 
@@ -207,18 +204,15 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
     }
   //printf("\n");
 
-#warning contact point is invalid if wheel is airborne
-  btVector3 rap = wheels[0].getContactPoint();
-  rap.setZ(0.0);
-  btVector3 raf(0.0, 0.0, rightDriveWheel.currentAccelerationForce);
+  btVector3 rap = driveWheels[0].getContactPoint();
+  btVector3 raf = driveWheels[0].sumForces();
   chassisBody->applyImpulse(br * (raf * timeStep), br * rap);
-  //printf("Acceleration force, right side: %f\n", rightDriveWheel.currentAccelerationForce);
+  //printf("Acceleration force, right side: %f\n", raf.z());
 
-  btVector3 lap = wheels[1].getContactPoint();
-  lap.setZ(0.0);
-  btVector3 laf(0.0, 0.0, leftDriveWheel.currentAccelerationForce);
+  btVector3 lap = driveWheels[1].getContactPoint();
+  btVector3 laf = driveWheels[1].sumForces();
   chassisBody->applyImpulse(br * (laf * timeStep), br * lap);
-  //printf("Acceleration force, left side: %f\n", leftDriveWheel.currentAccelerationForce);
+  //printf("Acceleration force, left side: %f\n", laf.z());
 }
 
 void RaycastTank::setDriveTorques(const std::vector<btScalar> &torques)

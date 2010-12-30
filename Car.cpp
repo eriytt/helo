@@ -165,7 +165,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
       // to stop when spinning out of control.
       slip_angle = HeloUtils::clamp(HeloUtils::PI_4, -HeloUtils::PI_4, slip_angle);
       //printf("Slip Angle: %f\n", slip_angle);
-      latIdx = -slip_angle * 2.3f;
+      latIdx = -slip_angle * 3.0f;
       assert(not std::isinf(latIdx));
     }
   else
