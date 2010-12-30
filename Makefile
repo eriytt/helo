@@ -1,8 +1,16 @@
-OPT_FLAGS=
-DEBUG_FLAGS= -g
+
+DEBUG_FLAGS = -g
 OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o
 OGRE = /usr/ogre
-BULLET= /usr/bullet-debug
+BULLET_DEBUG = /usr/bullet-debug
+BULLET_OPT = /usr/bullet
+
+ifeq ($(OPTIMIZE), yes)
+  BULLET = $(BULLET_OPT)
+  OPT_FLAGS = -O2
+else
+  BULLET = $(BULLET_DEBUG)
+endif
 
 OGRE_INCLUDE = -I$(OGRE)/include -I$(OGRE)/include/OGRE
 BULLET_INCLUDE = -I$(BULLET)/include/bullet

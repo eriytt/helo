@@ -8,6 +8,7 @@
 #include "BulletDynamics/Vehicle/btRaycastVehicle.h"
 
 #include "Physics.h"
+#include "Utils.h"
 
 #define BRAKE_MAX 32767
 #define CAR_LENGTH 4.923
@@ -94,6 +95,40 @@ public:
 			      // means no averaging effect at
 			      // all. This reduces jitter due to
 			      // numeric instability significantly
+/* Note that a positive slip is an accelerating slip */
+inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
+{
+  btScalar diff = speed - tire_speed;
+
+  if (fabs(diff) < 0.00001f) // not slipping
+    {
+      //printf("diff so small that we dont regard this as slipping: %f\n", diff);
+      return 0.0;
+    }
+
+  if (diff >= 0.0) // Use   v - Romega / v equation, v > Romega
+    { // Wheel is spinning slower than the ground, reverse the car
+      if (speed >= 0.0)
+	  // car going forward but wheels spinning backwards
+	  // or car is moving forward and the wheel too but not as fast
+	return -HeloUtils::unit_clamp(diff / speed);
+      else
+	// Car is in reveresing and the and the tire reverses faster
+	// ie accelerating in reverse
+	return HeloUtils::unit_clamp(diff / speed);
+    }
+  else  // Use   Romega - v / Romega equation, v < Romega
+    {   // Wheel is spinning faster than ground, accelerate car
+      if (tire_speed >= 0.0)
+	// Normal acceleration
+	return -HeloUtils::unit_clamp(diff / tire_speed);
+      else
+	// Sliding in reverse trying to go forward ?
+	return HeloUtils::unit_clamp(diff / tire_speed);
+    }
+}
+
+
 class CBRaycastVehicle : public btActionInterface
 {
 public:
@@ -159,6 +194,16 @@ protected:
     const btVector3 &getContactPoint();
     const btTransform &getTransform() const;
     void setMotionState(btMotionState *ms) {motionState = ms;}
+
+    const btVector3 &getLinearVelocity() {return currentLinearVelocity;}
+    const btVector3 &getForward() {return currentForward;}
+    bool isAirborne() {return airborne;}
+    btScalar getSuspensionForce() {return currentSuspensionForce;}
+    void addRotation(btScalar rotationSpeed, btScalar rotationAngleDelta)
+    {
+      currentAngularSpeed = rotationSpeed / d.radius;
+      currentAngle += rotationAngleDelta;
+    }
   };
 
 
@@ -178,24 +223,24 @@ protected:
 public:
   CBRaycastVehicle(btRigidBody* chassis);
 
-  void addWheel(const WheelData &data);
-  void setAccelerationTorque(unsigned short wheel_index, btScalar acceleration_torque);
-  void setBrakeTorque(btScalar brake_torque) {brakingTorque = brake_torque;}
-  btScalar getWheelRotationSpeed(unsigned short wheelIndex);
-  const btTransform& getWheelTransformWS(int wheelIndex) const;
-  btRigidBody* getRigidBody() {return chassisBody;}
-  void updateAction(btCollisionWorld* collisionWorld, btScalar step);
-  void debugDraw(btIDebugDraw* debugDrawer) {}
-  void setCoordinateSystem(int rightIndex,int upIndex,int forwardIndex);
-  btWheelInfo& getWheelInfo(int index);
-  const btTransform& getChassisWorldTransform() const {return chassisBody->getCenterOfMassTransform();}
-  void setSteer(btScalar radians_right);
-  void setDriveTorques(const std::vector<btScalar> &torques);
-  Wheel &getWheel(unsigned int);
+  virtual void addWheel(const WheelData &data);
+  virtual void setAccelerationTorque(unsigned short wheel_index, btScalar acceleration_torque);
+  virtual void setBrakeTorque(btScalar brake_torque) {brakingTorque = brake_torque;}
+  virtual btScalar getWheelRotationSpeed(unsigned short wheelIndex);
+  virtual const btTransform& getWheelTransformWS(int wheelIndex) const;
+  virtual btRigidBody* getRigidBody() {return chassisBody;}
+  virtual void updateAction(btCollisionWorld* collisionWorld, btScalar step);
+  virtual void debugDraw(btIDebugDraw* debugDrawer) {}
+  virtual void setCoordinateSystem(int rightIndex,int upIndex,int forwardIndex);
+  virtual btWheelInfo& getWheelInfo(int index);
+  virtual const btTransform& getChassisWorldTransform() const {return chassisBody->getCenterOfMassTransform();}
+  virtual void setSteer(btScalar radians_right);
+  virtual void setDriveTorques(const std::vector<btScalar> &torques);
+  virtual Wheel &getWheel(unsigned int);
 
 protected:
-  int getNumWheels() const { return int (m_wheelInfo.size());}
-  void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
+  virtual int getNumWheels() const { return int (m_wheelInfo.size());}
+  virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
 
 class Car : public PhysicsObject
@@ -252,6 +297,7 @@ public:
   // } wheelPosition_t;
 
  public:
+  Car() {} // No initialization, derived classes must do all the work, Do not call this explicitly
   Car(const CarData &data, Ogre::Root *root);
   virtual void finishPhysicsConfiguration(Physics *phys);
   virtual Ogre::SceneNode *getSceneNode() {return node;}
@@ -265,9 +311,6 @@ public:
   virtual void setInput(control_data_t &cdata);
   virtual void update(void);
   virtual void physicsUpdate() {}
-
-protected:
-  void SetAccel(int direction);
 
   /*Driveline functions*/
   //virtual int GetTorqueWheelEnergy(int rpm);

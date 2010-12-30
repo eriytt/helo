@@ -8,6 +8,7 @@
 // TODO: hopefully not needed here indefinately
 #include "Helicopter.h"
 #include "Car.h"
+#include "Tank.h"
 
 class Error {
 public:
@@ -318,7 +319,7 @@ int heloApp::main(int argc, char *argv[])
 
   cd.name = "abrams";
   cd.meshname = "hmmwv.mesh";
-  cd.position = Ogre::Vector3(1780.96, 2.0, 1650.3);
+  cd.position = Ogre::Vector3(1780.96, 1.0, 1650.3);
   cd.size = Ogre::Vector3(3.66, 2.44, 7.93);
   cd.weight = 61300.0;
 
@@ -327,7 +328,7 @@ int heloApp::main(int argc, char *argv[])
   wheelrev = -3.0;
   float wheeldist = 1.0;
   wheelrl = 1.125;
-  spring = 200000;
+  spring = 400000;
   damping = 20000.0;
   suspension_length = 0.9;
   // 1st right wheel
@@ -342,8 +343,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[0].dampUp = damping;
   cd.wheelData[0].dampDown = damping;
   cd.wheelData[0].steerCoeff = 0.0;
-  cd.wheelData[0].driveCoeff = 5.0;
-  cd.wheelData[0].brakeCoeff = 5.0;
+  cd.wheelData[0].driveCoeff = 0.0;
+  cd.wheelData[0].brakeCoeff = 0.0;
   cd.wheelData[0].momentOfInertia = 300.0;
 
   // 1st left wheel
@@ -358,8 +359,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[1].dampUp = damping;
   cd.wheelData[1].dampDown = damping;
   cd.wheelData[1].steerCoeff = 0.0;
-  cd.wheelData[1].driveCoeff = 5.0;
-  cd.wheelData[1].brakeCoeff = 5.0;
+  cd.wheelData[1].driveCoeff = 0.0;
+  cd.wheelData[1].brakeCoeff = 0.0;
   cd.wheelData[1].momentOfInertia = 300.0;
 
   // 2nd right wheel
@@ -374,8 +375,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[2].dampUp = damping;
   cd.wheelData[2].dampDown = damping;
   cd.wheelData[2].steerCoeff = 0.0;
-  cd.wheelData[2].driveCoeff = 5.0;
-  cd.wheelData[2].brakeCoeff = 5.0;
+  cd.wheelData[2].driveCoeff = 0.0;
+  cd.wheelData[2].brakeCoeff = 0.0;
   cd.wheelData[2].momentOfInertia = 300.0;
 
   // 2nd left wheel
@@ -390,8 +391,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[3].dampUp = damping;
   cd.wheelData[3].dampDown = damping;
   cd.wheelData[3].steerCoeff = 0.0;
-  cd.wheelData[3].driveCoeff = 5.0;
-  cd.wheelData[3].brakeCoeff = 5.0;
+  cd.wheelData[3].driveCoeff = 0.0;
+  cd.wheelData[3].brakeCoeff = 0.0;
   cd.wheelData[3].momentOfInertia = 300.0;
 
   // 3rd right wheel
@@ -406,8 +407,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[4].dampUp = damping;
   cd.wheelData[4].dampDown = damping;
   cd.wheelData[4].steerCoeff = 0.0;
-  cd.wheelData[4].driveCoeff = 5.0;
-  cd.wheelData[4].brakeCoeff = 5.0;
+  cd.wheelData[4].driveCoeff = 0.0;
+  cd.wheelData[4].brakeCoeff = 0.0;
   cd.wheelData[4].momentOfInertia = 300.0;
 
   // 3rd left wheel
@@ -422,8 +423,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[5].dampUp = damping;
   cd.wheelData[5].dampDown = damping;
   cd.wheelData[5].steerCoeff = 0.0;
-  cd.wheelData[5].driveCoeff = 5.0;
-  cd.wheelData[5].brakeCoeff = 5.0;
+  cd.wheelData[5].driveCoeff = 0.0;
+  cd.wheelData[5].brakeCoeff = 0.0;
   cd.wheelData[5].momentOfInertia = 300.0;
 
   // 4th right wheel
@@ -438,8 +439,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[6].dampUp = damping;
   cd.wheelData[6].dampDown = damping;
   cd.wheelData[6].steerCoeff = 0.0;
-  cd.wheelData[6].driveCoeff = 5.0;
-  cd.wheelData[6].brakeCoeff = 5.0;
+  cd.wheelData[6].driveCoeff = 0.0;
+  cd.wheelData[6].brakeCoeff = 0.0;
   cd.wheelData[6].momentOfInertia = 300.0;
 
   // 4th left wheel
@@ -454,8 +455,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[7].dampUp = damping;
   cd.wheelData[7].dampDown = damping;
   cd.wheelData[7].steerCoeff = 0.0;
-  cd.wheelData[7].driveCoeff = 5.0;
-  cd.wheelData[7].brakeCoeff = 5.0;
+  cd.wheelData[7].driveCoeff = 0.0;
+  cd.wheelData[7].brakeCoeff = 0.0;
   cd.wheelData[7].momentOfInertia = 300.0;
 
   // 5th right wheel
@@ -470,8 +471,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[8].dampUp = damping;
   cd.wheelData[8].dampDown = damping;
   cd.wheelData[8].steerCoeff = 0.0;
-  cd.wheelData[8].driveCoeff = 5.0;
-  cd.wheelData[8].brakeCoeff = 5.0;
+  cd.wheelData[8].driveCoeff = 0.0;
+  cd.wheelData[8].brakeCoeff = 0.0;
   cd.wheelData[8].momentOfInertia = 300.0;
 
   // 5th left wheel
@@ -486,8 +487,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[9].dampUp = damping;
   cd.wheelData[9].dampDown = damping;
   cd.wheelData[9].steerCoeff = 0.0;
-  cd.wheelData[9].driveCoeff = 5.0;
-  cd.wheelData[9].brakeCoeff = 5.0;
+  cd.wheelData[9].driveCoeff = 0.0;
+  cd.wheelData[9].brakeCoeff = 0.0;
   cd.wheelData[9].momentOfInertia = 300.0;
 
   // 6th right wheel
@@ -502,8 +503,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[10].dampUp = damping;
   cd.wheelData[10].dampDown = damping;
   cd.wheelData[10].steerCoeff = 0.0;
-  cd.wheelData[10].driveCoeff = 5.0;
-  cd.wheelData[10].brakeCoeff = 5.0;
+  cd.wheelData[10].driveCoeff = 0.0;
+  cd.wheelData[10].brakeCoeff = 0.0;
   cd.wheelData[10].momentOfInertia = 300.0;
 
   // 6th left wheel
@@ -518,8 +519,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[11].dampUp = damping;
   cd.wheelData[11].dampDown = damping;
   cd.wheelData[11].steerCoeff = 0.0;
-  cd.wheelData[11].driveCoeff = 5.0;
-  cd.wheelData[11].brakeCoeff = 5.0;
+  cd.wheelData[11].driveCoeff = 0.0;
+  cd.wheelData[11].brakeCoeff = 0.0;
   cd.wheelData[11].momentOfInertia = 300.0;
 
   // 7th right wheel
@@ -534,8 +535,8 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[12].dampUp = damping;
   cd.wheelData[12].dampDown = damping;
   cd.wheelData[12].steerCoeff = 0.0;
-  cd.wheelData[12].driveCoeff = 5.0;
-  cd.wheelData[12].brakeCoeff = 5.0;
+  cd.wheelData[12].driveCoeff = 0.0;
+  cd.wheelData[12].brakeCoeff = 0.0;
   cd.wheelData[12].momentOfInertia = 300.0;
 
   // 7th left wheel
@@ -550,12 +551,12 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[13].dampUp = damping;
   cd.wheelData[13].dampDown = damping;
   cd.wheelData[13].steerCoeff = 0.0;
-  cd.wheelData[13].driveCoeff = 5.0;
-  cd.wheelData[13].brakeCoeff = 5.0;
+  cd.wheelData[13].driveCoeff = 0.0;
+  cd.wheelData[13].brakeCoeff = 0.0;
   cd.wheelData[13].momentOfInertia = 300.0;
 
 
-  Car *abrams = new Car(cd, mRoot);
+  Tank *abrams = new Tank(cd, mRoot);
   physics->addObject(abrams);
 
 
@@ -563,7 +564,7 @@ int heloApp::main(int argc, char *argv[])
   current_vehicle = defender;
   current_car = abrams;
   cam->setAutoTracking(true, current_vehicle->getSceneNode());
-  //cam->setAutoTracking(true, current_car->getSceneNode());
+  cam->setAutoTracking(true, current_car->getSceneNode());
 
   physics->finishConfiguration();
 
@@ -587,9 +588,9 @@ int heloApp::main(int argc, char *argv[])
 
     Ogre::SceneNode *n;
     n = current_vehicle->getSceneNode();
-    //n = current_car->getSceneNode();
-    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(0.0, 0.0, -30.0));
-    campos.y = n->_getDerivedPosition().y;
+    n = current_car->getSceneNode();
+    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(10.0, 0.0, -10.0));
+    campos.y = n->_getDerivedPosition().y + 10.0;
     cam->setPosition(campos);
     doOgreUpdate();
     //usleep(50000);

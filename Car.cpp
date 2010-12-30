@@ -20,39 +20,6 @@ inline btScalar SlipAngle(btScalar speed, btScalar slip_speed)
   return atan(slip_speed / speed);
 }
 
-/* Note that a positive slip is an accelerating slip */
-inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
-{
-  btScalar diff = speed - tire_speed;
-
-  if (fabs(diff) < 0.00001f) // not slipping
-    {
-      //printf("diff so small that we dont regard this as slipping: %f\n", diff);
-      return 0.0;
-    }
-
-  if (diff >= 0.0) // Use   v - Romega / v equation, v > Romega
-    { // Wheel is spinning slower than the ground, reverse the car
-      if (speed >= 0.0)
-	  // car going forward but wheels spinning backwards
-	  // or car is moving forward and the wheel too but not as fast
-	return -HeloUtils::unit_clamp(diff / speed);
-      else
-	// Car is in reveresing and the and the tire reverses faster
-	// ie accelerating in reverse
-	return HeloUtils::unit_clamp(diff / speed);
-    }
-  else  // Use   Romega - v / Romega equation, v < Romega
-    {   // Wheel is spinning faster than ground, accelerate car
-      if (tire_speed >= 0.0)
-	// Normal acceleration
-	return -HeloUtils::unit_clamp(diff / tire_speed);
-      else
-	// Sliding in reverse trying to go forward ?
-	return HeloUtils::unit_clamp(diff / tire_speed);
-    }
-}
-
 CBRaycastVehicle::Wheel::Wheel(const WheelData &data)
 {
   d = data;
@@ -169,6 +136,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
 {
   //btScalar lateral_stick_threshold = 3.0;
   btScalar lateral_stick_threshold = 1.5;
+  btScalar rotational_stick_threshold_squared = HeloUtils::POW2(HeloUtils::PI_4 / 10.0);
 
   longIdx = latIdx = 0.0f;
 
@@ -177,10 +145,12 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
     return;
 
   btScalar vel_forward = currentLinearVelocity.dot(currentForward);
+  btScalar rotational_speed_squared = chassisBody->getAngularVelocity().length2();
 
 
   btScalar slip_angle;
-  if (currentLinearVelocity.length() > lateral_stick_threshold)
+  if (currentLinearVelocity.length() > lateral_stick_threshold
+      or rotational_speed_squared > rotational_stick_threshold_squared)
     {
       //printf("Wheel is unstable\n");
       // Calculate lateral slip.
@@ -188,6 +158,12 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
       // projected on the axle of the tire
       btScalar lat_slip = currentLinearVelocity.dot(currentAxle);
       slip_angle = SlipAngle(fabs(vel_forward), lat_slip);
+      // The slip angle needs to have a (semi) realistic upper bound or
+      // a tank like vehicle will not be able to turn when standing still.
+      // This does not affect normal car-like vehicles much as they typically
+      // do not turn their steering wheels that much. It only takes it longer
+      // to stop when spinning out of control.
+      slip_angle = HeloUtils::clamp(HeloUtils::PI_4, -HeloUtils::PI_4, slip_angle);
       //printf("Slip Angle: %f\n", slip_angle);
       latIdx = -slip_angle * 2.3f;
       assert(not std::isinf(latIdx));
@@ -271,7 +247,7 @@ void CBRaycastVehicle::Wheel::updateRotation(btScalar timeStep, btRigidBody *cha
     // applied, calculate equilibrium instead of using normal impulse
     // calculation.
     //if (not currentSuspensionForce == 0.0)
-      force = longitudinalEquilibrium(timeStep, chassisBody);
+    force = longitudinalEquilibrium(timeStep, chassisBody);
   else
     // This is the normal case when vehicle is moving.
     force = friction_torque / d.radius;
@@ -458,12 +434,13 @@ void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar t
       btVector3 f = wheels[i].sumForces();
       if (f.length()) // TODO: better to check if wheel is airborne
 	{
-	  btVector3 p = wheels[i].getContactPoint();
-	  // Note the relative position in WORLD COORDINATES as the second argument
-	  // That is why we multiply by the rotation matrix and not the full transform
 	  assert(not std::isnan(f.x()));
 	  assert(not std::isnan(f.y()));
 	  assert(not std::isnan(f.z()));
+
+	  btVector3 p = wheels[i].getContactPoint();
+	  // Note the relative position in WORLD COORDINATES as the second argument
+	  // That is why we multiply by the rotation matrix and not the full transform
 	  chassisBody->applyImpulse(br * (f * timeStep), br *p);
 	}
     }
