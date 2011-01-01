@@ -324,12 +324,12 @@ int heloApp::main(int argc, char *argv[])
   cd.weight = 61300.0;
 
   cd.wheelData.resize(14);
-  wheelupdown = 0.306;
+  wheelupdown = 0.2;
   wheelrev = -3.0;
   float wheeldist = 1.0;
   wheelrl = 1.125;
-  spring = 400000;
-  damping = 20000.0;
+  spring = 600000;
+  damping = 50000.0;
   suspension_length = 0.9;
   // 1st right wheel
   cd.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 6 * wheeldist);
@@ -589,9 +589,9 @@ int heloApp::main(int argc, char *argv[])
     Ogre::SceneNode *n;
     n = current_vehicle->getSceneNode();
     n = current_car->getSceneNode();
-    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(10.0, 0.0, -10.0));
-    campos.y = n->_getDerivedPosition().y + 10.0;
-    cam->setPosition(campos);
+    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(3.0, 0.0, -20.0));
+    campos.y = n->_getDerivedPosition().y + 3.0;
+    //cam->setPosition(campos);
     doOgreUpdate();
     //usleep(50000);
   }

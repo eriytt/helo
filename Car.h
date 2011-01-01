@@ -90,11 +90,6 @@ public:
   }
 };
 
-#define FORCE_AVERAGE_COUNT 2 // Over how many iterations will forces
-			      // affecting the vehicle be averaged. 1
-			      // means no averaging effect at
-			      // all. This reduces jitter due to
-			      // numeric instability significantly
 /* Note that a positive slip is an accelerating slip */
 inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
 {
@@ -184,39 +179,38 @@ protected:
     Wheel(const WheelData &data);
     void updateContact(btCollisionWorld *world, btRigidBody *chassisBody);
     void updateSuspension();
-    void updateFriction(btScalar timeStep, btRigidBody *chassisBody);
+    virtual void updateFriction(btScalar timeStep, btRigidBody *chassisBody);
     void updateRotation(btScalar timeStep, btRigidBody *chassisBody);
     btScalar lateralEquilibrium(btScalar timeStep, btRigidBody *chassisBody);
     btScalar longitudinalEquilibrium(btScalar timeStep,btRigidBody *chassisBody);
     virtual btVector3 sumForces();
+    virtual void updateMotionState();
     void setSteer(btScalar right_radians);
     void setTorque(btScalar torque);
     const btVector3 &getContactPoint();
     const btTransform &getTransform() const;
     void setMotionState(btMotionState *ms) {motionState = ms;}
-
     btScalar getAngularSpeed() {return currentAngularSpeed;}
     btScalar getRadius() {return d.radius;}
     bool isAirborne() {return airborne;}
     btScalar getSuspensionForce() {return currentSuspensionForce;}
-    void addRotation(btScalar rotationSpeed, btScalar rotationAngleDelta)
+    void addRotation(btScalar rotationSpeed, btScalar rotation)
     {
       currentAngularSpeed = rotationSpeed / d.radius;
-      currentAngle += rotationAngleDelta;
+      currentAngle += (rotation / d.radius);
     }
   };
 
 
 protected:
   btRigidBody *chassisBody;
-  std::vector<Wheel> wheels;
+  std::vector<Wheel*> wheels;
 
   int indexRightAxis;
   int indexUpAxis;
   int indexForwardAxis;
   btAlignedObjectArray<btWheelInfo> m_wheelInfo;
 
-  MovingAverageVector<FORCE_AVERAGE_COUNT> wheelForce[4];
   std::vector<btScalar> accelerationTorque;
   btScalar brakingTorque;
 
@@ -227,7 +221,6 @@ public:
   virtual void setAccelerationTorque(unsigned short wheel_index, btScalar acceleration_torque);
   virtual void setBrakeTorque(btScalar brake_torque) {brakingTorque = brake_torque;}
   virtual btScalar getWheelRotationSpeed(unsigned short wheelIndex);
-  virtual const btTransform& getWheelTransformWS(int wheelIndex) const;
   virtual btRigidBody* getRigidBody() {return chassisBody;}
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar step);
   virtual void debugDraw(btIDebugDraw* debugDrawer) {}
@@ -236,7 +229,7 @@ public:
   virtual const btTransform& getChassisWorldTransform() const {return chassisBody->getCenterOfMassTransform();}
   virtual void setSteer(btScalar radians_right);
   virtual void setDriveTorques(const std::vector<btScalar> &torques);
-  virtual Wheel &getWheel(unsigned int);
+  virtual Wheel *getWheel(unsigned int);
 
 protected:
   virtual int getNumWheels() const { return int (m_wheelInfo.size());}

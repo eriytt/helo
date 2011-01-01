@@ -38,6 +38,7 @@ CBRaycastVehicle::Wheel::Wheel(const WheelData &data)
   currentDriveTorque = 0.0;
   currentBrakeTorque = 0.0;
   currentSteerAngle = 0.0;
+  motionState = NULL;
 }
 
 void CBRaycastVehicle::Wheel::setSteer(btScalar right_radians)
@@ -259,12 +260,18 @@ btVector3 CBRaycastVehicle::Wheel::sumForces()
 {
 #warning Redo the coordinates correctly
   //return btVector3(currentAccelerationForce, currentSuspensionForce, latIdx * currentSuspensionForce);
-  currentTransform.setIdentity();
+  return btVector3(latIdx * currentSuspensionForce, currentSuspensionForce, currentAccelerationForce);
+}
+
+void CBRaycastVehicle::Wheel::updateMotionState()
+{
+  if (not motionState)
+    return;
+  //currentTransform.setIdentity();
   currentTransform.setOrigin(btVector3(d.relPos + (d.direction * currentSuspensionLength)));
   currentTransform.setRotation(btQuaternion(d.direction, currentSteerAngle)
   			       * btQuaternion(d.axle, currentAngle));
   motionState->setWorldTransform(currentTransform);
-  return btVector3(latIdx * currentSuspensionForce, currentSuspensionForce, currentAccelerationForce);
 }
 
 const btVector3 &CBRaycastVehicle::Wheel::getContactPoint()
@@ -296,14 +303,14 @@ btWheelInfo& CBRaycastVehicle::getWheelInfo(int index)
 void CBRaycastVehicle::setSteer(btScalar radians_right)
 {
   for (unsigned int i = 0; i < wheels.size(); i++)
-    wheels[i].setSteer(radians_right);
+    wheels[i]->setSteer(radians_right);
 }
 
 void CBRaycastVehicle::setDriveTorques(const std::vector<btScalar> &torques)
 {
   for (unsigned int i = 0; i < torques.size(); i++)
     if (i < wheels.size())
-      wheels[i].setTorque(torques[i]);
+      wheels[i]->setTorque(torques[i]);
 }
 
 void CBRaycastVehicle::setAccelerationTorque(unsigned short wheel_index,
@@ -316,7 +323,7 @@ void CBRaycastVehicle::setAccelerationTorque(unsigned short wheel_index,
 
 void CBRaycastVehicle::addWheel(const WheelData &data)
 {
-  wheels.push_back(Wheel(data));
+  wheels.push_back(new Wheel(data));
 }
 
 void CBRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform)
@@ -389,13 +396,6 @@ btScalar CBRaycastVehicle::getWheelRotationSpeed(unsigned short wheelIndex)
   return m_wheelInfo[wheelIndex].m_deltaRotation;
 }
 
-const btTransform& CBRaycastVehicle::getWheelTransformWS(int wheelIndex) const
-{
-  btAssert(wheelIndex < getNumWheels());
-  const btWheelInfo& wheel = m_wheelInfo[wheelIndex];
-  return wheel.m_worldTransform;
-}
-
 
 // void CBRaycastVehicle::WheelState::calculate(btWheelInfo &wi, int wheel,
 // 					     CBRaycastVehicle &vehicle)
@@ -427,22 +427,23 @@ void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar t
   const btMatrix3x3 &br = bt.getBasis();
   for (int i = 0; i < wheels.size(); ++i)
     {
-      wheels[i].updateContact(collisionWorld, chassisBody);
-      wheels[i].updateSuspension();
-      wheels[i].updateFriction(timeStep, chassisBody);
-      wheels[i].updateRotation(timeStep, chassisBody);
-      btVector3 f = wheels[i].sumForces();
+      wheels[i]->updateContact(collisionWorld, chassisBody);
+      wheels[i]->updateSuspension();
+      wheels[i]->updateFriction(timeStep, chassisBody);
+      wheels[i]->updateRotation(timeStep, chassisBody);
+      btVector3 f = wheels[i]->sumForces();
       if (f.length()) // TODO: better to check if wheel is airborne
 	{
 	  assert(not std::isnan(f.x()));
 	  assert(not std::isnan(f.y()));
 	  assert(not std::isnan(f.z()));
 
-	  btVector3 p = wheels[i].getContactPoint();
+	  btVector3 p = wheels[i]->getContactPoint();
 	  // Note the relative position in WORLD COORDINATES as the second argument
 	  // That is why we multiply by the rotation matrix and not the full transform
 	  chassisBody->applyImpulse(br * (f * timeStep), br *p);
 	}
+      wheels[i]->updateMotionState();
     }
 }
 
@@ -552,9 +553,9 @@ void Car::finishPhysicsConfiguration(Physics *phys)
   phys->addAction(dynamic_cast<btActionInterface*>(rayCastVehicle));
   for (unsigned int i = 0; i != wheelNodes.size(); ++i)
     {
-      btTransform wheel_trans(rayCastVehicle->getWheel(i).getTransform());
+      btTransform wheel_trans(rayCastVehicle->getWheel(i)->getTransform());
       HeloMotionState *ms = new HeloMotionState(wheel_trans, wheelNodes[i]);
-      rayCastVehicle->getWheel(i).setMotionState(ms);
+      rayCastVehicle->getWheel(i)->setMotionState(ms);
       phys->addMotionState(ms);
     }
 
@@ -692,7 +693,7 @@ void Car::finishPhysicsConfiguration(Physics *phys)
    */
 }
 
-CBRaycastVehicle::Wheel &CBRaycastVehicle::getWheel(unsigned int i)
+CBRaycastVehicle::Wheel *CBRaycastVehicle::getWheel(unsigned int i)
 {
   assert(i < wheels.size());
   return wheels[i];
