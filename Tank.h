@@ -73,6 +73,8 @@ public:
   void setDriveTorques(const std::vector<btScalar> &torques);
   void setSteer(btScalar radians_right);
   void addWheel(const WheelData &data);
+  void addDriveWheel(const DriveWheelData &data);
+  void addSpinWheel(const SpinWheelData &data);
   DriveWheel *getDriveWheel(unsigned int);
   SpinWheel *getSpinWheel(unsigned int);
 };
@@ -81,7 +83,15 @@ public:
 class Tank : public Car
 {
 public:
-  typedef Car::CarData TankData;
+  typedef RaycastTank::DriveWheelData DriveWheelData;
+  typedef RaycastTank::SpinWheelData SpinWheelData;
+
+  class TankData : public Car::CarData
+  {
+  public:
+    std::vector<DriveWheelData> driveWheelData;
+    std::vector<SpinWheelData> spinWheelData;
+  };
 
 protected:
   std::vector<Ogre::SceneNode*> driveWheelNodes;
