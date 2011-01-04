@@ -319,27 +319,28 @@ int heloApp::main(int argc, char *argv[])
 
   Tank::TankData td;
   td.name = "abrams";
-  td.meshname = "hmmwv.mesh";
+  td.meshname = "abrams.mesh";
   td.position = Ogre::Vector3(1780.96, 1.0, 1650.3);
-  td.size = Ogre::Vector3(3.66, 2.44, 7.93);
+  td.turretPosition = Ogre::Vector3(0.0, 0.609, 0.03);
+  td.barrelPosition = Ogre::Vector3(0.0, 1.016, 1.442) - Ogre::Vector3(0.0, 0.609, 0.03);
+  td.size = Ogre::Vector3(3.66, 1.3, 7.93);
   td.weight = 61300.0;
 
   td.wheelData.resize(14);
-  wheelupdown = 0.2;
-  wheelrev = -3.0;
-  float wheeldist = 1.0;
-  wheelrl = 1.125;
+  wheelupdown = 0.0;
+  //wheelrl = 1.1408;
+  wheelrl = 1.35;
   spring = 600000;
   damping = 50000.0;
-  suspension_length = 0.9;
+  suspension_length = 0.55;
   // 1st right wheel
-  td.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 6 * wheeldist);
+  td.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, 2.103);
   td.wheelData[0].suspensionLength = suspension_length;
   td.wheelData[0].maxLengthUp = suspension_length - 0.5;
   td.wheelData[0].maxLengthDown = suspension_length + 0.35;
   td.wheelData[0].direction = wheeldown;
   td.wheelData[0].axle = wheel_axle;
-  td.wheelData[0].radius = 0.45;
+  td.wheelData[0].radius = 0.348;
   td.wheelData[0].spring = spring;
   td.wheelData[0].dampUp = damping;
   td.wheelData[0].dampDown = damping;
@@ -349,13 +350,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[0].momentOfInertia = 300.0;
 
   // 1st left wheel
-  td.wheelData[1].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 6 *wheeldist);
+  td.wheelData[1].relPos = btVector3(wheelrl, wheelupdown, 2.103);
   td.wheelData[1].suspensionLength = suspension_length;
   td.wheelData[1].maxLengthUp = suspension_length - 0.5;
   td.wheelData[1].maxLengthDown = suspension_length + 0.35;
   td.wheelData[1].direction = wheeldown;
   td.wheelData[1].axle = wheel_axle;
-  td.wheelData[1].radius = 0.45;
+  td.wheelData[1].radius = 0.348;
   td.wheelData[1].spring = spring;
   td.wheelData[1].dampUp = damping;
   td.wheelData[1].dampDown = damping;
@@ -365,13 +366,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[1].momentOfInertia = 300.0;
 
   // 2nd right wheel
-  td.wheelData[2].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 5 * wheeldist);
+  td.wheelData[2].relPos = btVector3(-wheelrl, wheelupdown, 1.201);
   td.wheelData[2].suspensionLength = suspension_length;
   td.wheelData[2].maxLengthUp = suspension_length - 0.5;
   td.wheelData[2].maxLengthDown = suspension_length + 0.35;
   td.wheelData[2].direction = wheeldown;
   td.wheelData[2].axle = wheel_axle;
-  td.wheelData[2].radius = 0.45;
+  td.wheelData[2].radius = 0.348;
   td.wheelData[2].spring = spring;
   td.wheelData[2].dampUp = damping;
   td.wheelData[2].dampDown = damping;
@@ -381,13 +382,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[2].momentOfInertia = 300.0;
 
   // 2nd left wheel
-  td.wheelData[3].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 5 *wheeldist);
+  td.wheelData[3].relPos = btVector3(wheelrl, wheelupdown, 1.201);
   td.wheelData[3].suspensionLength = suspension_length;
   td.wheelData[3].maxLengthUp = suspension_length - 0.5;
   td.wheelData[3].maxLengthDown = suspension_length + 0.35;
   td.wheelData[3].direction = wheeldown;
   td.wheelData[3].axle = wheel_axle;
-  td.wheelData[3].radius = 0.45;
+  td.wheelData[3].radius = 0.348;
   td.wheelData[3].spring = spring;
   td.wheelData[3].dampUp = damping;
   td.wheelData[3].dampDown = damping;
@@ -397,13 +398,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[3].momentOfInertia = 300.0;
 
   // 3rd right wheel
-  td.wheelData[4].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 4 * wheeldist);
+  td.wheelData[4].relPos = btVector3(-wheelrl, wheelupdown, 0.487);
   td.wheelData[4].suspensionLength = suspension_length;
   td.wheelData[4].maxLengthUp = suspension_length - 0.5;
   td.wheelData[4].maxLengthDown = suspension_length + 0.35;
   td.wheelData[4].direction = wheeldown;
   td.wheelData[4].axle = wheel_axle;
-  td.wheelData[4].radius = 0.45;
+  td.wheelData[4].radius = 0.348;
   td.wheelData[4].spring = spring;
   td.wheelData[4].dampUp = damping;
   td.wheelData[4].dampDown = damping;
@@ -413,13 +414,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[4].momentOfInertia = 300.0;
 
   // 3rd left wheel
-  td.wheelData[5].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 4 *wheeldist);
+  td.wheelData[5].relPos = btVector3(wheelrl, wheelupdown, 0.487);
   td.wheelData[5].suspensionLength = suspension_length;
   td.wheelData[5].maxLengthUp = suspension_length - 0.5;
   td.wheelData[5].maxLengthDown = suspension_length + 0.35;
   td.wheelData[5].direction = wheeldown;
   td.wheelData[5].axle = wheel_axle;
-  td.wheelData[5].radius = 0.45;
+  td.wheelData[5].radius = 0.348;
   td.wheelData[5].spring = spring;
   td.wheelData[5].dampUp = damping;
   td.wheelData[5].dampDown = damping;
@@ -429,13 +430,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[5].momentOfInertia = 300.0;
 
   // 4th right wheel
-  td.wheelData[6].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 3 * wheeldist);
+  td.wheelData[6].relPos = btVector3(-wheelrl, wheelupdown, -0.22);
   td.wheelData[6].suspensionLength = suspension_length;
   td.wheelData[6].maxLengthUp = suspension_length - 0.5;
   td.wheelData[6].maxLengthDown = suspension_length + 0.35;
   td.wheelData[6].direction = wheeldown;
   td.wheelData[6].axle = wheel_axle;
-  td.wheelData[6].radius = 0.45;
+  td.wheelData[6].radius = 0.348;
   td.wheelData[6].spring = spring;
   td.wheelData[6].dampUp = damping;
   td.wheelData[6].dampDown = damping;
@@ -445,13 +446,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[6].momentOfInertia = 300.0;
 
   // 4th left wheel
-  td.wheelData[7].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 3 *wheeldist);
+  td.wheelData[7].relPos = btVector3(wheelrl, wheelupdown, -0.22);
   td.wheelData[7].suspensionLength = suspension_length;
   td.wheelData[7].maxLengthUp = suspension_length - 0.5;
   td.wheelData[7].maxLengthDown = suspension_length + 0.35;
   td.wheelData[7].direction = wheeldown;
   td.wheelData[7].axle = wheel_axle;
-  td.wheelData[7].radius = 0.45;
+  td.wheelData[7].radius = 0.348;
   td.wheelData[7].spring = spring;
   td.wheelData[7].dampUp = damping;
   td.wheelData[7].dampDown = damping;
@@ -461,13 +462,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[7].momentOfInertia = 300.0;
 
   // 5th right wheel
-  td.wheelData[8].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 2 * wheeldist);
+  td.wheelData[8].relPos = btVector3(-wheelrl, wheelupdown, -0.945);
   td.wheelData[8].suspensionLength = suspension_length;
   td.wheelData[8].maxLengthUp = suspension_length - 0.5;
   td.wheelData[8].maxLengthDown = suspension_length + 0.35;
   td.wheelData[8].direction = wheeldown;
   td.wheelData[8].axle = wheel_axle;
-  td.wheelData[8].radius = 0.45;
+  td.wheelData[8].radius = 0.348;
   td.wheelData[8].spring = spring;
   td.wheelData[8].dampUp = damping;
   td.wheelData[8].dampDown = damping;
@@ -477,13 +478,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[8].momentOfInertia = 300.0;
 
   // 5th left wheel
-  td.wheelData[9].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 2 * wheeldist);
+  td.wheelData[9].relPos = btVector3(wheelrl, wheelupdown, -0.945);
   td.wheelData[9].suspensionLength = suspension_length;
   td.wheelData[9].maxLengthUp = suspension_length - 0.5;
   td.wheelData[9].maxLengthDown = suspension_length + 0.35;
   td.wheelData[9].direction = wheeldown;
   td.wheelData[9].axle = wheel_axle;
-  td.wheelData[9].radius = 0.45;
+  td.wheelData[9].radius = 0.348;
   td.wheelData[9].spring = spring;
   td.wheelData[9].dampUp = damping;
   td.wheelData[9].dampDown = damping;
@@ -493,13 +494,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[9].momentOfInertia = 300.0;
 
   // 6th right wheel
-  td.wheelData[10].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 1 * wheeldist);
+  td.wheelData[10].relPos = btVector3(-wheelrl, wheelupdown, -1.687);
   td.wheelData[10].suspensionLength = suspension_length;
   td.wheelData[10].maxLengthUp = suspension_length - 0.5;
   td.wheelData[10].maxLengthDown = suspension_length + 0.35;
   td.wheelData[10].direction = wheeldown;
   td.wheelData[10].axle = wheel_axle;
-  td.wheelData[10].radius = 0.45;
+  td.wheelData[10].radius = 0.348;
   td.wheelData[10].spring = spring;
   td.wheelData[10].dampUp = damping;
   td.wheelData[10].dampDown = damping;
@@ -509,13 +510,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[10].momentOfInertia = 300.0;
 
   // 6th left wheel
-  td.wheelData[11].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 1 * wheeldist);
+  td.wheelData[11].relPos = btVector3(wheelrl, wheelupdown, -1.687);
   td.wheelData[11].suspensionLength = suspension_length;
   td.wheelData[11].maxLengthUp = suspension_length - 0.5;
   td.wheelData[11].maxLengthDown = suspension_length + 0.35;
   td.wheelData[11].direction = wheeldown;
   td.wheelData[11].axle = wheel_axle;
-  td.wheelData[11].radius = 0.45;
+  td.wheelData[11].radius = 0.348;
   td.wheelData[11].spring = spring;
   td.wheelData[11].dampUp = damping;
   td.wheelData[11].dampDown = damping;
@@ -525,13 +526,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[11].momentOfInertia = 300.0;
 
   // 7th right wheel
-  td.wheelData[12].relPos = btVector3(-wheelrl, wheelupdown, wheelrev + 0 * wheeldist);
+  td.wheelData[12].relPos = btVector3(-wheelrl, wheelupdown, -2.464);
   td.wheelData[12].suspensionLength = suspension_length;
   td.wheelData[12].maxLengthUp = suspension_length - 0.5;
   td.wheelData[12].maxLengthDown = suspension_length + 0.35;
   td.wheelData[12].direction = wheeldown;
   td.wheelData[12].axle = wheel_axle;
-  td.wheelData[12].radius = 0.45;
+  td.wheelData[12].radius = 0.348;
   td.wheelData[12].spring = spring;
   td.wheelData[12].dampUp = damping;
   td.wheelData[12].dampDown = damping;
@@ -541,13 +542,13 @@ int heloApp::main(int argc, char *argv[])
   td.wheelData[12].momentOfInertia = 300.0;
 
   // 7th left wheel
-  td.wheelData[13].relPos = btVector3(wheelrl, wheelupdown, wheelrev + 0 * wheeldist);
+  td.wheelData[13].relPos = btVector3(wheelrl, wheelupdown, -2.464);
   td.wheelData[13].suspensionLength = suspension_length;
   td.wheelData[13].maxLengthUp = suspension_length - 0.5;
   td.wheelData[13].maxLengthDown = suspension_length + 0.35;
   td.wheelData[13].direction = wheeldown;
   td.wheelData[13].axle = wheel_axle;
-  td.wheelData[13].radius = 0.45;
+  td.wheelData[13].radius = 0.348;
   td.wheelData[13].spring = spring;
   td.wheelData[13].dampUp = damping;
   td.wheelData[13].dampDown = damping;
@@ -560,14 +561,14 @@ int heloApp::main(int argc, char *argv[])
   td.driveWheelData.resize(2);
 
   // right drive wheel
-  td.driveWheelData[0].relPos = btVector3(-1.125, 0.0, 0.0);
-  td.driveWheelData[0].realRelPos = btVector3(-1.125, 0.0, -4.0);
+  td.driveWheelData[0].relPos = btVector3(-1.518, 0.0, 0.0);
+  td.driveWheelData[0].realRelPos = btVector3(-1.518, 0.062, -3.143);
   td.driveWheelData[0].suspensionLength = 50.0;
   td.driveWheelData[0].maxLengthUp = 0.0;
   td.driveWheelData[0].maxLengthDown = 10.0;
   td.driveWheelData[0].direction = btVector3(0.0, -1.0, 0.0);
   td.driveWheelData[0].axle = btVector3(1.0, 0.0, 0.0);
-  td.driveWheelData[0].radius = 0.55;
+  td.driveWheelData[0].radius = 0.3433;
   td.driveWheelData[0].spring = 0.0;
   td.driveWheelData[0].dampUp = 0.0;
   td.driveWheelData[0].dampDown = 0.0;
@@ -577,14 +578,14 @@ int heloApp::main(int argc, char *argv[])
   td.driveWheelData[0].momentOfInertia = 2000.0;
 
   // left drive wheel
-  td.driveWheelData[1].relPos = btVector3(1.125, 0.0, 0.0);
-  td.driveWheelData[1].realRelPos = btVector3(1.125, 0.0, -4.0);
+  td.driveWheelData[1].relPos = btVector3(1.518, 0.0, 0.0);
+  td.driveWheelData[1].realRelPos = btVector3(1.518, 0.062, -3.143);
   td.driveWheelData[1].suspensionLength = 50.0;
   td.driveWheelData[1].maxLengthUp = 0.0;
   td.driveWheelData[1].maxLengthDown = 10.0;
   td.driveWheelData[1].direction = btVector3(0.0, -1.0, 0.0);
   td.driveWheelData[1].axle = btVector3(1.0, 0.0, 0.0);
-  td.driveWheelData[1].radius = 0.55;
+  td.driveWheelData[1].radius = 0.3433;
   td.driveWheelData[1].spring = 0.0;
   td.driveWheelData[1].dampUp = 0.0;
   td.driveWheelData[1].dampDown = 0.0;
@@ -596,14 +597,14 @@ int heloApp::main(int argc, char *argv[])
   td.spinWheelData.resize(2);
 
   // right spin wheel
-  td.spinWheelData[0].relPos = btVector3(-1.125, -0.2, 4.0);
+  td.spinWheelData[0].relPos = btVector3(-1.503, 0.003, 3.223);
   td.spinWheelData[0].axle = btVector3(1.0, 0.0, 0.0);
-  td.spinWheelData[0].radius = 0.35;
+  td.spinWheelData[0].radius = 0.3171;
 
   // left spin wheel
-  td.spinWheelData[1].relPos = btVector3(1.125, -0.2, 4.0);
+  td.spinWheelData[1].relPos = btVector3(1.503, 0.003, 3.223);
   td.spinWheelData[1].axle = btVector3(1.0, 0.0, 0.0);
-  td.spinWheelData[1].radius = 0.35;
+  td.spinWheelData[1].radius = 0.3171;
 
   Tank *abrams = new Tank(td, mRoot);
   physics->addObject(abrams);

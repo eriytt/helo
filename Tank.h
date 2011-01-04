@@ -89,6 +89,8 @@ public:
   class TankData : public Car::CarData
   {
   public:
+    Ogre::Vector3 turretPosition;
+    Ogre::Vector3 barrelPosition;
     std::vector<DriveWheelData> driveWheelData;
     std::vector<SpinWheelData> spinWheelData;
   };

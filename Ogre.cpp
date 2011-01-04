@@ -45,7 +45,7 @@ void heloApp::setupScene()
   Viewport* vp = mRoot->getAutoCreatedWindow()->addViewport(cam, 0 , 0.0, 0.0, 1.0, 1.0);
   vp->setBackgroundColour(ColourValue::Blue);
 
-  cam->setPosition(Vector3(1783, 10, 1600));
+  cam->setPosition(Vector3(1783, 2, 1600));
   cam->lookAt(Vector3(1757.96, 14.59526, 1625.3));
   cam->setNearClipDistance(0.1);
   cam->setFarClipDistance(50000);

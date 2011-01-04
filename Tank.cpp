@@ -11,6 +11,16 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
   node = mgr->getRootSceneNode()->createChildSceneNode(data.name + "_node");
   node->attachObject(ent);
 
+  Ogre::Entity *turret_ent = mgr->createEntity(data.name + "-turrent_ent", "abrams-turret.mesh");
+  Ogre::SceneNode *turret_node = node->createChildSceneNode(data.name + "-turret_node");
+  turret_node->attachObject(turret_ent);
+  turret_node->setPosition(data.turretPosition);
+
+  Ogre::Entity *barrel_ent = mgr->createEntity(data.name + "-barrel_ent", "abrams-barrel.mesh");
+  Ogre::SceneNode *barrel_node = turret_node->createChildSceneNode(data.name + "-barrel_node");
+  barrel_node->attachObject(barrel_ent);
+  barrel_node->setPosition(data.barrelPosition);
+
 
   // create collision shape
   btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.size.x / 2.0,
@@ -21,7 +31,7 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
   // Transform of hull collision shape
   btTransform chassis_shape_trans;
   chassis_shape_trans.setIdentity();
-  chassis_shape_trans.setOrigin(btVector3(0.0, 0.5, 0.0));
+  chassis_shape_trans.setOrigin(btVector3(0.0, 0.2, 0.0));
   comp->addChildShape(chassis_shape_trans, chassis_shape);
   shape = comp;
 
@@ -37,8 +47,8 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
   for (unsigned int i = 0; i < data.wheelData.size(); ++i)
     {
       const WheelData &wd = data.wheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "hmmwv-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
+      Ogre::Entity *tent = mgr->createEntity(data.name + "-suspension-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-suspension-wheel.mesh");
+      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-suspension-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
       tnode->attachObject(tent);
       btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
@@ -49,8 +59,8 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
   for (unsigned int i = 0; i < data.driveWheelData.size(); ++i)
     {
       const DriveWheelData &wd = data.driveWheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "drivetire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "hmmwv-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "drivetire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
+      Ogre::Entity *tent = mgr->createEntity(data.name + "-drive-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-drive-wheel.mesh");
+      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-drive-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
       tnode->attachObject(tent);
       btVector3 wheelpos(wd.realRelPos);
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
@@ -61,8 +71,8 @@ Tank::Tank(const TankData &data, Ogre::Root *root)
   for (unsigned int i = 0; i < data.spinWheelData.size(); ++i)
     {
       const SpinWheelData &wd = data.spinWheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "spintire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "hmmwv-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "spintire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
+      Ogre::Entity *tent = mgr->createEntity(data.name + "-spin-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-spin-wheel.mesh");
+      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-spin-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
       tnode->attachObject(tent);
       btVector3 wheelpos(wd.relPos);
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
@@ -99,7 +109,7 @@ RaycastTank::RaycastTank(btRigidBody *chassis) : CBRaycastVehicle(chassis)
 {
   currentSteerAngle = 0.0;
   currentDriveTorque = 0.0;
-  steerSensitivity = 250000.0;
+  steerSensitivity = 100000.0;
 }
 
 void RaycastTank::addDriveWheel(const DriveWheelData &data)
