@@ -1,6 +1,6 @@
 
 DEBUG_FLAGS = -g
-OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o
+OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o
 OGRE = /usr/ogre
 BULLET_DEBUG = /usr/bullet-debug
 BULLET_OPT = /usr/bullet
