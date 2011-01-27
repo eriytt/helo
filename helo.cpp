@@ -9,6 +9,7 @@
 #include "Helicopter.h"
 #include "Car.h"
 #include "Tank.h"
+#include "Character.h"
 
 class Error {
 public:
@@ -18,8 +19,8 @@ public:
   }
 };
 
-heloApp::heloApp(): mExit(false), mRoot(0), cam(0), mKeyboard(0), mInputManager(0), terrain(0), physics(0),
-		    current_vehicle(0)
+heloApp::heloApp(): mExit(false), mRoot(0), cam(0), timer(0), mKeyboard(0), mInputManager(0), terrain(0),
+		    physics(0), lastFrameTime_us(0), current_vehicle(0)
 {
 }
 
@@ -609,19 +610,27 @@ int heloApp::main(int argc, char *argv[])
   Tank *abrams = new Tank(td, mRoot);
   physics->addObject(abrams);
 
-
+  Character *soldier = new Character(mRoot);
 
   current_vehicle = defender;
   current_car = abrams;
+  current_soldier = soldier;
   cam->setAutoTracking(true, current_vehicle->getSceneNode());
   cam->setAutoTracking(true, current_car->getSceneNode());
+  cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
 
   physics->finishConfiguration();
 
+  timer->reset();
+  lastFrameTime_us = timer->getMicroseconds();
   while (not mExit) {
     //std::cout << "rendering" << std::endl;
+    unsigned long frame_time = timer->getMicroseconds();
+    Ogre::Real tdelta = (frame_time - lastFrameTime_us) / Ogre::Real(1000000);
+    lastFrameTime_us = frame_time;
     physics->step();
     physics->sync();
+    soldier->update(tdelta);
     //btTransform trans = sphere->getWorldTransform();
     //Ogre::Real mat[16];
     // Ogre::matrix omat(mat[0],mat[1],mat[2],mat[3],
@@ -639,8 +648,9 @@ int heloApp::main(int argc, char *argv[])
     Ogre::SceneNode *n;
     n = current_vehicle->getSceneNode();
     n = current_car->getSceneNode();
-    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(3.0, 0.0, -20.0));
-    campos.y = n->_getDerivedPosition().y + 3.0;
+    n = soldier->getSceneNode();
+    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(2.0, 0.0, 2.0));
+    campos.y = n->_getDerivedPosition().y + 2.0;
     //cam->setPosition(campos);
     doOgreUpdate();
     //usleep(50000);
@@ -769,7 +779,7 @@ bool heloApp::axisMoved(const OIS::JoyStickEvent &e, int idx)
 
   float collective = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
   float steer = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  float cyclic_forward = -e.state.mAxes[4].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  float cyclic_forward = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
   float cyclic_right = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
   current_vehicle->setCollective(collective);
   current_vehicle->setSteer(steer);

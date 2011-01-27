@@ -105,6 +105,7 @@ void heloApp::setupCEGUI()
 void heloApp::createFrameListener()
 {
   mRoot->addFrameListener(this);
+  timer = new Ogre::Timer();
 }
 
 

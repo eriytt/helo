@@ -17,6 +17,7 @@ class heloApp : public Ogre::FrameListener, public OIS::KeyListener, public OIS:
 protected:
   Ogre::Root *mRoot;
   Ogre::Camera *cam;
+  Ogre::Timer * timer;
   OIS::Keyboard *mKeyboard;
   OIS::JoyStick *mJoy;
   OIS::InputManager *mInputManager;
@@ -49,6 +50,7 @@ protected:
 protected:
   Terrain *terrain;
   Physics *physics;
+  unsigned long lastFrameTime_us;
 
   // Testing
 protected:
@@ -59,6 +61,7 @@ protected:
 protected:
   class Helicopter *current_vehicle;
   class Car *current_car;
+  class Character *current_soldier;
 
 public:
   heloApp();
