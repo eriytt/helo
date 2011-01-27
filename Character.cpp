@@ -11,39 +11,89 @@ void AnimAction::update(Ogre::Real tdelta, Ogre::SceneNode *node)
   node->translate(trans * tdelta);
 }
 
-AnimQueue::AnimQueue(Ogre::Entity *entity, AnimAction &start_action) :
-  ent(entity), currentAnim(*(ent->getAnimationState(start_action.getName())), start_action)
+AnimQueue::AnimQueue(Ogre::Entity *entity, AnimQueue::Source &s) : source(s), ent(entity)
 {
-  currentAnim.state.setEnabled(true);
-  currentAnim.state.setLoop(false);
+  reset();
 }
 
-void AnimQueue::push(AnimAction &action)
+Ogre::Real AnimQueue::AnimChannel::push(AnimAction &action, Ogre::Real starttime, Ogre::Entity *ent)
 {
   Ogre::AnimationState *astate = ent->getAnimationState(action.getName());
-  queue.push(Anim(*astate, action));
+  float stoptime = starttime + astate->getLength();
+  queue.push(Anim(*astate, action, starttime, stoptime));
+  std::cout << "Pushing animation: " << action.getName() << " at " << starttime << " - " << stoptime << std::endl;
+  return stoptime;
 }
 
-void AnimQueue::update(Ogre::Real tdelta, Ogre::SceneNode *node)
+bool AnimQueue::AnimChannel::isFree(float time)
 {
-  if (currentAnim.state.hasEnded())
-    if (not queue.empty())
-      {
-	// Stop the old animation
-	currentAnim.state.setEnabled(false);
+  if (queue.empty())
+    return true;
+  return queue.back().stop <= time;
+}
 
-	currentAnim = queue.front();
-	queue.pop();
+void AnimQueue::AnimChannel::runChannel(Ogre::Real tdelta, Ogre::Real abstime, Ogre::SceneNode *node)
+{
+  if (queue.empty())
+    return;
 
-	// Start the new animation
-	currentAnim.state.setTimePosition(0.0);
-	currentAnim.state.setLoop(false);
-	currentAnim.state.setEnabled(true);
-      }
+  float rate = 0.1 * 10.0;
+  abstime *= rate;
 
-  float rate = 0.1 * 10;
-  currentAnim.state.addTime(tdelta * rate);
-  currentAnim.action.update(tdelta * rate, node);
+  if (queue.front().start > abstime)
+    return;
+
+  if (not queue.front().state.getEnabled())
+    {
+      std::cout << "Starting animation: " << queue.front().action.getName() << ":" << queue.front().start
+		<< "  abstime:" << abstime << std::endl;
+      queue.front().state.setEnabled(true);
+      queue.front().state.setLoop(false);
+      queue.front().state.setTimePosition(0.0);
+    }
+
+  if (queue.front().state.hasEnded())
+    {
+      queue.front().state.setEnabled(false);
+      if (queue.size() == 1)
+	source.channelEmpty(queue.front().action, queue.front().stop);
+
+      queue.pop();
+      runChannel(tdelta, abstime, node);
+      return;
+    }
+
+  queue.front().state.addTime(tdelta * rate);
+  queue.front().action.update(tdelta * rate, node);
+}
+
+Ogre::Real AnimQueue::push(AnimAction &action)
+{
+  return push(action, timer.getMicroseconds() / Ogre::Real(1000000));
+}
+
+Ogre::Real AnimQueue::push(AnimAction &action, Ogre::Real starttime)
+{
+  // Find a free queue or create and push action on that queue
+  for (size_t c = 0; c < channels.size(); ++c)
+    if (channels[c].isFree(starttime))
+	return channels[c].push(action, starttime, ent);
+
+
+  // No available queue, create a new
+  channels.push_back(AnimChannel(source));
+  return channels.back().push(action, starttime, ent);
+}
+
+void AnimQueue::update(Ogre::SceneNode *node)
+{
+  unsigned long frame_time = timer.getMicroseconds();
+  Ogre::Real tdelta = (frame_time - lastFrameTime_us) / Ogre::Real(1000000);
+  lastFrameTime_us = frame_time;
+  Ogre::Real abstime = frame_time / Ogre::Real(1000000);
+
+  for (size_t c = 0; c < channels.size(); ++c)
+    channels[c].runChannel(tdelta, abstime, node);
 }
 
 Character::Character(Ogre::Root *root)
@@ -81,42 +131,52 @@ Character::Character(Ogre::Root *root)
   pvwex->setTranslation(Ogre::Vector3(0.0, 0.0, 1.4));
 
 
-  animQueue = new AnimQueue(ent, *pi);
-  animQueue->push(*pv);
-  animQueue->push(*pvwen);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvwex);
+  animQueue = new AnimQueue(ent, *this);
+  Ogre::Real stoptime = animQueue->push(*pi);
+  stoptime = animQueue->push(*pv, stoptime);
+  stoptime = animQueue->push(*pvwen, stoptime);
+  stoptime = animQueue->push(*pvw, stoptime);
+  stoptime = animQueue->push(*pvw, stoptime);
+  stoptime = animQueue->push(*pvw, stoptime);
+  animQueue->push(*pvw, stoptime);
+  animQueue->push(*pi, stoptime);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvwex);
 
-  animQueue->push(*pvwen);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvwex);
+  // animQueue->push(*pvwen);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvwex);
 
-  animQueue->push(*pvwen);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvw);
-  animQueue->push(*pvwex);
+  // animQueue->push(*pvwen);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvw);
+  // animQueue->push(*pvwex);
 }
 
 
 void Character::update(Ogre::Real tdelta)
 {
-  animQueue->update(tdelta, node);
+  animQueue->update(node);
+}
+
+void Character::channelEmpty(const AnimAction &last_action, Ogre::Real stoptime)
+{
+  std::cout << "Some channel emptied, last action played was " << last_action.getName() << std::endl;
 }
