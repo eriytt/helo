@@ -124,13 +124,11 @@ void heloApp::initOGRE()
 
 bool heloApp::frameStarted(const FrameEvent& evt)
 {
-  //as->addTime(evt.timeSinceLastFrame);
-  //std::cout << "frameStarted" << std::endl;
   mKeyboard->capture();
   mJoy->capture();
   mExit = mKeyboard->isKeyDown(OIS::KC_ESCAPE);
 
-  //  handleInput();
+  handleInput();
   return not mExit;
 }
 
