@@ -651,7 +651,7 @@ int heloApp::main(int argc, char *argv[])
     n = soldier->getSceneNode();
     Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(-2.0, 0.0, 5.0));
     campos.y = n->_getDerivedPosition().y + 2.0;
-    cam->setPosition(campos);
+    //    cam->setPosition(campos);
     doOgreUpdate();
     //usleep(50000);
   }
@@ -833,6 +833,10 @@ void heloApp::handleInput()
 
 
   current_soldier->setForward(mKeyboard->isKeyDown(OIS::KC_W));
+  current_soldier->setSideStep(mKeyboard->isKeyDown(OIS::KC_A) ? 1 :
+			       mKeyboard->isKeyDown(OIS::KC_D) ? -1 : 0.0);
+  current_soldier->setTurn(mKeyboard->isKeyDown(OIS::KC_Q) ? 1 :
+			   mKeyboard->isKeyDown(OIS::KC_E) ? -1 : 0.0);
 
   //if (mKeyboard->isKeyDown(OIS::KC_P))
   //  std::cout << "Height: " << sphere_node->getPosition().y << std::endl;

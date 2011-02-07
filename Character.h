@@ -6,6 +6,7 @@
 
 class AnimAction
 {
+
 public:
   typedef enum
     {
@@ -58,12 +59,54 @@ public:
       EndPose
     } PlayType;
 
+  class Modifier
+  {
+  public:
+    typedef enum
+      {
+	Direction,
+	Rotation,
+	Rate,
+	LastMod
+      } ModType;
+
+  protected:
+    Ogre::Real parameter;
+
+  public:
+    Modifier(Ogre::Real p) : parameter(p) {}
+    virtual void modify(Ogre::Vector3 &translation, Ogre::Quaternion &rotation, Ogre::SceneNode *node,
+			const Ogre::Real &abstime, Ogre::Real &tdelta, Ogre::Real param) const = 0;
+    virtual ModType getType() const = 0;
+  };
+
+  class DirectionMod : public Modifier
+  {
+  public:
+    DirectionMod(Ogre::Real p) : Modifier(p) {}
+    void modify(Ogre::Vector3 &translation, Ogre::Quaternion &rotation, Ogre::SceneNode *node,
+		const Ogre::Real &abstime, Ogre::Real &tdelta, Ogre::Real param) const
+    {translation = Ogre::Quaternion(Ogre::Radian(parameter * param), Ogre::Vector3(0.0, 1.0, 0.0)) * translation;}
+    ModType getType() const {return Modifier::Direction;}
+  };
+
+  class RotationMod : public Modifier
+  {
+  public:
+    RotationMod(Ogre::Real p) : Modifier(p) {}
+    void modify(Ogre::Vector3 &translation, Ogre::Quaternion &rotation, Ogre::SceneNode *node,
+		const Ogre::Real &abstime, Ogre::Real &tdelta, Ogre::Real param) const
+    {rotation = Ogre::Quaternion(Ogre::Radian(parameter * param), Ogre::Vector3(0.0, 1.0, 0.0));}
+    ModType getType() const {return Modifier::Rotation;}
+  };
+
 protected:
   Ogre::Vector3 trans;
   std::string name;
   State startState;
   State endState;
   PlayType type;
+  std::vector<const Modifier*> modifiers;
 
 public:
   AnimAction(std::string action_name, PlayType t = Play);
@@ -75,6 +118,8 @@ public:
   const State &getStartState() const {return startState;}
   const State &getEndState() const {return endState;}
   const std::string &getName() const {return name;}
+  void addModifier(Modifier *mod) {modifiers.push_back(mod);}
+  const std::vector<const Modifier*> &getModifiers() {return modifiers;}
 };
 
 class Graph
@@ -264,7 +309,7 @@ protected:
     float getStopTime() {return stop;}
     bool isPlaying(Ogre::Real abstime);
     bool hasEnded(Ogre::Real abstime);
-    void update(Ogre::Real tdelta, Ogre::SceneNode *node);
+    void update(Ogre::Real tdelta, Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers);
   };
 
   class AnimChannel
@@ -276,7 +321,7 @@ protected:
   public:
     AnimChannel(AnimQueue::Source &s) : source(s) {}
     void operator=(AnimChannel &other) {source = other.source;}
-    void runChannel(Ogre::Real tdelta, Ogre::Real abstime, Ogre::SceneNode *node);
+    void runChannel(Ogre::Real tdelta, Ogre::Real abstime, Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers);
     Ogre::Real push(const AnimAction &action, Ogre::Real starttime, Ogre::Entity *ent);
     bool isFree(Ogre::Real starttime);
   };
@@ -295,7 +340,7 @@ public:
   AnimQueue(Ogre::Entity *entity, Source &s);
   Ogre::Real push(const AnimAction &action);                        // Action should start playing now
   Ogre::Real push(const AnimAction &action, Ogre::Real starttime);  // Action should start playing at starttime
-  void update(Ogre::SceneNode *node);
+  void update(Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers);
   void reset() {lastFrameTime_us = timer.getMicroseconds(); timer.reset();}
 
 protected:
@@ -313,11 +358,13 @@ protected:
   AnimAction::State nextState;
   AnimQueue queue;
   std::list<AnimAction> actions;
+  std::map<AnimAction::Modifier::ModType, Ogre::Real> modifiers;
 
 public:
   AnimScheduler(Ogre::Entity *entity);
   void registerAction(AnimAction &action) {actions.push_back(action); graph.addEdge(static_cast<Graph::EdgeObj&>(action));}
   void setState(AnimAction::AnimMode mode, AnimAction::AnimState state) {nextState[mode] = state;}
+  void setModifier(AnimAction::Modifier::ModType t, Ogre::Real val) {modifiers[t] = val;}
   void update(Ogre::SceneNode * node);
   void channelEmpty(const AnimAction *last_action, Ogre::Real stoptime);
 };
@@ -335,6 +382,11 @@ public:
   void update(Ogre::Real tdelta);
   Ogre::SceneNode *getSceneNode() {return node;}
   void setForward(bool fw) {animSched->setState(AnimAction::Movement, fw ? AnimAction::Walk : AnimAction::Idle);}
+  void setSideStep(int val) {animSched->setModifier(AnimAction::Modifier::Direction,
+						    val > 0 ? 0.25 : val < 0 ? -0.25 : 0.0);}
+  void setTurn(int val) {animSched->setModifier(AnimAction::Modifier::Rotation,
+						    val > 0 ? 0.005 : val < 0 ? -0.005 : 0.0);}
+
 };
 
 #endif // CHARACTER_h

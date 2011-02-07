@@ -11,11 +11,24 @@ AnimQueue::Anim::Anim(Ogre::AnimationState &s, const AnimAction &a, float startt
     stop = start + 0.2;
 }
 
-void AnimQueue::Anim::update(Ogre::Real tdelta, Ogre::SceneNode *node)
+void AnimQueue::Anim::update(Ogre::Real tdelta, Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers)
 {
+  const std::vector<const AnimAction::Modifier*> &mods = action.getModifiers();
+  Ogre::Vector3 translation = action.getTranslation();
+  Ogre::Quaternion rotation(Ogre::Quaternion::IDENTITY);
+
+  for (unsigned int i = 0; i < mods.size(); ++i)
+    {
+      AnimAction::Modifier::ModType mt = mods[i]->getType();
+      std::map<AnimAction::Modifier::ModType, Ogre::Real>::iterator iter = modifiers.find(mt);
+      if (iter != modifiers.end())
+	mods[i]->modify(translation, rotation, node, 0.0, tdelta, (*iter).second);
+    }
+
   if (action.getType() == AnimAction::Play)
     state.addTime(tdelta);
-  node->translate(action.getTranslation() * tdelta);
+  node->translate(translation * tdelta, Ogre::SceneNode::TS_LOCAL);
+  node->rotate(rotation * tdelta);
 }
 
 void AnimQueue::Anim::startAnim()
@@ -63,7 +76,7 @@ bool AnimQueue::AnimChannel::isFree(float time)
   return queue.back().stop <= time;
 }
 
-void AnimQueue::AnimChannel::runChannel(Ogre::Real tdelta, Ogre::Real abstime, Ogre::SceneNode *node)
+void AnimQueue::AnimChannel::runChannel(Ogre::Real tdelta, Ogre::Real abstime, Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers)
 {
   if (queue.empty())
     {
@@ -72,7 +85,7 @@ void AnimQueue::AnimChannel::runChannel(Ogre::Real tdelta, Ogre::Real abstime, O
     }
 
   float rate = 0.1 * 10.0;
-  abstime *= rate;
+  abstime *= rate; // TODO: is this really correct, it assumes a constant rate...
 
   if (queue.front().getStartTime() > abstime)
     return;
@@ -91,11 +104,11 @@ void AnimQueue::AnimChannel::runChannel(Ogre::Real tdelta, Ogre::Real abstime, O
 	source.channelEmpty(&queue.front().action, queue.front().stop);
 
       queue.pop();
-      runChannel(tdelta, abstime, node);
+      runChannel(tdelta, abstime, node, modifiers);
       return;
     }
 
-  queue.front().update(tdelta * rate, node);
+  queue.front().update(tdelta * rate, node, modifiers);
 }
 
 AnimQueue::AnimQueue(Ogre::Entity *entity, AnimQueue::Source &s) : source(s), ent(entity)
@@ -124,7 +137,7 @@ Ogre::Real AnimQueue::push(const AnimAction &action, Ogre::Real starttime)
   return channels.back().push(action, starttime, ent);
 }
 
-void AnimQueue::update(Ogre::SceneNode *node)
+void AnimQueue::update(Ogre::SceneNode *node, std::map<AnimAction::Modifier::ModType, Ogre::Real> &modifiers)
 {
   unsigned long frame_time = timer.getMicroseconds();
   Ogre::Real tdelta = (frame_time - lastFrameTime_us) / Ogre::Real(1000000);
@@ -132,7 +145,7 @@ void AnimQueue::update(Ogre::SceneNode *node)
   Ogre::Real abstime = frame_time / Ogre::Real(1000000);
 
   for (size_t c = 0; c < channels.size(); ++c)
-    channels[c].runChannel(tdelta, abstime, node);
+    channels[c].runChannel(tdelta, abstime, node, modifiers);
 }
 
 
@@ -149,7 +162,7 @@ AnimScheduler::AnimScheduler(Ogre::Entity *entity) : ent(entity), queue(entity, 
 
 void AnimScheduler::update(Ogre::SceneNode *node)
 {
-  queue.update(node);
+  queue.update(node, modifiers);
 }
 
 void AnimScheduler::channelEmpty(const AnimAction *last_action, Ogre::Real stoptime)
@@ -186,7 +199,6 @@ Character::Character(Ogre::Root *root)
   ent->attachObjectToBone("Bone.002_L.004", went);
 
 
-  //AnimAction *pi = new AnimAction("PatrolIdle");
   AnimAction *pv = new AnimAction("PatrolVigilant");
   pv->setStartState(AnimAction::Movement, AnimAction::Idle);
   pv->setStartState(AnimAction::Head, AnimAction::Look);
@@ -210,6 +222,8 @@ Character::Character(Ogre::Root *root)
   pvw->setEndState(AnimAction::Movement, AnimAction::Walk);
   pvw->setEndState(AnimAction::Head, AnimAction::Aim);
   pvw->setEndState(AnimAction::Pose, AnimAction::Stand);
+  pvw->addModifier(new AnimAction::DirectionMod(1.0));
+  pvw->addModifier(new AnimAction::RotationMod(1.0));
 
   AnimAction *pvwen = new AnimAction("PatrolVigilantWalkEnt");
   pvwen->setStartState(AnimAction::Movement, AnimAction::Idle);
@@ -230,57 +244,18 @@ Character::Character(Ogre::Root *root)
 
   pv->setTranslation(Ogre::Vector3(0.0, 0.0, 0.4));
   pvwen->setTranslation(Ogre::Vector3(0.0, 0.0, 1.2));
-  pvw->setTranslation(Ogre::Vector3(0.0, 0.0, 1.6));
+  pvw->setTranslation(Ogre::Vector3(0.0, 0.0, 1.5));
   pvwex->setTranslation(Ogre::Vector3(0.0, 0.0, 1.4));
 
 
   animSched = new AnimScheduler(ent);
-  //animSched->registerAction(*pi);
   animSched->registerAction(*pv);
   animSched->registerAction(*pvpose);
   animSched->registerAction(*pvwen);
   animSched->registerAction(*pvw);
   animSched->registerAction(*pvwex);
 
-  //animSched->setState(AnimAction::Movement, AnimAction::Walk);
   animSched->setState(AnimAction::Head, AnimAction::Aim);
-
-  // Ogre::Real stoptime = animQueue->push(*pi);
-  // stoptime = animQueue->push(*pv, stoptime);
-  // stoptime = animQueue->push(*pvwen, stoptime);
-  // stoptime = animQueue->push(*pvw, stoptime);
-  // stoptime = animQueue->push(*pvw, stoptime);
-  // stoptime = animQueue->push(*pvw, stoptime);
-  // animQueue->push(*pvw, stoptime);
-  // animQueue->push(*pi, stoptime);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvwex);
-
-  // animQueue->push(*pvwen);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvwex);
-
-  // animQueue->push(*pvwen);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvw);
-  // animQueue->push(*pvwex);
 }
 
 
