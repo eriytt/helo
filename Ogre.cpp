@@ -9,7 +9,7 @@ void heloApp::createRoot()
 {
   fs::path pc = "plugins.cfg";
   std::cout << "plugins.cfg: " << pc << std::endl;
-  mRoot = new Root(String(pc.file_string()));
+  mRoot = new Root(String(pc.string()));
 }
 
 void heloApp::defineResources()

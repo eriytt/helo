@@ -19,7 +19,7 @@ CXXFLAGS = -Wall $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_INCLUDE) $(BULLET_INCLUDE)
 OGRE_LIBS = -L$(OGRE)/lib -lOgreMain -lOgreTerrain -lOgrePaging
 BULLET_LIBS = -L$(BULLET)/lib -lBulletDynamics -lBulletCollision  -lLinearMath
 OIS_LIBS = -lOIS
-BOOST_LIBS = -lboost_system
+BOOST_LIBS = -lboost_system -lboost_thread -lboost_filesystem
 LDFLAGS = $(BULLET_LIBS) $(OGRE_LIBS) $(OIS_LIBS) $(BOOST_LIBS) 
 
 helo: $(OBJECTS)
