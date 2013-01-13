@@ -1,11 +1,12 @@
 #ifndef HELICOPTER_H
 #define HELICOPTER_H
 
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include <btBulletDynamicsCommon.h>
 
 #include "Physics.h"
 #include "Utils.h"
+#include "Controllers.h"
 
 class Rotor
 {
@@ -58,7 +59,7 @@ public:
 };
 
 
-class Helicopter : public PhysicsObject
+class Helicopter : public PhysicsObject, public Controllable, public HeloUtils::Trackable
 {
 public:
   typedef struct
@@ -113,6 +114,7 @@ public:
   void setCyclicRight(float right) {cyclic_right = HeloUtils::unit_clamp(right);}
   void setSteer(float val) {steer = HeloUtils::unit_clamp(val);}
   Ogre::SceneNode *getSceneNode() {return node;}
+  Controller *createController(OIS::Object *dev) {return NULL;}
 
 protected:
   virtual void setRotorInput();

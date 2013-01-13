@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <btBulletDynamicsCommon.h>
+#include <BulletDynamics/ConstraintSolver/btContactConstraint.h>
 
 #include "Physics.h"
 #include "DriveTrain.h"
@@ -75,7 +76,7 @@ void CBRaycastVehicle::Wheel::updateContact(btCollisionWorld *world, btRigidBody
   world->rayTest(source, target, rayCallback);
 
 
-  btRigidBody* hit = rayCallback.m_collisionObject ? btRigidBody::upcast(rayCallback.m_collisionObject) : 0;
+  const btRigidBody* hit = rayCallback.m_collisionObject ? btRigidBody::upcast(rayCallback.m_collisionObject) : 0;
 
   if (not hit or not hit->hasContactResponse())
     {
@@ -91,7 +92,9 @@ void CBRaycastVehicle::Wheel::updateContact(btCollisionWorld *world, btRigidBody
       const btMatrix3x3 &inv_rot = invChassisTransform.getBasis();
 
       airborne = false;
-      currentGround = hit;
+      currentGround = const_cast<btRigidBody*>(hit); // Hmm, dangerous
+						     // cast, how to
+						     // do this?
       contactPoint = invChassisTransform * rayCallback.m_hitPointWorld;
       contactNormal = inv_rot * rayCallback.m_hitNormalWorld;
       // TODO: is it really necessary to normalize the normal?
@@ -425,7 +428,7 @@ void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar t
   // simulate suspension
   const btTransform &bt = chassisBody->getCenterOfMassTransform();
   const btMatrix3x3 &br = bt.getBasis();
-  for (int i = 0; i < wheels.size(); ++i)
+  for (unsigned int i = 0; i < wheels.size(); ++i)
     {
       wheels[i]->updateContact(collisionWorld, chassisBody);
       wheels[i]->updateSuspension();
@@ -910,4 +913,50 @@ float Car::getSpeed()
 {
   //return speed;
   return 0;
+}
+
+Controller *Car::createController(OIS::Object *dev)
+{
+  if (dynamic_cast<OIS::JoyStick*>(dev))
+    return NULL;
+  else if (dynamic_cast<OIS::Mouse*>(dev))
+    return NULL;
+  else if (dynamic_cast<OIS::Keyboard*>(dev))
+    return controller = new CarKeyController(*static_cast<OIS::Keyboard*>(dev), *this);
+  else
+    return NULL;
+}
+
+bool CarKeyController::keyPressed(const OIS::KeyEvent& e)
+{
+  return true;
+}
+
+bool CarKeyController::keyReleased(const OIS::KeyEvent& e)
+{
+  return true;
+}
+
+void CarKeyController::update(float timeDelta)
+{
+  if (not active)
+    return;
+
+  keyboard.setEventCallback(this);
+
+  if (keyboard.isKeyDown(OIS::KC_A))
+    car.setSteer(Ogre::Real(-HeloUtils::PI_4));
+  else if (keyboard.isKeyDown(OIS::KC_D))
+    car.setSteer(Ogre::Real(HeloUtils::PI_4));
+  else
+    car.setSteer(Ogre::Real(0.0));
+
+  if (keyboard.isKeyDown(OIS::KC_W))
+    car.setThrottle(HeloUtils::Fraction(1, 1));
+  else
+    car.setThrottle(HeloUtils::Fraction(0, 1));
+
+  // if (mKeyboard->isKeyDown(OIS::KC_S))
+  //   car->setThrottle(Ogre::Fraction(0, 1));
+
 }

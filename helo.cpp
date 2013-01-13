@@ -19,8 +19,11 @@ public:
   }
 };
 
-heloApp::heloApp(): mExit(false), mRoot(0), cam(0), timer(0), mKeyboard(0), mInputManager(0), terrain(0),
-		    physics(0), lastFrameTime_us(0), current_vehicle(0)
+
+Ogre::String heloApp::DefaultTerrainResourceGroup("Terrain/Default");
+
+heloApp::heloApp(): mRoot(0), cam(0), timer(0), terrain(0),
+		    physics(0), lastFrameTime_us(0), mExit(false)
 {
 }
 
@@ -36,91 +39,12 @@ heloApp::~heloApp()
     delete mRoot;
 }
 
-int heloApp::main(int argc, char *argv[])
+Controllable *heloApp::create_HMMWV(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
 {
-  initOGRE();
-
-  terrain = new ::Terrain(mRoot);
-  // TODO: maybe there should be some space above the highest top of the terrain?
-  physics = new Physics(terrain->getBounds(), true);
-  physics->addBody(terrain->createBody());
-
-
-  Ogre::SceneManager *mgr = mRoot->getSceneManager("SceneManager");
-  Ogre::Entity *ent = mgr->createEntity("Sphere", "Sphere.mesh");
-  //ent->setCastShadows(true);
-  sphere_node = mgr->getRootSceneNode()->createChildSceneNode("SphereNode");
-  sphere_node->setPosition(Ogre::Vector3(1683 / 1.2, 50, 2116 / 1.2));
-  sphere_node->attachObject(ent);
-  sphere = physics->testSphere(Ogre::Vector3(1683 / 1.1, 50, 2116 / 1.1), 1.0, sphere_node);
-  physics->addBody(sphere);
-
-  Helicopter::HelicopterData hd;
-  hd.name = "Helo0";
-  hd.meshname = "Defender.mesh";
-  hd.size = Ogre::Vector3(2.59, 2.72, 7.01);
-  hd.pos = Ogre::Vector3(1757.96, 5.59526, 1625.3);
-  hd.boomLength = 6.0;
-  hd.weight = 599.0 + 70.0; // 599 helicopter + 70 pilot
-  hd.collectiveSensitivity = 0.5;
-  hd.cyclicRightSensitivity = 0.0125;
-  hd.cyclicForwardSensitivity = 0.03;
-  hd.steerSensitivity = 1.0;
-  hd.rotorData.resize(1);
-  hd.rotorData[0].weight = 200.0; // no idea what's correct
-  hd.rotorData[0].diameter = 8.03;
-  hd.rotorData[0].relpos = Ogre::Vector3(0.0, 2.45, 0.0);
-  hd.rotorData[0].axis = Ogre::Vector3(0.0, 1.0, 0.0);
-  hd.rotorData[0].rotation_axis = Ogre::Vector3::ZERO;
-  hd.rotorData[0].torque = 313000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
-  hd.rotorData[0].inertia = 100.0;
-  hd.rotorData[0].maxLift = hd.weight * 9.81 * 2;
-  hd.rotorData[0].tiltSensitivity = 0.0;
-
-  Helicopter *defender = new Helicopter(hd, mRoot);
-  physics->addObject(defender);
-
-  hd.name = "Helo1";
-  hd.meshname = "Chinook.mesh";
-  hd.size = Ogre::Vector3(3.69, 3.1, 15.74);
-  hd.pos = Ogre::Vector3(1767.96, 2.59526, 1625.3);
-  hd.boomLength = 0.0;
-  hd.weight = 10185.0 + 3 * 70;
-  //hd.weight = 22680.0;
-  hd.collectiveSensitivity = 0.8;
-  hd.cyclicRightSensitivity = 0.5;
-  hd.cyclicForwardSensitivity = 0.2;
-  hd.steerSensitivity = 1.0;
-
-  hd.rotorData.resize(2);
-  // Front rotor
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].weight = 500.0; // no idea what's correct
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].diameter = 18.3;
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].relpos = Ogre::Vector3(0.0, 2.273, 6.377);
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].axis = Ogre::Vector3(0.0, 2.962, 0.339);
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].rotation_axis = Ogre::Vector3(0.0, -1.381, 12.075);
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].torque = 2796000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].inertia = 200.0;
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].maxLift = (22680 + 1000) * 9.81 / 2.0; // 22680 kg is the max takeoff weight
-  hd.rotorData[TandemRotorHelicopter::FrontRotor].tiltSensitivity = 0.1;
-  // Back rotor
-  hd.rotorData[TandemRotorHelicopter::BackRotor].weight = 500.0; // no idea what's correct
-  hd.rotorData[TandemRotorHelicopter::BackRotor].diameter = 18.3;
-  hd.rotorData[TandemRotorHelicopter::BackRotor].relpos = Ogre::Vector3(0.0, 3.654, -5.698);
-  hd.rotorData[TandemRotorHelicopter::BackRotor].axis = Ogre::Vector3(0.0, 2.962, 0.339);
-  hd.rotorData[TandemRotorHelicopter::BackRotor].rotation_axis = Ogre::Vector3(0.0, -1.381, 12.075);
-  hd.rotorData[TandemRotorHelicopter::BackRotor].torque = -2796000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
-  hd.rotorData[TandemRotorHelicopter::BackRotor].inertia = 200.0;
-  hd.rotorData[TandemRotorHelicopter::BackRotor].maxLift = (22680 + 1000) * 9.81 / 2.0; // 22680 kg is the max takeoff weight
-  hd.rotorData[TandemRotorHelicopter::BackRotor].tiltSensitivity = 0.06;
-
-  Helicopter *chinook = new TandemRotorHelicopter(hd, mRoot);
-  physics->addObject(chinook);
-
   Car::CarData cd;
-  cd.name = "hmmwv";
+  cd.name = name;
   cd.meshname = "hmmwv.mesh";
-  cd.position = Ogre::Vector3(1780.96, 2.0, 1625.3);
+  cd.position = position;
   cd.size = Ogre::Vector3(2.1, 1.5, 4.6);
   cd.weight = 2340;
 
@@ -198,24 +122,103 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[3].brakeCoeff = 1.0;
   cd.wheelData[3].momentOfInertia = 100.0;
 
-  Car *hmmwv = new Car(cd, mRoot);
-  physics->addObject(hmmwv);
+  Car *hmmwv = new Car(cd, root);
+  physics.addObject(hmmwv);
 
-  cd.name = "m93a1";
+  return hmmwv;
+}
+
+Controllable *heloApp::create_Defender(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
+{
+  Helicopter::HelicopterData hd;
+  hd.name = name;
+  hd.meshname = "Defender.mesh";
+  hd.size = Ogre::Vector3(2.59, 2.72, 7.01);
+  hd.pos = position;
+  hd.boomLength = 6.0;
+  hd.weight = 599.0 + 70.0; // 599 helicopter + 70 pilot
+  hd.collectiveSensitivity = 0.5;
+  hd.cyclicRightSensitivity = 0.0125;
+  hd.cyclicForwardSensitivity = 0.03;
+  hd.steerSensitivity = 1.0;
+  hd.rotorData.resize(1);
+  hd.rotorData[0].weight = 200.0; // no idea what's correct
+  hd.rotorData[0].diameter = 8.03;
+  hd.rotorData[0].relpos = Ogre::Vector3(0.0, 2.45, 0.0);
+  hd.rotorData[0].axis = Ogre::Vector3(0.0, 1.0, 0.0);
+  hd.rotorData[0].rotation_axis = Ogre::Vector3::ZERO;
+  hd.rotorData[0].torque = 313000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
+  hd.rotorData[0].inertia = 100.0;
+  hd.rotorData[0].maxLift = hd.weight * 9.81 * 2;
+  hd.rotorData[0].tiltSensitivity = 0.0;
+
+  Helicopter *defender = new Helicopter(hd, root);
+  physics.addObject(defender);
+  return defender;
+}
+
+Controllable *heloApp::create_Chinook(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
+{
+  Helicopter::HelicopterData hd;
+  hd.name = name;
+  hd.meshname = "Chinook.mesh";
+  hd.size = Ogre::Vector3(3.69, 3.1, 15.74);
+  hd.pos = position;
+  hd.boomLength = 0.0;
+  hd.weight = 10185.0 + 3 * 70;
+  //hd.weight = 22680.0;
+  hd.collectiveSensitivity = 0.8;
+  hd.cyclicRightSensitivity = 0.5;
+  hd.cyclicForwardSensitivity = 0.2;
+  hd.steerSensitivity = 1.0;
+
+  hd.rotorData.resize(2);
+  // Front rotor
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].weight = 500.0; // no idea what's correct
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].diameter = 18.3;
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].relpos = Ogre::Vector3(0.0, 2.273, 6.377);
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].axis = Ogre::Vector3(0.0, 2.962, 0.339);
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].rotation_axis = Ogre::Vector3(0.0, -1.381, 12.075);
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].torque = 2796000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].inertia = 200.0;
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].maxLift = (22680 + 1000) * 9.81 / 2.0; // 22680 kg is the max takeoff weight
+  hd.rotorData[TandemRotorHelicopter::FrontRotor].tiltSensitivity = 0.1;
+  // Back rotor
+  hd.rotorData[TandemRotorHelicopter::BackRotor].weight = 500.0; // no idea what's correct
+  hd.rotorData[TandemRotorHelicopter::BackRotor].diameter = 18.3;
+  hd.rotorData[TandemRotorHelicopter::BackRotor].relpos = Ogre::Vector3(0.0, 3.654, -5.698);
+  hd.rotorData[TandemRotorHelicopter::BackRotor].axis = Ogre::Vector3(0.0, 2.962, 0.339);
+  hd.rotorData[TandemRotorHelicopter::BackRotor].rotation_axis = Ogre::Vector3(0.0, -1.381, 12.075);
+  hd.rotorData[TandemRotorHelicopter::BackRotor].torque = -2796000.0 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/);
+  hd.rotorData[TandemRotorHelicopter::BackRotor].inertia = 200.0;
+  hd.rotorData[TandemRotorHelicopter::BackRotor].maxLift = (22680 + 1000) * 9.81 / 2.0; // 22680 kg is the max takeoff weight
+  hd.rotorData[TandemRotorHelicopter::BackRotor].tiltSensitivity = 0.06;
+
+  Helicopter *chinook = new TandemRotorHelicopter(hd, root);
+  physics.addObject(chinook);
+  return chinook;
+}
+
+Controllable *heloApp::create_M93A1(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
+{
+  Car::CarData cd;
+  cd.name = name;
   cd.meshname = "m93a1.mesh";
-  cd.position = Ogre::Vector3(1760.96, 2.0, 1650.3);
+  cd.position = position;
   cd.size = Ogre::Vector3(2.98, 1.9, 7.33);
   cd.weight = 18300.0;
 
   cd.wheelData.resize(6);
-  wheelupdown = 0.306;
-  wheelrev = -1.642;
+  float wheelupdown = 0.306;
+  float wheelrev = -1.642;
   float wheelmid = 0.547;
-  wheelfw = 2.407;
-  wheelrl = 1.364;
-  spring = 150000;
-  damping = 20000.0;
-  suspension_length = 1.2;
+  float wheelfw = 2.407;
+  float wheelrl = 1.364;
+  btScalar spring = 150000;
+  btScalar damping = 20000.0;
+  float suspension_length = 1.2;
+  btVector3 wheeldown(0.0, -1.0, 0.0);
+  btVector3 wheel_axle(1.0, 0.0, 0.0);
   // Front right wheel
   cd.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, wheelfw);
   cd.wheelData[0].suspensionLength = suspension_length;
@@ -314,26 +317,32 @@ int heloApp::main(int argc, char *argv[])
   cd.wheelData[5].brakeCoeff = 5.0;
   cd.wheelData[5].momentOfInertia = 300.0;
 
-  Car *m93a1 = new Car(cd, mRoot);
-  physics->addObject(m93a1);
+  Car *m93a1 = new Car(cd, root);
+  physics.addObject(m93a1);
 
+  return m93a1;
+}
 
+Controllable *heloApp::create_M1Abrams(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
+{
   Tank::TankData td;
-  td.name = "abrams";
+  td.name = name;
   td.meshname = "abrams.mesh";
-  td.position = Ogre::Vector3(1780.96, 1.0, 1650.3);
+  td.position = position;
   td.turretPosition = Ogre::Vector3(0.0, 0.609, 0.03);
   td.barrelPosition = Ogre::Vector3(0.0, 1.016, 1.442) - Ogre::Vector3(0.0, 0.609, 0.03);
   td.size = Ogre::Vector3(3.66, 1.3, 7.93);
   td.weight = 61300.0;
 
   td.wheelData.resize(14);
-  wheelupdown = 0.0;
+  float wheelupdown = 0.0;
   //wheelrl = 1.1408;
-  wheelrl = 1.35;
-  spring = 600000;
-  damping = 50000.0;
-  suspension_length = 0.55;
+  float wheelrl = 1.35;
+  float spring = 600000;
+  float damping = 50000.0;
+  float suspension_length = 0.55;
+  btVector3 wheeldown(0.0, -1.0, 0.0);
+  btVector3 wheel_axle(1.0, 0.0, 0.0);
   // 1st right wheel
   td.wheelData[0].relPos = btVector3(-wheelrl, wheelupdown, 2.103);
   td.wheelData[0].suspensionLength = suspension_length;
@@ -607,17 +616,70 @@ int heloApp::main(int argc, char *argv[])
   td.spinWheelData[1].axle = btVector3(1.0, 0.0, 0.0);
   td.spinWheelData[1].radius = 0.3171;
 
-  Tank *abrams = new Tank(td, mRoot);
-  physics->addObject(abrams);
+  Tank *abrams = new Tank(td, root);
+  physics.addObject(abrams);
 
-  Character *soldier = new Character(mRoot);
+  return abrams;
+}
 
-  current_vehicle = defender;
-  current_car = abrams;
-  current_soldier = soldier;
-  cam->setAutoTracking(true, current_vehicle->getSceneNode());
-  cam->setAutoTracking(true, current_car->getSceneNode());
-  cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
+Controllable *heloApp::create_Soldier(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics)
+{
+  Character *soldier = new Character(root);
+  return soldier;
+}
+
+int heloApp::main(int argc, char *argv[])
+{
+  initOGRE();
+
+  terrain = new ::Terrain(mRoot, DefaultTerrainResourceGroup);
+  // TODO: maybe there should be some space above the highest top of the terrain?
+  physics = new Physics(terrain->getBounds(), true);
+  physics->addBody(terrain->createBody());
+
+
+  Ogre::SceneManager *mgr = mRoot->getSceneManager("SceneManager");
+  Ogre::Entity *ent = mgr->createEntity("Sphere", "Sphere.mesh");
+  //ent->setCastShadows(true);
+  sphere_node = mgr->getRootSceneNode()->createChildSceneNode("SphereNode");
+  sphere_node->setPosition(Ogre::Vector3(1683 / 1.2, 50, 2116 / 1.2));
+  sphere_node->attachObject(ent);
+  sphere = physics->testSphere(Ogre::Vector3(1683 / 1.1, 50, 2116 / 1.1), 1.0, sphere_node);
+  physics->addBody(sphere);
+
+  Controllable *c;
+
+  c = create_HMMWV("hmmwv", Ogre::Vector3(1780.96, 2.0, 1625.3), mRoot, *physics);
+  controllables.push_back(c);
+
+  c = create_Defender("defender", Ogre::Vector3(1757.96, 5.59526, 1625.3), mRoot, *physics);
+  controllables.push_back(c);
+
+  c = create_Chinook("chinook", Ogre::Vector3(1767.96, 2.59526, 1625.3), mRoot, *physics);
+  controllables.push_back(c);
+
+  c = create_M93A1("m93a1", Ogre::Vector3(1760.96, 2.0, 1650.3), mRoot, *physics);
+  controllables.push_back(c);
+
+  c = create_M1Abrams("abrams", Ogre::Vector3(1780.96, 1.0, 1650.3), mRoot, *physics);
+  controllables.push_back(c);
+
+  c = create_Soldier("soldier0", Ogre::Vector3(1880.96, 1.0, 1650.3), mRoot, *physics);
+  controllables.push_back(c);
+
+
+  for (std::vector<Controllable*>::iterator i = controllables.begin(); i != controllables.end(); ++i)
+    {
+      Controllable *c = *i;
+      c->createController(inputHandler->getKeyboard(0));
+    }
+  currentControllable = controllables.size() - 1;
+  cycleControllable();
+
+  Ogre::SceneNode *sn = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable])->getSceneNode();
+  cam->setAutoTracking(true, sn);
+  // cam->setAutoTracking(true, current_car->getSceneNode());
+  // cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
 
   physics->finishConfiguration();
 
@@ -630,7 +692,10 @@ int heloApp::main(int argc, char *argv[])
     lastFrameTime_us = frame_time;
     physics->step();
     physics->sync();
-    soldier->update(tdelta);
+
+    inputHandler->update();
+    handleInput(tdelta);
+    //soldier->update(tdelta);
     //btTransform trans = sphere->getWorldTransform();
     //Ogre::Real mat[16];
     // Ogre::matrix omat(mat[0],mat[1],mat[2],mat[3],
@@ -645,12 +710,12 @@ int heloApp::main(int argc, char *argv[])
     //sphere_node->setPosition(Ogre::Vector3(mat[12], mat[13], mat[14]));
     //trans.getOpenGLMatrix(mat);
 
-    Ogre::SceneNode *n;
-    n = current_vehicle->getSceneNode();
-    n = current_car->getSceneNode();
-    n = soldier->getSceneNode();
-    Ogre::Vector3 campos = n->convertLocalToWorldPosition(Ogre::Vector3(-2.0, 0.0, 5.0));
-    campos.y = n->_getDerivedPosition().y + 2.0;
+    // Ogre::SceneNode *n;
+    // n = current_vehicle->getSceneNode();
+    // n = current_car->getSceneNode();
+    // n = soldier->getSceneNode();
+    Ogre::Vector3 campos = sn->convertLocalToWorldPosition(Ogre::Vector3(-2.0, 0.0, 5.0));
+    campos.y = sn->_getDerivedPosition().y + 2.0;
     //    cam->setPosition(campos);
     doOgreUpdate();
     //usleep(50000);
@@ -659,142 +724,168 @@ int heloApp::main(int argc, char *argv[])
   return 0;
 }
 
-bool heloApp::keyPressed(const OIS::KeyEvent &e)
+void heloApp::cycleControllable()
 {
-  switch (e.key)
+  Controller *c = controllables[currentControllable]->getController();
+  if (c)
+    c->setActive(false);
+
+  unsigned int retries = controllables.size();
+  int i = 1;
+  while (retries--)
     {
-    case OIS::KC_SPACE:
-      current_vehicle->startEngines(true);
-      break;
-
-    case OIS::KC_W:
-      current_vehicle->setCollective(1.0);
-      break;
-    case OIS::KC_S:
-      current_vehicle->setCollective(-1.0);
-      break;
-
-    case OIS::KC_A:
-      current_vehicle->setSteer(1.0);
-      break;
-    case OIS::KC_D:
-      current_vehicle->setSteer(-1.0);
-      break;
-
-    case OIS::KC_I:
-      current_vehicle->setCyclicForward(1.0);
-      break;
-    case OIS::KC_K:
-      current_vehicle->setCyclicForward(-1.0);
-      break;
-
-    case OIS::KC_L:
-      current_vehicle->setCyclicRight(1.0);
-      break;
-    case OIS::KC_J:
-      current_vehicle->setCyclicRight(-1.0);
-      break;
-
-    default: /* Other keys not handled*/
-      break;
+      unsigned int cidx = (currentControllable + i) % controllables.size();
+      Controller *c = controllables[cidx]->getController();
+      if (c)
+	{
+	  c->setActive(true);
+	  currentControllable = cidx;
+	  break;
+	}
+      ++i;
     }
-
-  return true;
+  /* Raise exception if retries is 0 ? */
 }
 
-bool heloApp::keyReleased(const OIS::KeyEvent &e)
+// bool heloApp::keyPressed(const OIS::KeyEvent &e)
+// {
+//   switch (e.key)
+//     {
+//     case OIS::KC_SPACE:
+//       current_vehicle->startEngines(true);
+//       break;
+
+//     case OIS::KC_W:
+//       current_vehicle->setCollective(1.0);
+//       break;
+//     case OIS::KC_S:
+//       current_vehicle->setCollective(-1.0);
+//       break;
+
+//     case OIS::KC_A:
+//       current_vehicle->setSteer(1.0);
+//       break;
+//     case OIS::KC_D:
+//       current_vehicle->setSteer(-1.0);
+//       break;
+
+//     case OIS::KC_I:
+//       current_vehicle->setCyclicForward(1.0);
+//       break;
+//     case OIS::KC_K:
+//       current_vehicle->setCyclicForward(-1.0);
+//       break;
+
+//     case OIS::KC_L:
+//       current_vehicle->setCyclicRight(1.0);
+//       break;
+//     case OIS::KC_J:
+//       current_vehicle->setCyclicRight(-1.0);
+//       break;
+
+//     default: /* Other keys not handled*/
+//       break;
+//     }
+
+//   return true;
+// }
+
+// bool heloApp::keyReleased(const OIS::KeyEvent &e)
+// {
+//   switch (e.key)
+//     {
+//     case OIS::KC_W:
+//     case OIS::KC_S:
+//       current_vehicle->setCollective(0.0);
+//       break;
+
+//     case OIS::KC_A:
+//     case OIS::KC_D:
+//       current_vehicle->setSteer(0.0);
+//       break;
+
+//     case OIS::KC_I:
+//     case OIS::KC_K:
+//       current_vehicle->setCyclicForward(0.0);
+//       break;
+
+//     case OIS::KC_L:
+//     case OIS::KC_J:
+//       current_vehicle->setCyclicRight(0.0);
+//       break;
+
+//     default: /* Other keys not handled*/
+//       break;
+//     }
+
+//   return true;
+// }
+
+// bool heloApp::buttonPressed(const OIS::JoyStickEvent &e, int idx)
+// {
+//   //printf("Joystick button %d pressed\n", idx);
+//   switch (idx)
+//     {
+//     case 0:
+//       current_vehicle->startEngines(true);
+//       break;
+//     default:
+//       break;
+//     }
+//   return true;
+// }
+
+// bool heloApp::buttonReleased(const OIS::JoyStickEvent &e, int idx)
+// {
+//   printf("Joystick button %d released\n", idx);
+//   return true;
+// }
+
+// bool heloApp::axisMoved(const OIS::JoyStickEvent &e, int idx)
+// {
+//   //printf("Joystick axis %d moved\n", idx);
+//   // // float axis_val = e.state.mAxes[idx].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+
+//   // // switch (idx)
+//   // //   {
+//   // //   case 1:
+//   // //     current_vehicle->setCollective(-axis_val);
+//   // //     break;
+//   // //   case 0:
+//   // //     current_vehicle->setSteer(-axis_val);
+//   // //     break;
+//   // //   case 4:
+//   // //     current_vehicle->setCyclicForward(-axis_val);
+//   // //     break;
+//   // //   case 3:
+//   // //     current_vehicle->setCyclicRight(axis_val);
+//   // //     break;
+
+//   // //   default:
+//   // //     break;
+//   // //   }
+
+//   float collective = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+//   float steer = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+//   float cyclic_forward = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+//   float cyclic_right = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+//   current_vehicle->setCollective(collective);
+//   current_vehicle->setSteer(steer);
+//   current_vehicle->setCyclicForward(cyclic_forward);
+//   current_vehicle->setCyclicRight(cyclic_right);
+
+//   current_car->setSteer(e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS) * 0.5);
+//   current_car->setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
+
+//   return true;
+// }
+
+
+void heloApp::handleInput(Ogre::Real delta)
 {
-  switch (e.key)
-    {
-    case OIS::KC_W:
-    case OIS::KC_S:
-      current_vehicle->setCollective(0.0);
-      break;
-
-    case OIS::KC_A:
-    case OIS::KC_D:
-      current_vehicle->setSteer(0.0);
-      break;
-
-    case OIS::KC_I:
-    case OIS::KC_K:
-      current_vehicle->setCyclicForward(0.0);
-      break;
-
-    case OIS::KC_L:
-    case OIS::KC_J:
-      current_vehicle->setCyclicRight(0.0);
-      break;
-
-    default: /* Other keys not handled*/
-      break;
-    }
-
-  return true;
-}
-
-bool heloApp::buttonPressed(const OIS::JoyStickEvent &e, int idx)
-{
-  //printf("Joystick button %d pressed\n", idx);
-  switch (idx)
-    {
-    case 0:
-      current_vehicle->startEngines(true);
-      break;
-    default:
-      break;
-    }
-  return true;
-}
-
-bool heloApp::buttonReleased(const OIS::JoyStickEvent &e, int idx)
-{
-  printf("Joystick button %d released\n", idx);
-  return true;
-}
-
-bool heloApp::axisMoved(const OIS::JoyStickEvent &e, int idx)
-{
-  //printf("Joystick axis %d moved\n", idx);
-  // // float axis_val = e.state.mAxes[idx].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-
-  // // switch (idx)
-  // //   {
-  // //   case 1:
-  // //     current_vehicle->setCollective(-axis_val);
-  // //     break;
-  // //   case 0:
-  // //     current_vehicle->setSteer(-axis_val);
-  // //     break;
-  // //   case 4:
-  // //     current_vehicle->setCyclicForward(-axis_val);
-  // //     break;
-  // //   case 3:
-  // //     current_vehicle->setCyclicRight(axis_val);
-  // //     break;
-
-  // //   default:
-  // //     break;
-  // //   }
-
-  float collective = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  float steer = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  float cyclic_forward = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  float cyclic_right = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  current_vehicle->setCollective(collective);
-  current_vehicle->setSteer(steer);
-  current_vehicle->setCyclicForward(cyclic_forward);
-  current_vehicle->setCyclicRight(cyclic_right);
-
-  current_car->setSteer(e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS) * 0.5);
-  current_car->setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
-
-  return true;
-}
-
-
-void heloApp::handleInput()
-{
+  Controller *c = controllables[currentControllable]->getController();
+  if (c)
+    c->update(static_cast<float>(delta));
   // if (mKeyboard->isKeyDown(OIS::KC_A))
   //   cam->yaw(Ogre::Radian(0.01));
   // if (mKeyboard->isKeyDown(OIS::KC_D))
@@ -809,9 +900,9 @@ void heloApp::handleInput()
   // if (mKeyboard->isKeyDown(OIS::KC_DOWN))
   //   cam->moveRelative(Ogre::Vector3(0.0, 0.0, 1.0));
 
-  if (mKeyboard->isKeyDown(OIS::KC_SPACE))
-    //setSpherePosition(cam->getPosition() + (cam->getDirection() * 100.0));
-    current_vehicle->startEngines(true);
+  // if (mKeyboard->isKeyDown(OIS::KC_SPACE))
+  //   //setSpherePosition(cam->getPosition() + (cam->getDirection() * 100.0));
+  //   current_vehicle->startEngines(true);
 
   // current_vehicle->setCollective(mKeyboard->isKeyDown(OIS::KC_I) ? 1.0 :
   // 				 mKeyboard->isKeyDown(OIS::KC_K) ? -1.0 : 0.0);
@@ -822,21 +913,21 @@ void heloApp::handleInput()
   // current_vehicle->setSteer(mKeyboard->isKeyDown(OIS::KC_J) ? 1.0 :
   // 			    mKeyboard->isKeyDown(OIS::KC_L) ? -1.0 : 0.0);
 
-  current_vehicle->setCollective(mKeyboard->isKeyDown(OIS::KC_W) ? 1.0 :
-				 mKeyboard->isKeyDown(OIS::KC_S) ? -1.0 : 0.0);
-  current_vehicle->setCyclic(mKeyboard->isKeyDown(OIS::KC_I) ? 1.0 :
-			     mKeyboard->isKeyDown(OIS::KC_K) ? -1.0 : 0.0,
-			     mKeyboard->isKeyDown(OIS::KC_L) ? 1.0 :
-			     mKeyboard->isKeyDown(OIS::KC_J) ? -1.0 : 0.0);
-  current_vehicle->setSteer(mKeyboard->isKeyDown(OIS::KC_A) ? 1.0 :
-			    mKeyboard->isKeyDown(OIS::KC_D) ? -1.0 : 0.0);
+  // current_vehicle->setCollective(mKeyboard->isKeyDown(OIS::KC_W) ? 1.0 :
+  // 				 mKeyboard->isKeyDown(OIS::KC_S) ? -1.0 : 0.0);
+  // current_vehicle->setCyclic(mKeyboard->isKeyDown(OIS::KC_I) ? 1.0 :
+  // 			     mKeyboard->isKeyDown(OIS::KC_K) ? -1.0 : 0.0,
+  // 			     mKeyboard->isKeyDown(OIS::KC_L) ? 1.0 :
+  // 			     mKeyboard->isKeyDown(OIS::KC_J) ? -1.0 : 0.0);
+  // current_vehicle->setSteer(mKeyboard->isKeyDown(OIS::KC_A) ? 1.0 :
+  // 			    mKeyboard->isKeyDown(OIS::KC_D) ? -1.0 : 0.0);
 
 
-  current_soldier->setForward(mKeyboard->isKeyDown(OIS::KC_W));
-  current_soldier->setSideStep(mKeyboard->isKeyDown(OIS::KC_A) ? 1 :
-			       mKeyboard->isKeyDown(OIS::KC_D) ? -1 : 0.0);
-  current_soldier->setTurn(mKeyboard->isKeyDown(OIS::KC_Q) ? 1 :
-			   mKeyboard->isKeyDown(OIS::KC_E) ? -1 : 0.0);
+  // current_soldier->setForward(mKeyboard->isKeyDown(OIS::KC_W));
+  // current_soldier->setSideStep(mKeyboard->isKeyDown(OIS::KC_A) ? 1 :
+  // 			       mKeyboard->isKeyDown(OIS::KC_D) ? -1 : 0.0);
+  // current_soldier->setTurn(mKeyboard->isKeyDown(OIS::KC_Q) ? 1 :
+  // 			   mKeyboard->isKeyDown(OIS::KC_E) ? -1 : 0.0);
 
   //if (mKeyboard->isKeyDown(OIS::KC_P))
   //  std::cout << "Height: " << sphere_node->getPosition().y << std::endl;

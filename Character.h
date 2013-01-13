@@ -2,7 +2,9 @@
 #define CHARACTER_H
 
 
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
+
+#include "Controllers.h"
 
 class AnimAction
 {
@@ -370,7 +372,7 @@ public:
 };
 
 
-class Character
+class Character : public Controllable
 {
 protected:
   Ogre::SceneNode *node;
@@ -386,6 +388,7 @@ public:
 						    val > 0 ? 0.25 : val < 0 ? -0.25 : 0.0);}
   void setTurn(int val) {animSched->setModifier(AnimAction::Modifier::Rotation,
 						    val > 0 ? 0.005 : val < 0 ? -0.005 : 0.0);}
+  Controller *createController(OIS::Object *dev) {return NULL;}
 
 };
 

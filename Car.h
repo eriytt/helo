@@ -4,11 +4,12 @@
 
 #include <math.h>
 #include <vector>
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include "BulletDynamics/Vehicle/btRaycastVehicle.h"
 
 #include "Physics.h"
 #include "Utils.h"
+#include "Controllers.h"
 
 #define BRAKE_MAX 32767
 #define CAR_LENGTH 4.923
@@ -236,7 +237,7 @@ protected:
   virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
 
-class Car : public PhysicsObject
+class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackable
 {
 public:
   typedef CBRaycastVehicle::WheelData WheelData;
@@ -262,32 +263,11 @@ public:
   btRigidBody *body;
   std::vector<Ogre::SceneNode*> wheelNodes;
 
-  // This is how where the tires are attached relative to the rigid
-  // body
-
-  /***********Drivetrain variables**************/
-  // int clutch_force;
-  // int current_gear;
-  // float motor_rpm;
-  // float speed;
-public:
-  // float axis_rpm;
 
 protected:
 
-  // class Engine *engine;
-  // class Clutch *clutchObj;
-  // class Gearbox *gearbox;
-  // class Differential *differential;
-  /**********************/
 
 public:
-  // typedef enum {
-  //   FRONT_RIGHT,
-  //   FRONT_LEFT,
-  //   BACK_RIGHT,
-  //   BACK_LEFT
-  // } wheelPosition_t;
 
  public:
   Car() {} // No initialization, derived classes must do all the work, Do not call this explicitly
@@ -304,14 +284,7 @@ public:
   virtual void setInput(control_data_t &cdata);
   virtual void update(void);
   virtual void physicsUpdate() {}
-
-  /*Driveline functions*/
-  //virtual int GetTorqueWheelEnergy(int rpm);
-  //virtual int GetTorqueWheelRPM(int energy);
-  //virtual float GetMotorTorque(float rpm, int throttle);
-  //virtual float CalculateDriveForce(void);
-  //virtual void GetWheelFriction(void);
-  //virtual void DetermineCalculationModel(void);
+  Controller *createController(OIS::Object *dev);
 };
 
 #endif /*CAR_H*/

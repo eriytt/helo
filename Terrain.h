@@ -1,8 +1,8 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
-#include <OGRE/Terrain/OgreTerrain.h>
-#include <OGRE/Terrain/OgreTerrainGroup.h>
+#include <Terrain/OgreTerrain.h>
+#include <Terrain/OgreTerrainGroup.h>
 
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
@@ -14,10 +14,11 @@ class Terrain
   Ogre::TerrainGroup* mTerrainGroup;
   bool mTerrainsImported;
   Ogre::Real heightScale;
+  const Ogre::String resourceGroup;
   btHeightfieldTerrainShape *terrain_shape;
 
 public:
-  Terrain(Ogre::Root *root);
+  Terrain(Ogre::Root *root, const Ogre::String &resourceGroupName);
   virtual ~Terrain();
   btRigidBody *createBody();
   Ogre::AxisAlignedBox getBounds() {return  mTerrainGroup->getTerrain (0, 0)->getWorldAABB();}

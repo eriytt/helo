@@ -1,13 +1,16 @@
 #include "Terrain.h"
 
-#include <OGRE/Ogre.h>
+#include "TerrainMaterial.h"
+
+#include <Ogre.h>
 using namespace Ogre;
 
 #include "Physics.h"
 
 #include "OgreHeightfieldTerrainShape.h"
 
-::Terrain::Terrain(Root *root) : mTerrainGlobals(0), mTerrainGroup(0), mTerrainsImported(false), terrain_shape(0)
+::Terrain::Terrain(Root *root, const Ogre::String &resourceGroupName)
+  : mTerrainGlobals(0), mTerrainGroup(0), mTerrainsImported(false), resourceGroup(resourceGroupName), terrain_shape(0)
 {
   SceneManager *mgr = root->getSceneManager("SceneManager");
   heightScale = 600.0;
@@ -138,16 +141,16 @@ void ::Terrain::configureTerrainDefaults(Light* l, SceneManager *mgr)
   defaultimp.minBatchSize = 33;
   defaultimp.maxBatchSize = 65;
   // textures
-  defaultimp.layerList.resize(3);
-  defaultimp.layerList[0].worldSize = 100;
-  defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.dds");
-  defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.dds");
-  defaultimp.layerList[1].worldSize = 30;
-  defaultimp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.dds");
-  defaultimp.layerList[1].textureNames.push_back("grass_green-01_normalheight.dds");
-  defaultimp.layerList[2].worldSize = 200;
-  defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.dds");
-  defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.dds");
+   defaultimp.layerList.resize(3);
+  // defaultimp.layerList[0].worldSize = 100;
+  // defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.dds");
+  // defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.dds");
+  // defaultimp.layerList[1].worldSize = 30;
+  // defaultimp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.dds");
+  // defaultimp.layerList[1].textureNames.push_back("grass_green-01_normalheight.dds");
+  // defaultimp.layerList[2].worldSize = 200;
+  // defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.dds");
+  // defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.dds");
 }
 
 void ::Terrain::setupContent(SceneManager *mgr)
@@ -155,7 +158,17 @@ void ::Terrain::setupContent(SceneManager *mgr)
   bool blankTerrain = false;
   //blankTerrain = true;
 
+  TerrainMaterialGeneratorPtr terrainMaterialGenerator;
+  TerrainMaterial *terrainMaterial = new TerrainMaterial(resourceGroup);
+  terrainMaterialGenerator.bind(terrainMaterial);
+
   mTerrainGlobals = new TerrainGlobalOptions();
+  mTerrainGlobals->setDefaultMaterialGenerator(terrainMaterialGenerator);
+
+
+
+// Set Ogre Material  with the name "TerrainMaterial" in constructor
+
 
   MaterialManager::getSingleton().setDefaultTextureFiltering(TFO_ANISOTROPIC);
   MaterialManager::getSingleton().setDefaultAnisotropy(7);

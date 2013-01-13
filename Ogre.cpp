@@ -35,7 +35,10 @@ void heloApp::createRenderWindow()
 void heloApp::initializeResourceGroups()
 {
   TextureManager::getSingleton().setDefaultNumMipmaps(5);
-  ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+  ResourceGroupManager &mgr = ResourceGroupManager::getSingleton();
+  mgr.createResourceGroup(DefaultTerrainResourceGroup, false);
+  mgr.initialiseAllResourceGroups();
 }
 
 void heloApp::setupScene()
@@ -69,32 +72,16 @@ void heloApp::setupScene()
 void heloApp::setupInputSystem()
 {
   size_t windowHnd = 0;
-  std::ostringstream windowHndStr;
-  OIS::ParamList pl;
   RenderWindow *win = mRoot->getAutoCreatedWindow();
-
   win->getCustomAttribute("WINDOW", &windowHnd);
-  windowHndStr << windowHnd;
-  pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
-  pl.insert(std::make_pair(std::string("XAutoRepeatOn"), "true"));
-  pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
-  pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
-  pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
-  mInputManager = OIS::InputManager::createInputSystem(pl);
 
-  try
-    {
-      mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
-      //mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
-      mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, true));
-    }
-  catch (const OIS::Exception &e)
-    {
-      throw Exception(42, e.eText, "Application::setupInputSystem");
-    }
+  inputHandler = new InputHandler(windowHnd);
 
-  mKeyboard->setEventCallback(this);
-  mJoy->setEventCallback(this);
+  // OIS::Keyboard *k = inputHandler->getKeyboard(0);
+  // k->setEventCallback(this);
+
+  // OIS::JoyStick *j = inputHandler->getJoystick(0);
+  // j->setEventCallback(this);
 }
 
 
@@ -124,11 +111,7 @@ void heloApp::initOGRE()
 
 bool heloApp::frameStarted(const FrameEvent& evt)
 {
-  mKeyboard->capture();
-  mJoy->capture();
-  mExit = mKeyboard->isKeyDown(OIS::KC_ESCAPE);
-
-  handleInput();
+  mExit = inputHandler->getKeyboard(0)->isKeyDown(OIS::KC_ESCAPE);
   return not mExit;
 }
 

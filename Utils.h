@@ -1,13 +1,15 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "algorithm"
+#include <algorithm>
 
-#include "vector"
+#include <vector>
 
-#include "math.h"
+#include <cmath>
 
 #include <btBulletDynamicsCommon.h>
+
+#include <Ogre.h>
 
 namespace HeloUtils {
 
@@ -86,7 +88,14 @@ namespace HeloUtils {
 
   };
 
+  class Trackable
+  {
+  public:
+    virtual Ogre::SceneNode *getSceneNode() = 0;
+  };
 
+  template <typename T1, typename T2>
+  Ogre::Real Fraction(T1 nominator, T2 denominator) {return static_cast<Ogre::Real>(nominator) / static_cast<Ogre::Real>(denominator);}
 
 } // namespace HeloUtils
 

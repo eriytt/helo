@@ -1,26 +1,29 @@
 #ifndef HELO_H
 #define HELO_H
 
-#include <OGRE/Ogre.h>
-#include <OIS/OIS.h>
+#include <Ogre.h>
+
+#include "InputHandler.h"
+
 
 // Forward declarations
 class Physics;
 class Terrain;
 class btRigidBody;
+class Controllable;
 
-class heloApp : public Ogre::FrameListener, public OIS::KeyListener, public OIS::JoyStickListener
+class heloApp : public Ogre::FrameListener//, public OIS::KeyListener, public OIS::JoyStickListener
 {
-  bool mExit;
+
+protected:
+  static Ogre::String DefaultTerrainResourceGroup;
 
   // OGRE stuff
 protected:
   Ogre::Root *mRoot;
   Ogre::Camera *cam;
   Ogre::Timer * timer;
-  OIS::Keyboard *mKeyboard;
-  OIS::JoyStick *mJoy;
-  OIS::InputManager *mInputManager;
+  InputHandler *inputHandler;
 
   void initOGRE();
   void createRoot();
@@ -34,23 +37,14 @@ protected:
   void createFrameListener();
   bool doOgreUpdate();
   bool frameStarted(const Ogre::FrameEvent& evt);
-  void handleInput();
+  void handleInput(Ogre::Real delta);
 
-  // OIS event listener
-protected:
-  // keyboard
-  bool keyPressed(const OIS::KeyEvent&);
-  bool keyReleased(const OIS::KeyEvent&);
-
-  // joystick
-  bool buttonPressed(const OIS::JoyStickEvent&, int);
-  bool buttonReleased(const OIS::JoyStickEvent&, int);
-  bool axisMoved(const OIS::JoyStickEvent&, int);
 
 protected:
   Terrain *terrain;
   Physics *physics;
   unsigned long lastFrameTime_us;
+  bool mExit;
 
   // Testing
 protected:
@@ -59,9 +53,18 @@ protected:
   Ogre::SceneNode *sphere_node;
 
 protected:
-  class Helicopter *current_vehicle;
-  class Car *current_car;
-  class Character *current_soldier;
+  std::vector<Controllable*> controllables;
+  unsigned int currentControllable;
+  void cycleControllable();
+
+protected:
+  Controllable *create_HMMWV(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+  Controllable *create_Defender(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+  Controllable *create_Chinook(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+  Controllable *create_M93A1(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+  Controllable *create_M1Abrams(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+  Controllable *create_Soldier(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+
 
 public:
   heloApp();
