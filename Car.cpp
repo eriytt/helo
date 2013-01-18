@@ -459,6 +459,8 @@ Car::Car(const Car::CarData &data, Ogre::Root *root)
   // create entity
   Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.meshname);
 
+  ent->setMaterialName("shadow", "Terrain/Default");
+
   // create scene node
   node = mgr->getRootSceneNode()->createChildSceneNode(data.name + "_node");
   node->attachObject(ent);

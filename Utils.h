@@ -13,9 +13,9 @@
 
 namespace HeloUtils {
 
-  static float PI = M_PI;
-  static float PI_2 = M_PI_2;
-  static float PI_4 = M_PI_4;
+  static const float PI = M_PI;
+  static const float PI_2 = M_PI_2;
+  static const float PI_4 = M_PI_4;
 
   template < typename T >
   inline T clamp(const T &max, const T &min, const T &val)
