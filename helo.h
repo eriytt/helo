@@ -4,7 +4,7 @@
 #include <Ogre.h>
 
 #include "InputHandler.h"
-
+#include "Configuration.h"
 
 // Forward declarations
 class Physics;
@@ -41,6 +41,7 @@ protected:
 
 
 protected:
+  Configuration *conf;
   Terrain *terrain;
   Physics *physics;
   unsigned long lastFrameTime_us;
@@ -53,7 +54,6 @@ protected:
   Ogre::SceneNode *sphere_node;
 
 protected:
-  std::vector<Controllable*> controllables;
   unsigned int currentControllable;
   void cycleControllable();
 

@@ -5,6 +5,8 @@ using namespace Ogre;
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
+#include "TinyXMLResourceManager.h"
+
 void heloApp::createRoot()
 {
   fs::path pc = "plugins.cfg";
@@ -34,10 +36,14 @@ void heloApp::createRenderWindow()
 
 void heloApp::initializeResourceGroups()
 {
+  // TODO: save reference for deletion?
+  OGRE_NEW TinyXMLResourceManager();
+
   TextureManager::getSingleton().setDefaultNumMipmaps(5);
 
   ResourceGroupManager &mgr = ResourceGroupManager::getSingleton();
   mgr.createResourceGroup(DefaultTerrainResourceGroup, false);
+  mgr.createResourceGroup("helo", false);
   mgr.initialiseAllResourceGroups();
 }
 

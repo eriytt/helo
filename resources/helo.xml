@@ -1,0 +1,8 @@
+<helo>
+  <Missions>
+    <Mission name="Test" path="./Missions/TestMission"/>
+  </Missions>
+  <Vehicles>
+    <Vehicle name="HMMWV" path="./Vehicles/HMMWV"/>
+  </Vehicles>
+</helo>

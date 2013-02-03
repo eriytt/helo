@@ -10,10 +10,11 @@
 #include "Car.h"
 #include "Tank.h"
 #include "Character.h"
+//#include "Configuration.h"
 
 class Error {
 public:
-  static void ErrMessage(std::string err_string)
+  static void ErrMessage(const std::string err_string)
   {
     std::cerr << err_string << std::endl;
   }
@@ -22,7 +23,7 @@ public:
 
 Ogre::String heloApp::DefaultTerrainResourceGroup("Terrain/Default");
 
-heloApp::heloApp(): mRoot(0), cam(0), timer(0), terrain(0),
+heloApp::heloApp(): mRoot(0), cam(0), timer(0), conf(0), terrain(0),
 		    physics(0), lastFrameTime_us(0), mExit(false)
 {
 }
@@ -635,7 +636,29 @@ int heloApp::main(int argc, char *argv[])
   terrain = new ::Terrain(mRoot, DefaultTerrainResourceGroup);
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), true);
+  conf = new Configuration(mRoot, physics);
+  conf->setResourceBase("/lhome/eriky/private/helo/resources/");
   physics->addBody(terrain->createBody());
+
+  try
+    {
+      conf->loadConfig();
+    }
+  catch (Configuration::ConfigurationError e)
+    {
+      Error::ErrMessage(e.what());
+      exit(-1);
+    }
+
+  try
+    {
+      conf->loadMission("Test");
+    }
+  catch (Configuration::ConfigurationError e)
+    {
+      Error::ErrMessage(e.what());
+      exit(-1);
+    }
 
 
   Ogre::SceneManager *mgr = mRoot->getSceneManager("SceneManager");
@@ -647,28 +670,30 @@ int heloApp::main(int argc, char *argv[])
   sphere = physics->testSphere(Ogre::Vector3(1683 / 1.1, 50, 2116 / 1.1), 1.0, sphere_node);
   physics->addBody(sphere);
 
-  Controllable *c;
+  //Controllable *c;
 
-  c = create_HMMWV("hmmwv", Ogre::Vector3(1780.96, 2.0, 1625.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_HMMWV("hmmwv", Ogre::Vector3(1780.96, 2.0, 1625.3), mRoot, *physics);
+  // controllables.push_back(c);
 
-  c = create_Defender("defender", Ogre::Vector3(1757.96, 5.59526, 1625.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_Defender("defender", Ogre::Vector3(1757.96, 5.59526, 1625.3), mRoot, *physics);
+  // controllables.push_back(c);
 
-  c = create_Chinook("chinook", Ogre::Vector3(1767.96, 2.59526, 1625.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_Chinook("chinook", Ogre::Vector3(1767.96, 2.59526, 1625.3), mRoot, *physics);
+  // controllables.push_back(c);
 
-  c = create_M93A1("m93a1", Ogre::Vector3(1760.96, 2.0, 1650.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_M93A1("m93a1", Ogre::Vector3(1760.96, 2.0, 1650.3), mRoot, *physics);
+  // controllables.push_back(c);
 
-  c = create_M1Abrams("abrams", Ogre::Vector3(1780.96, 1.0, 1650.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_M1Abrams("abrams", Ogre::Vector3(1780.96, 1.0, 1650.3), mRoot, *physics);
+  // controllables.push_back(c);
 
-  c = create_Soldier("soldier0", Ogre::Vector3(1880.96, 1.0, 1650.3), mRoot, *physics);
-  controllables.push_back(c);
+  // c = create_Soldier("soldier0", Ogre::Vector3(1880.96, 1.0, 1650.3), mRoot, *physics);
+  // controllables.push_back(c);
+
+  const std::vector<Controllable*> &controllables = conf->getControllables();
 
 
-  for (std::vector<Controllable*>::iterator i = controllables.begin(); i != controllables.end(); ++i)
+  for (std::vector<Controllable*>::const_iterator i = controllables.begin(); i != controllables.end(); ++i)
     {
       Controllable *c = *i;
       c->createController(inputHandler->getKeyboard(0));
@@ -726,6 +751,7 @@ int heloApp::main(int argc, char *argv[])
 
 void heloApp::cycleControllable()
 {
+  const std::vector<Controllable*> &controllables = conf->getControllables();
   Controller *c = controllables[currentControllable]->getController();
   if (c)
     c->setActive(false);
@@ -883,6 +909,7 @@ void heloApp::cycleControllable()
 
 void heloApp::handleInput(Ogre::Real delta)
 {
+  const std::vector<Controllable*> &controllables = conf->getControllables();
   Controller *c = controllables[currentControllable]->getController();
   if (c)
     c->update(static_cast<float>(delta));

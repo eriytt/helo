@@ -62,6 +62,31 @@ namespace HeloUtils {
     body->applyTorque(appliedTorque);
   }
 
+  inline void Bullet2OgreVector(const btVector3 &btVec, Ogre::Vector3 &oVec)
+  {
+    oVec.x = btVec.getX();
+    oVec.y = btVec.getY();
+    oVec.z = btVec.getZ();
+  }
+
+  inline Ogre::Vector3 Bullet2OgreVector(const btVector3 &btVec)
+  {
+    return Ogre::Vector3(btVec.m_floats);
+  }
+
+  inline void Ogre2BulletVector(const Ogre::Vector3 &oVec, btVector3 &btVec)
+  {
+    btVec.setX(oVec.x);
+    btVec.setY(oVec.y);
+    btVec.setZ(oVec.z);
+    
+  }
+
+  inline btVector3 Ogre2BulletVector(const Ogre::Vector3 &oVec)
+  {
+    return btVector3(oVec.x, oVec.y, oVec.z);
+  }
+
   class PieceWiseLinearFunction {
     std::vector< std::pair<float, float> > fdata;
 
