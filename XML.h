@@ -79,7 +79,7 @@ namespace XMLUtils {
     while ((attr = attr->Next()));
 
 nosuchattribute:
-    throw XMLError("Element " + element->ValueStr() + " has no such attribute");
+    throw XMLError("Element " + element->ValueStr() + " has no attribute '" + attrname + "'");
   }
 
   template <typename T>

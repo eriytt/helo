@@ -68,6 +68,8 @@ protected:
   void readMissions(TiXmlNode *parent);
   void readVehicles(TiXmlNode *parent);
   void loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position);
+  void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
+  void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
 };
 
 #endif // CONFIGURATION_H

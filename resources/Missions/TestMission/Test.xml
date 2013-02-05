@@ -4,5 +4,15 @@
       <!--position x="10.0" y="10.1" z="groundlevel" groundoffset="2.0"/-->
       <position x="1780.96" y="2.0" z="1625.3"/>
     </Vehicle>
+
+    <Vehicle type="M93A1" name="m93a1.0">
+      <position x="1760.96" y="2.0" z="1650.3"/>
+    </Vehicle>
+
+    <Vehicle type="Defender" name="defender.0">
+      <position x="1757.96" y="5.59526" z="1625.3"/>
+    </Vehicle>
+
+
   </Vehicles>
 </Mission>

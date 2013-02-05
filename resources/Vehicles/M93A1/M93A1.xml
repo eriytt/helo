@@ -1,0 +1,121 @@
+<Vehicle
+    class="Car"
+    meshname="m93a1.mesh"
+    weight="18300.0" >
+  <size x="2.98" y="1.9" z="7.33"/>
+  <wheels>
+
+
+    <!-- Front right wheel -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="1.0"
+       driveCoeff="5.0"
+       brakeCoeff="5.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.364" y="0.306" z="2.407"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- Front left wheel -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="1.0"
+       driveCoeff="1.0"
+       brakeCoeff="1.0"
+       momentOfInertia="300">
+      <relativePosition x="1.364" y="0.306" z="2.407"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- Middle right wheel -->
+    <!-- Steering coefficient for middle wheels are
+	 [distance between middle and back wheel] / [distance between front and back wheel]  -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="0.5406"
+       driveCoeff="5.0"
+       brakeCoeff="5.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.364" y="0.306" z="0.547"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- Middle left wheel -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="0.5406"
+       driveCoeff="5.0"
+       brakeCoeff="5.0"
+       momentOfInertia="300">
+      <relativePosition x="1.364" y="0.306" z="0.547"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- Back right wheel -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="0.0"
+       driveCoeff="5.0"
+       brakeCoeff="5.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.364" y="0.306" z="-1.642"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- Back left wheel -->
+    <wheel
+       spring="150000"
+       dampUp="20000"
+       dampDown="20000"
+       suspensionLength="1.2"
+       maxLengthUp="0.7"
+       maxLengthDown="1.55"
+       radius="0.7046"
+       steerCoeff="0.0"
+       driveCoeff="5.0"
+       brakeCoeff="5.0"
+       momentOfInertia="300">
+      <relativePosition x="1.364" y="0.306" z="-1.642"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+  </wheels>
+
+</Vehicle>

@@ -1,0 +1,32 @@
+<Vehicle
+    class = "Helicopter"
+    meshname = "Defender.mesh"
+    boomLength = "0.6"
+    weight = "669"
+    collectiveSensitivity = "0.5"
+    cyclicRightSensitivity = "0.0125"
+    cyclicForwardSensitivity = "0.03"
+    steerSensitivity = "1.0"
+    >
+  <size x="2.59" y="2.72" z="7.01"/>
+
+  <rotors>
+
+    <!--
+	torque: /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/)
+	maxLift = weight * 9.81 * 2
+    -->
+    <rotor
+      weight = "200.0"
+      diameter = "8.03"
+      torque = "313000.0" 
+      inertia = "100.0"
+      maxLift = "13125.78"
+      tiltSensitivity = "0.0">
+       <relativePosition x="0.0" y="2.45" z="0.0"/>
+      <rotationAxis x="0.0" y="0.0" z="0.0"/>
+      <axis  x="0.0" y="1.0" z="0.0"/>
+    </rotor>
+
+  </rotors>
+</Vehicle>

@@ -637,7 +637,7 @@ int heloApp::main(int argc, char *argv[])
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), true);
   conf = new Configuration(mRoot, physics);
-  conf->setResourceBase("/lhome/eriky/private/helo/resources/");
+  conf->setResourceBase("./resources/");
   physics->addBody(terrain->createBody());
 
   try
