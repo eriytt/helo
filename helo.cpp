@@ -757,8 +757,13 @@ int heloApp::main(int argc, char *argv[])
 
         if (t->cameraFollow())
            {
-             Ogre::Vector3 campos = sn->convertLocalToWorldPosition(t->getCameraPosition());
-             cam->setPosition(campos);
+	     Ogre::Vector3 current = cam->getPosition();
+             Ogre::Vector3 desired = sn->convertLocalToWorldPosition(t->getCameraPosition());
+	     Ogre::Vector3 error = desired - current;
+	     HeloUtils::Trackable::CameraParams params = t->getCameraParameters();
+	     Ogre::Vector3 newpos = current + (error * params.p * tdelta);
+	     // TODO: compensate for ground level, preferably soft...
+             cam->setPosition(newpos);
            }
       }
     doOgreUpdate();
