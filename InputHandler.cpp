@@ -18,6 +18,13 @@ InputHandler::InputHandler(size_t windowHnd)
   initKeyboards();
   initMice();
   initJoysticks();
+
+  if (getNumKeyboards())
+    {
+      getKeyboard(0)->setBuffered(true);
+      getKeyboard(0)->setEventCallback(&kproxy);
+    }
+  // TODO: else raise exception?
 }
 
 void InputHandler::initKeyboards()
@@ -98,4 +105,39 @@ void InputHandler::update(void)
   for (std::vector<OIS::JoyStick*>::iterator i = joysticks.begin(); i != joysticks.end(); ++i)
     if ((*i)->getEventCallback())
       (*i)->capture();
+}
+
+void InputHandler::KeyboardProxy::delListener(OIS::KeyListener *l)
+{
+  for (std::vector<OIS::KeyListener*>::const_iterator i = listeners.begin();
+       i != listeners.end(); ++i)
+    if ((*i) == l)
+      {
+        //i->erase();
+        return;
+      }
+}
+
+bool InputHandler::KeyboardProxy::keyPressed(const OIS::KeyEvent& e)
+{
+  if (not listeners.size())
+    return true;
+
+  for (std::vector<OIS::KeyListener*>::const_iterator i = listeners.begin();
+       i != listeners.end(); ++i)
+    (*i)->keyPressed(e);
+
+  return true;
+}
+
+bool InputHandler::KeyboardProxy::keyReleased(const OIS::KeyEvent& e)
+{
+  if (not listeners.size())
+    return true;
+
+  for (std::vector<OIS::KeyListener*>::const_iterator i = listeners.begin();
+       i != listeners.end(); ++i)
+    (*i)->keyReleased(e);
+
+  return true;
 }

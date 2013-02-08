@@ -690,19 +690,28 @@ int heloApp::main(int argc, char *argv[])
   // c = create_Soldier("soldier0", Ogre::Vector3(1880.96, 1.0, 1650.3), mRoot, *physics);
   // controllables.push_back(c);
 
-  const std::vector<Controllable*> &controllables = conf->getControllables();
+  OIS::Object *dev = NULL;
+  if (inputHandler->getNumJoysticks())
+    dev = inputHandler->getJoystick(0);
+  else
+    dev = inputHandler->getKeyboard(0);
 
+  std::cout << "Joysticks: " << inputHandler->getNumJoysticks() << std::endl;
+
+  const std::vector<Controllable*> &controllables = conf->getControllables();
 
   for (std::vector<Controllable*>::const_iterator i = controllables.begin(); i != controllables.end(); ++i)
     {
       Controllable *c = *i;
-      c->createController(inputHandler->getKeyboard(0));
+      c->createController(dev);
     }
   currentControllable = controllables.size() - 1;
   cycleControllable();
 
-  Ogre::SceneNode *sn = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable])->getSceneNode();
+  HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
+  Ogre::SceneNode *sn = t->getSceneNode();
   cam->setAutoTracking(true, sn);
+
   // cam->setAutoTracking(true, current_car->getSceneNode());
   // cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
 
@@ -739,9 +748,19 @@ int heloApp::main(int argc, char *argv[])
     // n = current_vehicle->getSceneNode();
     // n = current_car->getSceneNode();
     // n = soldier->getSceneNode();
-    Ogre::Vector3 campos = sn->convertLocalToWorldPosition(Ogre::Vector3(-2.0, 0.0, 5.0));
-    campos.y = sn->_getDerivedPosition().y + 2.0;
-    //    cam->setPosition(campos);
+    HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
+    if (t)
+      {
+        Ogre::SceneNode *sn = t->getSceneNode();
+        cam->setAutoTracking(true, sn, t->getTrackOffset());
+        cam->setFixedYawAxis(true, t->getCameraUp());
+
+        if (t->cameraFollow())
+           {
+             Ogre::Vector3 campos = sn->convertLocalToWorldPosition(t->getCameraPosition());
+             cam->setPosition(campos);
+           }
+      }
     doOgreUpdate();
     //usleep(50000);
   }
@@ -773,8 +792,20 @@ void heloApp::cycleControllable()
   /* Raise exception if retries is 0 ? */
 }
 
-// bool heloApp::keyPressed(const OIS::KeyEvent &e)
-// {
+bool heloApp::keyPressed(const OIS::KeyEvent &e)
+{
+  switch (e.key)
+    {
+    case OIS::KC_ESCAPE:
+      mExit = true;
+      break;
+    case OIS::KC_SPACE:
+      cycleControllable();
+      break;
+    default:
+      return true;
+    }
+
 //   switch (e.key)
 //     {
 //     case OIS::KC_SPACE:
@@ -813,11 +844,11 @@ void heloApp::cycleControllable()
 //       break;
 //     }
 
-//   return true;
-// }
+  return true;
+}
 
-// bool heloApp::keyReleased(const OIS::KeyEvent &e)
-// {
+bool heloApp::keyReleased(const OIS::KeyEvent &e)
+{
 //   switch (e.key)
 //     {
 //     case OIS::KC_W:
@@ -844,8 +875,8 @@ void heloApp::cycleControllable()
 //       break;
 //     }
 
-//   return true;
-// }
+  return true;
+}
 
 // bool heloApp::buttonPressed(const OIS::JoyStickEvent &e, int idx)
 // {

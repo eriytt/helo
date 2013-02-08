@@ -12,7 +12,7 @@ class Terrain;
 class btRigidBody;
 class Controllable;
 
-class heloApp : public Ogre::FrameListener//, public OIS::KeyListener, public OIS::JoyStickListener
+class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
 
 protected:
@@ -70,6 +70,8 @@ public:
   heloApp();
   virtual ~heloApp();
   int main(int argc, char *argv[]);
+  bool keyPressed(const OIS::KeyEvent &e);
+  bool keyReleased(const OIS::KeyEvent &e);
 
 public:
   static heloApp *theApp;

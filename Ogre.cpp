@@ -82,7 +82,7 @@ void heloApp::setupInputSystem()
   win->getCustomAttribute("WINDOW", &windowHnd);
 
   inputHandler = new InputHandler(windowHnd);
-
+  inputHandler->addKeyboardListener(this);
   // OIS::Keyboard *k = inputHandler->getKeyboard(0);
   // k->setEventCallback(this);
 
@@ -117,7 +117,6 @@ void heloApp::initOGRE()
 
 bool heloApp::frameStarted(const FrameEvent& evt)
 {
-  mExit = inputHandler->getKeyboard(0)->isKeyDown(OIS::KC_ESCAPE);
   return not mExit;
 }
 

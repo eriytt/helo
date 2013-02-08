@@ -920,7 +920,7 @@ float Car::getSpeed()
 Controller *Car::createController(OIS::Object *dev)
 {
   if (dynamic_cast<OIS::JoyStick*>(dev))
-    return NULL;
+    return controller = new CarJoystickController(*static_cast<OIS::JoyStick*>(dev), *this);
   else if (dynamic_cast<OIS::Mouse*>(dev))
     return NULL;
   else if (dynamic_cast<OIS::Keyboard*>(dev))
@@ -944,8 +944,6 @@ void CarKeyController::update(float timeDelta)
   if (not active)
     return;
 
-  keyboard.setEventCallback(this);
-
   if (keyboard.isKeyDown(OIS::KC_A))
     car.setSteer(Ogre::Real(-HeloUtils::PI_4));
   else if (keyboard.isKeyDown(OIS::KC_D))
@@ -961,4 +959,21 @@ void CarKeyController::update(float timeDelta)
   // if (mKeyboard->isKeyDown(OIS::KC_S))
   //   car->setThrottle(Ogre::Fraction(0, 1));
 
+}
+
+bool CarJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
+{
+  std::cout << "axisMoved" << std::endl;
+  if (not active)
+    return true;
+
+   car.setSteer(e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS) * 0.5);
+   car.setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
+   return true;
+}
+ 
+void CarJoystickController::setActive(bool a)
+{
+  Controller::setActive(a);
+  joystick.setEventCallback(a ? this : NULL);
 }

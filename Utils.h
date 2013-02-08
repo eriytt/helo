@@ -115,8 +115,26 @@ namespace HeloUtils {
 
   class Trackable
   {
+  protected:
+    Ogre::Vector3 cameraPosition;
+
   public:
+    typedef struct {
+      float p;
+    } CameraParams;
+
+  public:
+    Trackable() : cameraPosition((Ogre::Vector3::NEGATIVE_UNIT_Z * 20) + (Ogre::Vector3::UNIT_Y * 3)) {}
     virtual Ogre::SceneNode *getSceneNode() = 0;
+    virtual const Ogre::Vector3 &getTrackOffset() {return Ogre::Vector3::ZERO;}
+    virtual const Ogre::Vector3 &getCameraUp() {return Ogre::Vector3::UNIT_Y;}
+    virtual bool cameraFollow() {return true;}
+    virtual const Ogre::Vector3 &getCameraPosition() {return cameraPosition;}
+    virtual CameraParams getCameraParameters() 
+    {
+      CameraParams params;
+      params.p = 1.0;
+      return params;}
   };
 
   template <typename T1, typename T2>

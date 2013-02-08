@@ -42,11 +42,17 @@ public:
 
 class CarJoystickController : public Controller, public OIS::JoyStickListener
 {
+protected:
+  OIS::JoyStick &joystick;
+  Car &car;
+
 public:
-  bool buttonPressed(const OIS::JoyStickEvent&, int);
-  bool buttonReleased(const OIS::JoyStickEvent&, int);
+  CarJoystickController(OIS::JoyStick &js, Car &c) : joystick(js), car(c) {}
+  bool buttonPressed(const OIS::JoyStickEvent&, int) {return true;}
+  bool buttonReleased(const OIS::JoyStickEvent&, int) {return true;}
   bool axisMoved(const OIS::JoyStickEvent&, int);
-  void update(float timeDelta);
+  void update(float timeDelta) {}
+  void setActive(bool a);
 };
 
 class TankKeyController : public CarKeyController
