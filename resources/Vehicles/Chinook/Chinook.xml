@@ -1,0 +1,46 @@
+<Vehicle
+    class = "Helicopter"
+    meshname = "Chinook.mesh"
+    boomLength = "0.0"
+    weight = "10395.0"
+    collectiveSensitivity = "0.8"
+    cyclicRightSensitivity = "0.5"
+    cyclicForwardSensitivity = "0.2"
+    steerSensitivity = "1.0"
+    >
+  <size x="3.69" y="3.1" z="15.74"/>
+
+  <rotors>
+    <!--
+	torque: 2796000 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/)
+	maxLift: 22680 kg is the max takeoff weight
+    -->
+
+    <!-- Front rotor -->
+    <rotor
+      weight = "500.0"
+      diameter = "18.3"
+      torque = "6678.3" 
+      inertia = "500.0"
+      maxLift = "116150.4"
+      tiltSensitivity = "0.1">
+       <relativePosition x="0.0" y="2.273" z="6.377"/>
+      <rotationAxis x="0.0" y="-1.381" z="12.075"/>
+      <axis  x="0.0" y="2.962" z="0.339)"/>
+    </rotor>
+
+    <!-- Back rotor -->
+    <rotor
+      weight = "500.0"
+      diameter = "18.3"
+      torque = "-6678.3" 
+      inertia = "500.0"
+      maxLift = "116150.4"
+      tiltSensitivity = "0.06">
+       <relativePosition x="0.0" y="3.654" z="-5.698"/>
+      <rotationAxis x="0.0" y="-1.381" z="12.075"/>
+      <axis  x="0.0" y="2.962" z="0.339)"/>
+    </rotor>
+
+  </rotors>
+</Vehicle>

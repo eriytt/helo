@@ -13,14 +13,14 @@
   <rotors>
 
     <!--
-	torque: /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/)
+	torque: 313000 /*W*/ / (4000.0 /*RPM*/ / 60.0 /*seconds per minute*/ * 6.28 /*raidians per revolution*/)
 	maxLift = weight * 9.81 * 2
     -->
     <rotor
       weight = "200.0"
       diameter = "8.03"
-      torque = "313000.0" 
-      inertia = "1000000.0"
+      torque = "747.6" 
+      inertia = "200.0"
       maxLift = "13125.78"
       tiltSensitivity = "0.0">
        <relativePosition x="0.0" y="2.45" z="0.0"/>

@@ -13,6 +13,9 @@
       <position x="1757.96" y="5.59526" z="1625.3"/>
     </Vehicle>
 
+    <Vehicle type="Chinook" name="chinook.0">
+      <position x="1767.96" y="2.59526" z="1625.3"/>
+    </Vehicle>
 
   </Vehicles>
 </Mission>

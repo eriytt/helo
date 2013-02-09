@@ -50,12 +50,12 @@ void Rotor::applyForcesAndTorques(btRigidBody *parent_body, btScalar step)
 {
   if (started)
     {
-      appliedTorque = (4000.0 - revolutionsPerSecond) * torque;
+      appliedTorque = (4000.0 - fabs(revolutionsPerSecond)) * torque;
       revolutionsPerSecond += (appliedTorque / inertia) * step;
       HeloUtils::LocalApplyTorque(parent_body, btVector3(0, -appliedTorque, 0));
     }
 
-  btScalar engine_force = (revolutionsPerSecond / 4000.0) * equilibriumLift;
+  btScalar engine_force = (fabs(revolutionsPerSecond) / 4000.0) * equilibriumLift;
   btScalar up_force = engine_force * (1.0 + swash);
   up_force = HeloUtils::clamp(maxLift, -maxLift, up_force);
 
@@ -128,6 +128,8 @@ Helicopter::Helicopter(const HelicopterData &data, Ogre::Root *root)
   cyclicRightSensitivity = data.cyclicRightSensitivity;
   cyclicForwardSensitivity = data.cyclicForwardSensitivity;
   steerSensitivity = data.steerSensitivity;
+
+  cameraPosition = (Ogre::Vector3::NEGATIVE_UNIT_Z * 30.0) + (Ogre::Vector3::UNIT_Y * 5.0);
 };
 
 // TODO : honour the flag

@@ -155,7 +155,15 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
       hd.rotorData[i].tiltSensitivity = XMLUtils::GetAttribute<float>("tiltSensitivity", rn);
     }
 
-  Helicopter *helicopter = new Helicopter(hd, root);
+  if (hd.rotorData.size() > 2)
+    throw ConfigurationError(n->GetDocument()->ValueStr(), "A maximum 2 rotors are supported");
+
+  Helicopter *helicopter = NULL;
+  if (hd.rotorData.size() == 1)
+    helicopter = new Helicopter(hd, root);
+  else
+    helicopter = new TandemRotorHelicopter(hd, root);
+
   physics->addObject(helicopter);
   controllables.push_back(helicopter);
 }

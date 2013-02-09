@@ -133,6 +133,7 @@ namespace HeloUtils {
     } CameraParams;
 
   public:
+    Trackable(const Ogre::Vector3 &campos) : cameraPosition(campos) {}
     Trackable() : cameraPosition((Ogre::Vector3::NEGATIVE_UNIT_Z * 20) + (Ogre::Vector3::UNIT_Y * 3)) {}
     virtual Ogre::SceneNode *getSceneNode() = 0;
     virtual const Ogre::Vector3 &getTrackOffset() {return Ogre::Vector3::ZERO;}

@@ -137,7 +137,10 @@ public:
     } RotorPosition;
 
 public:
-  TandemRotorHelicopter(const HelicopterData &data, Ogre::Root *root) : Helicopter(data, root) {}
+  TandemRotorHelicopter(const HelicopterData &data, Ogre::Root *root) : Helicopter(data, root)
+  {
+    cameraPosition = (Ogre::Vector3::NEGATIVE_UNIT_Z * 40.0) + (Ogre::Vector3::UNIT_Y * 7.0);
+  }
 
 protected:
   virtual void setRotorInput();

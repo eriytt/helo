@@ -283,7 +283,7 @@ public:
   virtual car_data_t getCarData();
   virtual void setInput(control_data_t &cdata);
   virtual void update(void);
-  virtual void physicsUpdate() {}
+  virtual void physicsUpdate(float step) {}
   Controller *createController(OIS::Object *dev);
 };
 
