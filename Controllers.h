@@ -70,6 +70,8 @@ public:
   bool axisMoved(const OIS::JoyStickEvent&, int);
 };
 
+class Helicopter;
+
 class HelicopterKeyController : public Controller, public OIS::KeyListener
 {
 public:
@@ -80,11 +82,17 @@ public:
 
 class HelicopterJoystickController : public Controller, public OIS::JoyStickListener
 {
+protected:
+  OIS::JoyStick &joystick;
+  Helicopter &helicopter;
+
 public:
+  HelicopterJoystickController(OIS::JoyStick &js, Helicopter &h) : joystick(js), helicopter(h) {}
   bool buttonPressed(const OIS::JoyStickEvent&, int);
   bool buttonReleased(const OIS::JoyStickEvent&, int);
   bool axisMoved(const OIS::JoyStickEvent&, int);
   void update(float timeDelta);
+  void setActive(bool a);
 };
 
 class CharacterKeyController : public Controller, public OIS::KeyListener

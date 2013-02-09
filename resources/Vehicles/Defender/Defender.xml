@@ -6,7 +6,7 @@
     collectiveSensitivity = "0.5"
     cyclicRightSensitivity = "0.0125"
     cyclicForwardSensitivity = "0.03"
-    steerSensitivity = "1.0"
+    steerSensitivity = "1000.0"
     >
   <size x="2.59" y="2.72" z="7.01"/>
 
@@ -20,7 +20,7 @@
       weight = "200.0"
       diameter = "8.03"
       torque = "313000.0" 
-      inertia = "100.0"
+      inertia = "1000000.0"
       maxLift = "13125.78"
       tiltSensitivity = "0.0">
        <relativePosition x="0.0" y="2.45" z="0.0"/>

@@ -5,20 +5,8 @@
 Rotor::Rotor(const RotorData &data, const Ogre::Vector3 &parent_pos, btRigidBody &parent_body,
 	     Ogre::Root *root)
 {
-  btTransform tr;
-  tr.setIdentity();
-  tr.setOrigin(btVector3(parent_pos.x + data.relpos.x,
-			 parent_pos.y + data.relpos.y,
-			 parent_pos.z + data.relpos.z));
-
-  body = Physics::CreateRigidBody(data.weight, tr, NULL/*No shape*/, NULL/*No scene node*/,
-				  btVector3(0.1, data.inertia, 0.1));
-
-  hinge = new btHingeConstraint(*body, parent_body,
-				btVector3(0, 0, 0),
-				btVector3(0, 0, 0),
-				btVector3(0.0, 1.0, 0.0),
-				btVector3(0.0, 1.0, 0.0));
+  revolutionsPerSecond = 0.0;
+  inertia = data.inertia;
   torque = data.torque;
   maxLift = data.maxLift;
   started = false;
@@ -35,6 +23,7 @@ Rotor::Rotor(const RotorData &data, const Ogre::Vector3 &parent_pos, btRigidBody
   rotation = Ogre::Radian(0.0);
   tiltSensitivity = data.tiltSensitivity;
   equilibriumLift = maxLift;
+  appliedTorque = 0.0;
 }
 
 void Rotor::setEquilibriumLift(float equilift)
@@ -57,22 +46,18 @@ void Rotor::setRotation(float radians)
   rotation = Ogre::Radian(radians) * tiltSensitivity;
 }
 
-void Rotor::applyForcesAndTorques(btRigidBody *parent_body)
+void Rotor::applyForcesAndTorques(btRigidBody *parent_body, btScalar step)
 {
   if (started)
     {
-      HeloUtils::LocalApplyTorque(body, btVector3(0, torque, 0));
-      HeloUtils::LocalApplyTorque(parent_body, btVector3(0, -torque, 0));
+      appliedTorque = (4000.0 - revolutionsPerSecond) * torque;
+      revolutionsPerSecond += (appliedTorque / inertia) * step;
+      HeloUtils::LocalApplyTorque(parent_body, btVector3(0, -appliedTorque, 0));
     }
 
-  // Bullet seems to clamp this to around 94, probably the angualar damping
-  btScalar engine_rps = fabs(body->getAngularVelocity().y()); // radians per second
-
-  // btScalar engine_force = (engine_rps / 94) * lift / 4.0;
-  btScalar engine_force = (engine_rps / 94) * equilibriumLift;
+  btScalar engine_force = (revolutionsPerSecond / 4000.0) * equilibriumLift;
   btScalar up_force = engine_force * (1.0 + swash);
   up_force = HeloUtils::clamp(maxLift, -maxLift, up_force);
-
 
   Ogre::Vector3 rotated_axis;
   if (rotation.valueRadians() == 0.0)
@@ -101,8 +86,6 @@ void Rotor::applyForcesAndTorques(btRigidBody *parent_body)
       HeloUtils::LocalApplyForce(parent_body, raxis * -right_force,
 				 rpos + btVector3(0.5 * -diameter, 0.0, 0.0));
     }
-
-
 }
 
 
@@ -126,10 +109,7 @@ Helicopter::Helicopter(const HelicopterData &data, Ogre::Root *root)
   tr.setIdentity();
   tr.setOrigin(btVector3(data.pos.x, data.pos.y, data.pos.z));
 
-  float engine_weight = 0.0;
-  for (Rotor::RotorDataCIter i = data.rotorData.begin(); i != data.rotorData.end(); ++i)
-    engine_weight += (*i).weight;
-  fuselageBody = Physics::CreateRigidBody(data.weight - engine_weight, tr, shape, node);
+  fuselageBody = Physics::CreateRigidBody(data.weight, tr, shape, node);
 
   for (Rotor::RotorDataCIter i = data.rotorData.begin(); i != data.rotorData.end(); ++i)
     {
@@ -160,11 +140,7 @@ void Helicopter::startEngines(bool start)
 void Helicopter::finishPhysicsConfiguration(Physics *phys)
 {
   phys->addBody(fuselageBody);
-  for (RotorIter i = rotors.begin(); i != rotors.end(); ++i)
-    {
-      phys->addBody((*i)->getBody());
-      phys->addConstraint((*i)->getHinge());
-    }
+  fuselageBody->setActivationState(DISABLE_DEACTIVATION);
 }
 
 void Helicopter::setRotorInput()
@@ -174,29 +150,21 @@ void Helicopter::setRotorInput()
 		      cyclic_right * cyclicRightSensitivity);
 }
 
-void Helicopter::physicsUpdate(void)
+void Helicopter::physicsUpdate(float step)
 {
-  //static unsigned int updates = 0;
-  //fuselageBody->applyCentralForce(btVector3(0.0, 669.0 * 9.81 * 1.1, 0.0));
-  // if (not (updates % 100000)) {
-  //   const btVector3 &av = engineBody->getAngularVelocity();
-  //   const btVector3 &pos = engineBody->getCenterOfMassPosition();
-  //   printf("Engine angular velocity %f, %f, %f\n", av.x(), av.y(), av.z());
-  //   //printf("Engine postition%f, %f, %f\n", pos.x(), pos.y(), pos.z());
-  // }
-  //updates++;
-
   setRotorInput();
   for (RotorIter i = rotors.begin(); i != rotors.end(); ++i)
-    (*i)->applyForcesAndTorques(fuselageBody);
+    (*i)->applyForcesAndTorques(fuselageBody, step);
 
 
-  // TODO: steering force should be depending on engine_rps
   if (boomLength != 0.0)
     {
-      btScalar steering_force = (313000.0 / (4000.0 / 60.0 * 6.28)) / boomLength * (1.0 + (1.5 * steer));
-      HeloUtils::LocalApplyForce(fuselageBody, btVector3(-steering_force, 0.0, 0.0),
-				 btVector3(0.0, 0.0, -boomLength));
+
+      HeloUtils::LocalApplyTorque(fuselageBody,
+				  btVector3(0.0,
+					    rotors[0]->getAppliedTorque()
+					    + (steer * steerSensitivity),
+					    0.0));
     }
 }
 
@@ -212,4 +180,67 @@ void TandemRotorHelicopter::setRotorInput()
 				  - (steer * steerSensitivity));
   rotors[BackRotor]->setRotation((cyclic_right * cyclicRightSensitivity)
 				 + (steer * steerSensitivity));
+}
+
+Controller *Helicopter::createController(OIS::Object *dev)
+{
+  if (dynamic_cast<OIS::JoyStick*>(dev))
+    return controller = new HelicopterJoystickController(*static_cast<OIS::JoyStick*>(dev), *this);
+  else if (dynamic_cast<OIS::Mouse*>(dev))
+    return NULL;
+  else if (dynamic_cast<OIS::Keyboard*>(dev))
+    return NULL;
+  else
+    return NULL;
+}
+
+
+bool HelicopterJoystickController::buttonPressed(const OIS::JoyStickEvent &e, int idx)
+{
+  if (not active)
+    return true;
+
+  switch (idx)
+    {
+    case 0:
+      helicopter.startEngines(true);
+      break;
+    default:
+      break;
+    }
+  return true;
+
+}
+
+bool HelicopterJoystickController::buttonReleased(const OIS::JoyStickEvent&, int)
+{
+  return true;
+}
+
+bool HelicopterJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
+{
+  if (not active)
+    return true;
+
+  float collective = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  float steer = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  float cyclic_forward = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  float cyclic_right = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+
+  helicopter.setCollective(collective);
+  helicopter.setSteer(steer);
+  helicopter.setCyclicForward(cyclic_forward);
+  helicopter.setCyclicRight(cyclic_right);
+
+  return true;
+}
+
+void HelicopterJoystickController::update(float timeDelta)
+{
+}
+
+void HelicopterJoystickController::setActive(bool a)
+{
+  Controller::setActive(a);
+  joystick.setEventCallback(a ? this : NULL);
 }

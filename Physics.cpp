@@ -145,11 +145,9 @@ void Physics::sync()
 
 void Physics::internalStep(float timeSlice)
 {
-  world->stepSimulation(timeSlice, 10);
   for (PhysObjIter i = pobjects.begin(); i != pobjects.end(); ++i)
-    (*i)->physicsUpdate();
-
-  //sphere->applyCentralForce(btVector3(300.0, 900.0, 0.0));
+    (*i)->physicsUpdate(timeSlice);
+  world->stepSimulation(timeSlice, 10);
 }
 
 void Physics::work()

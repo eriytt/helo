@@ -60,7 +60,7 @@ class PhysicsObject
 {
 public:
   virtual void finishPhysicsConfiguration(class Physics *phys) = 0;
-  virtual void physicsUpdate(void) = 0;
+  virtual void physicsUpdate(float step) = 0;
 };
 
 typedef std::vector < PhysicsObject* > PhysObjVector;

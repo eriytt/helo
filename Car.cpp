@@ -963,7 +963,6 @@ void CarKeyController::update(float timeDelta)
 
 bool CarJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
 {
-  std::cout << "axisMoved" << std::endl;
   if (not active)
     return true;
 
@@ -971,7 +970,7 @@ bool CarJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
    car.setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
    return true;
 }
- 
+
 void CarJoystickController::setActive(bool a)
 {
   Controller::setActive(a);

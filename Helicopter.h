@@ -29,7 +29,6 @@ public:
   typedef std::vector<RotorData>::const_iterator RotorDataCIter;
 
 protected:
-  class btRigidBody *body;
   float swash;
   float swash_right;
   float swash_forward;
@@ -40,22 +39,23 @@ protected:
   Ogre::Vector3 pos;
   float diameter;
   float torque;
+  float revolutionsPerSecond;
+  float inertia;
   float maxLift;
   float equilibriumLift;
   float weight;
+  float appliedTorque;
   bool started;
-  btHingeConstraint *hinge;
 
 public:
   Rotor(const RotorData &data, const Ogre::Vector3 &parent_pos, btRigidBody &parent_body, Ogre::Root *root);
-  void applyForcesAndTorques(btRigidBody *parent_body);
+  void applyForcesAndTorques(btRigidBody *parent_body, float step);
   float getWeight() {return weight;}
-  btRigidBody *getBody() {return body;}
-  btHingeConstraint *getHinge() {return hinge;}
   void start() {started = true;}
   void setSwash(float new_swash, float new_forward, float new_right);
   void setRotation(float radians);
   void setEquilibriumLift(float equilift);
+  float getAppliedTorque() {return appliedTorque;}
 };
 
 
@@ -102,7 +102,7 @@ protected:
 public:
   Helicopter(const HelicopterData &data, Ogre::Root *root);
   void finishPhysicsConfiguration(Physics *phys);
-  void physicsUpdate(void);
+  void physicsUpdate(float step);
   void startEngines(bool start);
   void setCollective(float val) {collective = HeloUtils::unit_clamp(val);} // up/down
   void setCyclic(float forward, float right) // tilt
@@ -114,7 +114,14 @@ public:
   void setCyclicRight(float right) {cyclic_right = HeloUtils::unit_clamp(right);}
   void setSteer(float val) {steer = HeloUtils::unit_clamp(val);}
   Ogre::SceneNode *getSceneNode() {return node;}
-  Controller *createController(OIS::Object *dev) {return NULL;}
+  Controller *createController(OIS::Object *dev);
+  CameraParams getCameraParameters()
+    {
+      CameraParams params;
+      params.p = 5.0;
+      return params;
+    }
+
 
 protected:
   virtual void setRotorInput();

@@ -55,6 +55,15 @@ namespace HeloUtils {
     body->applyForce(appliedForce, appliedPoint);
   }
 
+  inline void LocalApplyImpulse(btRigidBody *body, const btVector3 &impulse, const btVector3 &point)
+  {
+    const btMatrix3x3 &rot = body->getCenterOfMassTransform().getBasis();
+    btVector3 appliedImpulse = rot * impulse;
+    btVector3 appliedPoint = rot * point;
+    body->applyImpulse(appliedImpulse, appliedPoint);
+  }
+
+
   inline void LocalApplyTorque(btRigidBody *body, const btVector3 &torque)
   {
     const btMatrix3x3 &rot = body->getCenterOfMassTransform().getBasis();
@@ -134,7 +143,8 @@ namespace HeloUtils {
     {
       CameraParams params;
       params.p = 1.0;
-      return params;}
+      return params;
+    }
   };
 
   template <typename T1, typename T2>
