@@ -32,7 +32,7 @@ protected:
   void saveTerrains(bool onlyIfModified);
 };
 
-#define TERRAIN_WORLD_SIZE 12000.0f
+#define TERRAIN_WORLD_SIZE 12800.0f
 #define TERRAIN_SIZE 513
 #define TERRAIN_FILE_PREFIX String("testTerrain")
 #define TERRAIN_FILE_SUFFIX String("dat")

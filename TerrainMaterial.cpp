@@ -35,16 +35,32 @@ Ogre::MaterialPtr TerrainMaterial::Profile::generate(const Ogre::Terrain* terrai
   pass->removeAllTextureUnitStates();
 
   Ogre::uint32 size = terrain->getSize() - 1;
+  Ogre::Real grid_size = terrain->getWorldSize() / static_cast<Ogre::Real>(terrain->getSize() - 1);
   Ogre::TexturePtr shadow_tex = Ogre::TextureManager::getSingleton().createManual(shadow_name, resourceGroup, Ogre::TEX_TYPE_2D, size, size, /*num_mips*/ 1, Ogre::PF_X8R8G8B8);
   Ogre::HardwarePixelBufferSharedPtr buf = shadow_tex->getBuffer();
 
   unsigned char *data = static_cast<unsigned char*>(buf->lock(Ogre::HardwareBuffer::HBL_DISCARD));
-  for (Ogre::uint32 i = 0; i < HeloUtils::POW2(size) * 4; i += 4)
+
+  for (Ogre::uint32 x = 0; x <= size; ++x)
+    for (Ogre::uint32 y = 0; y <= size; ++y)
     {
-      data[i + 0] = 0;
-      data[i + 1] = 0;
-      data[i + 2] = (char)i;
-      data[i + 3] = 255;
+      Ogre::Vector3 q0(      0.0,       0.0, terrain->getHeightAtPoint(x    , size - y    ));
+      Ogre::Vector3 q1(grid_size,       0.0, terrain->getHeightAtPoint(x + 1, size - y    ));
+      Ogre::Vector3 q2(      0.0, grid_size, terrain->getHeightAtPoint(x    , size - y + 1));
+      Ogre::Vector3 q3(grid_size, grid_size, terrain->getHeightAtPoint(x + 1, size - y + 1));
+
+      Ogre::Vector3 n0((q2 - q0).crossProduct(q1 - q0).normalisedCopy());
+      Ogre::Vector3 n1((q1 - q3).crossProduct(q2 - q3).normalisedCopy());
+      Ogre::Vector3 n((n0 + n1).normalisedCopy());
+
+      Ogre::Real intensity = n.dotProduct(Ogre::Vector3(0.0, 0.0, -1.0));
+
+      Ogre::uint32 tex_idx = ((y * size) + x) * 4;
+
+      data[tex_idx + 0] = 0;
+      data[tex_idx + 1] = static_cast<unsigned char>(intensity * 255);
+      data[tex_idx + 2] = 0;
+      data[tex_idx + 3] = 255;
     }
   buf->unlock();
 
