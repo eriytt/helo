@@ -1,0 +1,320 @@
+<Vehicle
+    class="Tank"
+    meshname="abrams.mesh"
+    weight="61300">
+  <size x="3.66" y="1.3" z="7.93"/>
+  <turretPosition x="0.0" y="0.609" z="0.03"/>
+  <barrelPosition x="0.0" y="0.407" z="1.412"/>
+  <wheels>
+
+    <!-- 1st right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="2.103"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 1st left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="2.103"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 2nd right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="1.201"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 2nd left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="1.201"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 3rd right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="0.487"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 3rd left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="0.487"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 4th right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="-0.22"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 4th left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="-0.22"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 5th right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="-0.945"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 5th left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="-0.945"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 6th right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="-1.687"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 6th right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="-1.687"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 7th right wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="-1.35" y="0.0" z="-2.464"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- 7th left wheel -->
+    <wheel
+       spring="600000"
+       dampUp="50000"
+       dampDown="50000"
+       suspensionLength="0.55"
+       maxLengthUp="0.05"
+       maxLengthDown="0.90"
+       radius="0.348"
+       steerCoeff="0.0"
+       driveCoeff="0.0"
+       brakeCoeff="0.0"
+       momentOfInertia="300">
+      <relativePosition x="1.35" y="0.0" z="-2.464"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+  </wheels>
+
+
+  <driveWheels>
+    <!-- right drive wheel -->
+    <wheel
+       spring="0"
+       dampUp="0"
+       dampDown="0"
+       suspensionLength="0.50"
+       maxLengthUp="0.00"
+       maxLengthDown="10.0"
+       radius="0.3433"
+       steerCoeff="0.0"
+       driveCoeff="1.0"
+       brakeCoeff="1.0"
+       momentOfInertia="2000">
+      <relativePosition x="-1.518" y="0.0" z="0.0"/>
+      <realRelativePosition x="-1.518" y="0.062" z="-3.143"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- left drive wheel -->
+    <wheel
+       spring="0"
+       dampUp="0"
+       dampDown="0"
+       suspensionLength="0.50"
+       maxLengthUp="0.00"
+       maxLengthDown="10.0"
+       radius="0.3433"
+       steerCoeff="0.0"
+       driveCoeff="1.0"
+       brakeCoeff="1.0"
+       momentOfInertia="2000">
+      <relativePosition x="1.518" y="0.0" z="0.0"/>
+      <realRelativePosition x="1.518" y="0.062" z="-3.143"/>
+      <direction x="0" y="-1" z="0"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+  </driveWheels>
+
+  <spinWheels>
+    <!-- right spin wheel -->
+    <wheel  radius="0.3171">
+      <relativePosition x="-1.503" y="0.003" z="3.223"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+
+    <!-- left spin wheel -->
+    <wheel  radius="0.3171">
+      <relativePosition x="1.503" y="0.003" z="3.223"/>
+      <axle x="1" y="0" z="0"/>
+    </wheel>
+  </spinWheels>
+
+</Vehicle>

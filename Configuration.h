@@ -24,7 +24,7 @@ public:
 
     ConfigurationError(const std::string &msg) :
       runtime_error(""), file(""), reason(msg) {}
-    
+
     ~ConfigurationError() throw() {}
 
     virtual const char* what() const throw()
@@ -49,7 +49,7 @@ protected:
   } Vehicle;
 
   std::vector<Controllable*> controllables;
-  
+
 protected:
   std::string resource_base_path;
   std::vector<Mission> missions;
@@ -70,6 +70,7 @@ protected:
   void loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position);
   void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
   void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
+  void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
 };
 
 #endif // CONFIGURATION_H

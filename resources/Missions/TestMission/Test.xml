@@ -17,5 +17,8 @@
       <position x="1767.96" y="2.59526" z="1625.3"/>
     </Vehicle>
 
+    <Vehicle type="Abrams" name="abrams.0">
+      <position x="1780.96" y="1.0" z="1650.3"/>
+    </Vehicle>
   </Vehicles>
 </Mission>

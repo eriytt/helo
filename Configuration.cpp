@@ -6,6 +6,7 @@
 #include "XML.h"
 #include "Car.h"
 #include "Helicopter.h"
+#include "Tank.h"
 
 void Configuration::loadConfig()
 {
@@ -117,7 +118,6 @@ void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::V
   controllables.push_back(car);
 }
 
-
 void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
 {
   Helicopter::HelicopterData hd;
@@ -168,6 +168,94 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
   controllables.push_back(helicopter);
 }
 
+void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+{
+  Tank::TankData td;
+  td.position = position;
+  td.name = name;
+
+  td.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
+  td.weight = XMLUtils::GetAttribute<float>("weight", n);
+  td.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
+  td.turretPosition = XMLUtils::GetVectorParam<Ogre::Vector3>("turretPosition", n);
+  td.barrelPosition = XMLUtils::GetVectorParam<Ogre::Vector3>("barrelPosition", n);
+
+  TiXmlNode *wsn = n->IterateChildren("wheels", NULL);
+  if (not wsn)
+    throw ConfigurationError(n->GetDocument()->ValueStr(),
+			     n->ValueStr() + " has no child child named 'wheels'");
+
+  td.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
+
+  TiXmlNode *wn = NULL;
+  for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
+    {
+      td.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+      td.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+      td.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+      td.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+      td.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+      td.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+      td.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
+      td.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
+      td.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+      td.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+      td.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+      td.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+      td.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+      td.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+    }
+
+
+  TiXmlNode *dwsn = n->IterateChildren("driveWheels", NULL);
+  if (not dwsn)
+    throw ConfigurationError(n->GetDocument()->ValueStr(),
+			     n->ValueStr() + " has no child child named 'driveWheels'");
+
+  td.driveWheelData.resize(XMLUtils::GetNumChildren(dwsn, "wheel"));
+
+  wn = NULL;
+  for (int i = 0; (wn = dwsn->IterateChildren(std::string("wheel"), wn)); ++i)
+    {
+      td.driveWheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+      td.driveWheelData[i].realRelPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("realRelativePosition", wn));
+      td.driveWheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+      td.driveWheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+      td.driveWheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+      td.driveWheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+      td.driveWheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+      td.driveWheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
+      td.driveWheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
+      td.driveWheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+      td.driveWheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+      td.driveWheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+      td.driveWheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+      td.driveWheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+      td.driveWheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+    }
+
+  TiXmlNode *swsn = n->IterateChildren("spinWheels", NULL);
+  if (not swsn)
+    throw ConfigurationError(n->GetDocument()->ValueStr(),
+			     n->ValueStr() + " has no child child named 'spinWheels'");
+
+  td.spinWheelData.resize(XMLUtils::GetNumChildren(dwsn, "wheel"));
+
+  wn = NULL;
+  for (int i = 0; (wn = swsn->IterateChildren(std::string("wheel"), wn)); ++i)
+    {
+      td.spinWheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+      td.spinWheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+      td.spinWheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
+    }
+
+
+  Tank *tank = new Tank(td, root);
+  physics->addObject(tank);
+  controllables.push_back(tank);
+}
+
+
 void Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position)
 {
   Ogre::ResourceGroupManager &rgm = Ogre::ResourceGroupManager::getSingleton();
@@ -199,6 +287,8 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
 	loadCar(n, name, position);
       else if (vehicle_class == "Helicopter")
 	loadHelicopter(n, name, position);
+      else if (vehicle_class == "Tank")
+	loadTank(n, name, position);
       else
 	ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
     }

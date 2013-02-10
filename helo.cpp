@@ -672,21 +672,6 @@ int heloApp::main(int argc, char *argv[])
 
   //Controllable *c;
 
-  // c = create_HMMWV("hmmwv", Ogre::Vector3(1780.96, 2.0, 1625.3), mRoot, *physics);
-  // controllables.push_back(c);
-
-  // c = create_Defender("defender", Ogre::Vector3(1757.96, 5.59526, 1625.3), mRoot, *physics);
-  // controllables.push_back(c);
-
-  // c = create_Chinook("chinook", Ogre::Vector3(1767.96, 2.59526, 1625.3), mRoot, *physics);
-  // controllables.push_back(c);
-
-  // c = create_M93A1("m93a1", Ogre::Vector3(1760.96, 2.0, 1650.3), mRoot, *physics);
-  // controllables.push_back(c);
-
-  // c = create_M1Abrams("abrams", Ogre::Vector3(1780.96, 1.0, 1650.3), mRoot, *physics);
-  // controllables.push_back(c);
-
   // c = create_Soldier("soldier0", Ogre::Vector3(1880.96, 1.0, 1650.3), mRoot, *physics);
   // controllables.push_back(c);
 
