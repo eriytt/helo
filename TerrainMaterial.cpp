@@ -39,10 +39,11 @@ Ogre::MaterialPtr TerrainMaterial::Profile::generate(const Ogre::Terrain* terrai
   Ogre::TexturePtr shadow_tex = Ogre::TextureManager::getSingleton().createManual(shadow_name, resourceGroup, Ogre::TEX_TYPE_2D, size, size, /*num_mips*/ 1, Ogre::PF_X8R8G8B8);
   Ogre::HardwarePixelBufferSharedPtr buf = shadow_tex->getBuffer();
 
+  size_t real_size = buf->getSizeInBytes();
   unsigned char *data = static_cast<unsigned char*>(buf->lock(Ogre::HardwareBuffer::HBL_DISCARD));
 
-  for (Ogre::uint32 x = 0; x <= size; ++x)
-    for (Ogre::uint32 y = 0; y <= size; ++y)
+  for (Ogre::uint32 x = 0; x < size; ++x)
+    for (Ogre::uint32 y = 0; y < size; ++y)
     {
       Ogre::Vector3 q0(      0.0,       0.0, terrain->getHeightAtPoint(x    , size - y    ));
       Ogre::Vector3 q1(grid_size,       0.0, terrain->getHeightAtPoint(x + 1, size - y    ));
@@ -57,6 +58,7 @@ Ogre::MaterialPtr TerrainMaterial::Profile::generate(const Ogre::Terrain* terrai
 
       Ogre::uint32 tex_idx = ((y * size) + x) * 4;
 
+      assert(tex_idx + 3 < real_size);
       data[tex_idx + 0] = 0;
       data[tex_idx + 1] = static_cast<unsigned char>(intensity * 255);
       data[tex_idx + 2] = 0;
