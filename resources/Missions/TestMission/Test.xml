@@ -1,5 +1,9 @@
 <Mission>
   <Vehicles>
+    <Vehicle type="A10" name="a10.0">
+      <position x="1880.96" y="4.0" z="1750.3"/>
+    </Vehicle>
+
     <Vehicle type="HMMWV" name="hmmwv.0">
       <!--position x="10.0" y="10.1" z="groundlevel" groundoffset="2.0"/-->
       <position x="1780.96" y="2.0" z="1625.3"/>
@@ -20,5 +24,6 @@
     <Vehicle type="Abrams" name="abrams.0">
       <position x="1780.96" y="1.0" z="1650.3"/>
     </Vehicle>
+
   </Vehicles>
 </Mission>

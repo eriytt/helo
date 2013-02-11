@@ -71,6 +71,7 @@ protected:
   void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
   void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
   void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
+  void loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
 };
 
 #endif // CONFIGURATION_H

@@ -486,6 +486,7 @@ Car::Car(const Car::CarData &data, Ogre::Root *root)
 
   body = Physics::CreateRigidBody(data.weight, tr, shape, node);
   rayCastVehicle = new CBRaycastVehicle(body);
+  
   for (unsigned int i = 0; i < data.wheelData.size(); ++i)
     {
       const WheelData &wd = data.wheelData[i];
@@ -496,7 +497,7 @@ Car::Car(const Car::CarData &data, Ogre::Root *root)
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
       wheelNodes.push_back(tnode);
       rayCastVehicle->addWheel(wd);
-      }
+    }
 
   /*init driveline variables*/
   // engine = new Engine(TORQUE_WHEEL_THICKNESS

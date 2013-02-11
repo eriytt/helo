@@ -7,6 +7,7 @@
 #include "Car.h"
 #include "Helicopter.h"
 #include "Tank.h"
+#include "Airplane.h"
 
 void Configuration::loadConfig()
 {
@@ -255,6 +256,46 @@ void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::
   controllables.push_back(tank);
 }
 
+void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+{
+  Airplane::AirplaneData ad;
+  ad.position = position;
+  ad.name = name;
+
+  ad.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
+  ad.weight = XMLUtils::GetAttribute<float>("weight", n);
+  ad.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
+
+  TiXmlNode *wsn = n->IterateChildren("wheels", NULL);
+  if (not wsn)
+    throw ConfigurationError(n->GetDocument()->ValueStr(),
+			     n->ValueStr() + " has no child child named 'wheels'");
+
+  ad.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
+
+  TiXmlNode *wn = NULL;
+  for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
+    {
+      ad.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+      ad.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+      ad.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+      ad.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+      ad.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+      ad.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+      ad.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
+      ad.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
+      ad.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+      ad.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+      ad.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+      ad.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+      ad.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+      ad.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+    }
+
+  Airplane *airplane = new Airplane(ad, root);
+  physics->addObject(airplane);
+  controllables.push_back(airplane);
+}
 
 void Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position)
 {
@@ -289,6 +330,8 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
 	loadHelicopter(n, name, position);
       else if (vehicle_class == "Tank")
 	loadTank(n, name, position);
+      else if (vehicle_class == "Airplane")
+	loadAirplane(n, name, position);
       else
 	ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
     }
