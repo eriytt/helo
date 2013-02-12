@@ -70,6 +70,14 @@ Ogre::MaterialPtr TerrainMaterial::Profile::generate(const Ogre::Terrain* terrai
   Ogre::TextureUnitState *tex = pass->createTextureUnitState();
   tex->setTextureName(shadow_tex->getName());
 
+  Ogre::TextureUnitState *tex2 = pass->createTextureUnitState("terrain_detail.jpg");
+  tex2->setColourOperation(Ogre::LBO_MODULATE);
+  tex2->setTextureScale(0.1, 0.1);
+
+  Ogre::TextureUnitState *tex3 = pass->createTextureUnitState("terrain_detail.jpg");
+  tex3->setColourOperation(Ogre::LBO_MODULATE);
+  tex3->setTextureScale(0.01, 0.01);
+
   return mat;
 }
 
