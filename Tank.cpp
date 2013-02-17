@@ -256,6 +256,9 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
       steerTorque *= i & 1 ? 1.0 : -1.0;
 
       driveWheels[i]->updateContact(collisionWorld, chassisBody);
+      /* To short suspension length on drive wheel? */
+      assert((not airborne) ? (not driveWheels[i]->isAirborne()) : true);
+
       driveWheels[i]->setSuspensionForce(i & 1 ? left_side_force : right_side_force);
       driveWheels[i]->setTorque((currentDriveTorque * 40.0) + steerTorque);
       driveWheels[i]->setAirborne(airborne);
@@ -296,11 +299,18 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
 
   for (unsigned int i = 0; i < driveWheels.size(); ++i)
     {
+      if (driveWheels[i]->isAirborne())
+	continue;
+
       btVector3 cp = driveWheels[i]->getContactPoint();
       btVector3 f = driveWheels[i]->sumForces();
       chassisBody->applyImpulse(br * (f * timeStep), br * cp);
       driveWheels[i]->updateMotionState();
     }
+
+  assert(not (std::isnan(chassisBody->getAngularVelocity()[0])
+	      or std::isnan(chassisBody->getAngularVelocity()[1])
+	      or std::isnan(chassisBody->getAngularVelocity()[2])));
 }
 
 void RaycastTank::setDriveTorques(const std::vector<btScalar> &torques)
