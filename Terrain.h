@@ -22,6 +22,7 @@ public:
   virtual ~Terrain();
   btRigidBody *createBody();
   Ogre::AxisAlignedBox getBounds() {return  mTerrainGroup->getTerrain (0, 0)->getWorldAABB();}
+  Ogre::Real getHeight(Ogre::Real x, Ogre::Real y);
 
 protected:
   void defineTerrain(long x, long y, bool flat = false);

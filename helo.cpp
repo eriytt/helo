@@ -751,6 +751,9 @@ int heloApp::main(int argc, char *argv[])
 	     HeloUtils::Trackable::CameraParams params = t->getCameraParameters();
 	     Ogre::Vector3 newpos = current + (error * params.p * tdelta);
 	     // TODO: compensate for ground level, preferably soft...
+	     Ogre::Real terrain_height = terrain->getHeight(newpos.x, newpos.z);
+	     if (newpos.y < terrain_height + params.minGroundOffset)
+	       newpos.y = terrain_height + params.minGroundOffset;
              cam->setPosition(newpos);
            }
       }

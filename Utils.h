@@ -130,6 +130,7 @@ namespace HeloUtils {
   public:
     typedef struct {
       float p;
+      float minGroundOffset;
     } CameraParams;
 
   public:
@@ -144,6 +145,7 @@ namespace HeloUtils {
     {
       CameraParams params;
       params.p = 1.0;
+      params.minGroundOffset = 5.0;
       return params;
     }
   };

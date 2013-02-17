@@ -237,3 +237,8 @@ btRigidBody *::Terrain::createBody()
 //   Ogre::Terrain *ot = mTerrainGroup->getTerrain (0, 0);
 //   return ot->getWorldAABB();
 // }
+
+Ogre::Real ::Terrain::getHeight(Ogre::Real x, Ogre::Real y)
+{
+  return mTerrainGroup->getHeightAtWorldPosition(x, 100000.0, y);
+}
