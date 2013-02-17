@@ -49,11 +49,12 @@ void Rotor::setRotation(float radians)
 void Rotor::applyForcesAndTorques(btRigidBody *parent_body, btScalar step)
 {
   if (started)
-    {
-      appliedTorque = (4000.0 - fabs(revolutionsPerSecond)) * torque;
-      revolutionsPerSecond += (appliedTorque / inertia) * step;
-      HeloUtils::LocalApplyTorque(parent_body, btVector3(0, -appliedTorque, 0));
-    }
+    appliedTorque = (4000.0 - fabs(revolutionsPerSecond)) * torque;
+  else
+    appliedTorque = fabs(revolutionsPerSecond) * torque * -0.3;
+  HeloUtils::LocalApplyTorque(parent_body, btVector3(0, -appliedTorque, 0));
+
+  revolutionsPerSecond += (appliedTorque / inertia) * step;
 
   btScalar engine_force = (fabs(revolutionsPerSecond) / 4000.0) * equilibriumLift;
   btScalar up_force = engine_force * (1.0 + swash);
@@ -136,7 +137,10 @@ Helicopter::Helicopter(const HelicopterData &data, Ogre::Root *root)
 void Helicopter::startEngines(bool start)
 {
   for (RotorIter i = rotors.begin(); i != rotors.end(); ++i)
-    (*i)->start();
+    if (start)
+      (*i)->start();
+    else
+      (*i)->stop();
 }
 
 void Helicopter::finishPhysicsConfiguration(Physics *phys)
@@ -206,6 +210,9 @@ bool HelicopterJoystickController::buttonPressed(const OIS::JoyStickEvent &e, in
     {
     case 0:
       helicopter.startEngines(true);
+      break;
+    case 1:
+      helicopter.startEngines(false);
       break;
     default:
       break;

@@ -52,6 +52,7 @@ public:
   void applyForcesAndTorques(btRigidBody *parent_body, float step);
   float getWeight() {return weight;}
   void start() {started = true;}
+  void stop() {started = false;}
   void setSwash(float new_swash, float new_forward, float new_right);
   void setRotation(float radians);
   void setEquilibriumLift(float equilift);
