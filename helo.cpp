@@ -634,12 +634,8 @@ int heloApp::main(int argc, char *argv[])
   initOGRE();
 
   terrain = new ::Terrain(mRoot, DefaultTerrainResourceGroup);
-  // TODO: maybe there should be some space above the highest top of the terrain?
-  physics = new Physics(terrain->getBounds(), true);
-  conf = new Configuration(mRoot, physics);
-  conf->setResourceBase("./resources/");
-  physics->addBody(terrain->createBody());
 
+  conf = new Configuration(mRoot);
   try
     {
       conf->loadConfig();
@@ -649,6 +645,13 @@ int heloApp::main(int argc, char *argv[])
       Error::ErrMessage(e.what());
       exit(-1);
     }
+
+  // TODO: maybe there should be some space above the highest top of the terrain?
+  physics = new Physics(terrain->getBounds(), conf->physicsInThread());
+  conf->setPhysics(physics);
+  conf->setResourceBase("./resources/");
+  physics->addBody(terrain->createBody());
+
 
   try
     {

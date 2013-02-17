@@ -34,6 +34,14 @@ void Configuration::loadConfig()
           while((child = node->IterateChildren("Missions", child)))
             readMissions(child);
 
+	  TiXmlNode *sn = node->IterateChildren("Settings", NULL);
+	  if (not sn)
+	    throw ConfigurationError(node->GetDocument()->ValueStr(),
+			     node->ValueStr() + " has no child child named 'Settings'");
+
+	  runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", sn);
+
+
           // child = NULL;
           // while((child = node->IterateChildren("Vehicles", child)))
           //   readVehicles(child);
@@ -339,6 +347,7 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
 
 void Configuration::loadMission(std::string mission_name)
 {
+  assert(physics);
   try
     {
       Mission *m = NULL;

@@ -56,13 +56,16 @@ protected:
   std::vector<Vehicle> vehicles;
   Ogre::Root *root;
   Physics *physics;
+  bool runPhysicsInThread;
 
  public:
-  Configuration(Ogre::Root *r, Physics *p) : root(r), physics(p) {}
+  Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false) {}
   void setResourceBase(const std::string &base) {resource_base_path = base;}
   void loadConfig();
+  void setPhysics(Physics *p) {physics = p;}
   void loadMission(std::string mission_name);
   const std::vector<Controllable*> &getControllables() {return controllables;}
+  bool physicsInThread() {return runPhysicsInThread;}
 
 protected:
   void readMissions(TiXmlNode *parent);

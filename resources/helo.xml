@@ -1,4 +1,8 @@
 <helo>
+  <Settings
+      physicsInThread="true">
+    </Settings>
+
   <Missions>
     <Mission name="Test" path="./Missions/TestMission"/>
   </Missions>

@@ -1,3 +1,5 @@
+#include  <algorithm>
+#include <cctype>
 
 namespace XMLUtils {
 
@@ -51,6 +53,24 @@ namespace XMLUtils {
   {
     return attr->ValueStr();
   }
+
+  template <>
+  bool GetAttrValue(const TiXmlAttribute *attr)
+  {
+    int ret = 0;
+    if (attr->QueryIntValue(&ret) ==  TIXML_SUCCESS)
+      return ret != 0;
+
+    std::string boolean = attr->ValueStr();
+    std::transform(boolean.begin(), boolean.end(), boolean.begin(), tolower);
+    if (boolean == "true")
+      return true;
+    else if (boolean == "false")
+      return false;
+
+    throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to boolean (use \"true\" or \"false\").");
+  }
+
 
   template <typename T>
   T GetAttribute(const std::string attrname, const TiXmlNode* node)
