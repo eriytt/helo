@@ -78,7 +78,7 @@ void CBRaycastVehicle::Wheel::updateContact(btCollisionWorld *world, btRigidBody
 
   const btRigidBody* hit = rayCallback.m_collisionObject ? btRigidBody::upcast(rayCallback.m_collisionObject) : 0;
 
-  if (not hit or not hit->hasContactResponse())
+  if ((not hit) or (not hit->hasContactResponse()))
     {
       airborne = true;
       currentGround = NULL;
@@ -279,6 +279,7 @@ void CBRaycastVehicle::Wheel::updateMotionState()
 
 const btVector3 &CBRaycastVehicle::Wheel::getContactPoint()
 {
+  assert(not isAirborne());
   return contactPoint;
 }
 
