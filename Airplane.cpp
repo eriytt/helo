@@ -39,7 +39,7 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
   // Transform of hull collision shape
   btTransform chassis_shape_trans;
   chassis_shape_trans.setIdentity();
-  chassis_shape_trans.setOrigin(btVector3(0.0, 3.0, 0.0));
+  chassis_shape_trans.setOrigin(btVector3(0.0, 0.0, 0.0));
   comp->addChildShape(chassis_shape_trans, chassis_shape);
   shape = comp;
 
