@@ -5,52 +5,52 @@
   <size x="17.53" y="2.47" z="16.26"/>
   <wheels>
     <wheel
-       spring="200000"
+       spring="50000"
        dampUp="5000"
        dampDown="5000"
-       suspensionLength="1.5"
+       suspensionLength="2.5"
        maxLengthUp="1.0"
-       maxLengthDown="2.0"
+       maxLengthDown="3.5"
        radius="0.4572"
        steerCoeff="1.0"
        driveCoeff="0.0"
        brakeCoeff="1.0"
        momentOfInertia="100">
-      <relativePosition x="0.0" y="0.131" z="5.785"/>
+      <relativePosition x="0.0" y="0.0" z="5.785"/>
       <direction x="0" y="-1" z="0"/>
       <axle x="1" y="0" z="0"/>
     </wheel>
 
     <wheel
-       spring="400000"
+       spring="200000"
        dampUp="50000"
        dampDown="50000"
-       suspensionLength="1.5"
+       suspensionLength="2.5"
        maxLengthUp="1.0"
-       maxLengthDown="2.0"
+       maxLengthDown="3.5"
        radius="0.4572"
        steerCoeff="0.0"
        driveCoeff="0.0"
        brakeCoeff="1.0"
        momentOfInertia="100">
-      <relativePosition x="-2.0" y="0.131" z="-1.0"/>
+      <relativePosition x="-2.65" y="0.0" z="-0.5"/>
       <direction x="0" y="-1" z="0"/>
       <axle x="1" y="0" z="0"/>
     </wheel>
 
     <wheel
-       spring="400000"
+       spring="200000"
        dampUp="50000"
        dampDown="50000"
-       suspensionLength="1.5"
+       suspensionLength="2.5"
        maxLengthUp="1.0"
-       maxLengthDown="2.0"
+       maxLengthDown="3.5"
        radius="0.4572"
        steerCoeff="0.0"
        driveCoeff="0.0"
        brakeCoeff="1.0"
        momentOfInertia="100">
-      <relativePosition x="2.0" y="0.131" z="-1.0"/>
+      <relativePosition x="2.65" y="0.0" z="-0.5"/>
       <direction x="0" y="-1" z="0"/>
       <axle x="1" y="0" z="0"/>
     </wheel>
