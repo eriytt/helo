@@ -1,24 +1,27 @@
 #include "Airplane.h"
 
-// Car::CarData Airplane::AirplaneToCarData(const AirplaneData &data)
-// {
-//   Car::CarData cd;
-//   cd.name = data.name;
-//   cd.meshname = data.meshname;
-//   cd.position = data.position;
-//   cd.size = data.size;
-//   cd.weight = data.weight;
+AirplaneVehicle::AirplaneData Airplane::DataToAirplaneVehicleData(const AirplaneData &data)
+{
+  // Car::CarData cd;
+  // cd.name = data.name;
+  // cd.meshname = data.meshname;
+  // cd.position = data.position;
+  // cd.size = data.size;
+  // cd.weight = data.weight;
   
-//   cd.wheelData.resize(data.wheelData.size());
+  // cd.wheelData.resize(data.wheelData.size());
 
-//   for (size_t i = 0; i < data.wheelData.size(); ++i)
-//     cd.wheelData[i] = data.wheelData[i];
+  // for (size_t i = 0; i < data.wheelData.size(); ++i)
+  //   cd.wheelData[i] = data.wheelData[i];
+
+  AirplaneVehicle::AirplaneData d;
   
-//   return cd;
-// }
+  return d;
+}
 
 Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
 {
+  // TODO: init control data
   Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
 
   // create entity
@@ -49,7 +52,7 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
   tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
 
   body = Physics::CreateRigidBody(data.weight, tr, shape, node);
-  airplane = new AirplaneVehicle(body);
+  airplane = new AirplaneVehicle(body, DataToAirplaneVehicleData(data));
   rayCastVehicle = airplane;
 
   
@@ -66,39 +69,75 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
     }
 }
 
-void Airplane::setThrottle(Ogre::Real fraction)
+void AirplaneVehicle::applyThrust(btScalar timeStep)
 {
-  airplane->setThrust(fraction * 100000.0);
+  // TODO: use apply central impulse
+  //unsigned short num_engines = d.engines.size();
+  btScalar thrust(0);
+  for (std::vector<Engine>::const_iterator i = d.engines.begin(); i != d.engines.end(); ++i)
+    {
+      const Engine *e = &(*i);
+      thrust += controlData.thrust * e->maxThrust;
+    }
+
+  HeloUtils::LocalApplyImpulse(chassisBody, btVector3(0.0, 0.0, thrust * timeStep),
+                               btVector3(0.0, 0.0, 0.0));
 }
 
+void AirplaneVehicle::applyLift(btScalar timeStep, btScalar velocityForward)
+{
+  HeloUtils::LocalApplyImpulse(chassisBody,
+                               btVector3(0.0,
+                                         velocityForward * 1700.0 * timeStep,
+                                         0.0),
+                               btVector3(0.0, 0.0, 0.0));
+}
+
+void AirplaneVehicle::applyDrag(btScalar timeStep, btScalar velocityForward)
+{
+  HeloUtils::LocalApplyImpulse(chassisBody,
+                               btVector3(0.0,
+                                         0.0,
+                                         HeloUtils::POW2(velocityForward) * -9.0 * timeStep),
+                               btVector3(0.0, 0.0, 0.0));
+}
+
+void AirplaneVehicle::applyRudders(btScalar timeStep, btScalar velocityForward)
+{
+}
 
 void AirplaneVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
 {
   CBRaycastVehicle::updateAction(collisionWorld, timeStep);
+  
+  // btScalar wing_span(18);
+  // btScalar wing_area(36.0);
+  // btScalar aspect_ratio(HeloUtils::POW2(wing_span) / wing_area);
+  // btScalar airplane_efficiency_factor(0.7);
+  // btScalar K(1.0/ (HeloUtils::PI * aspect_ratio * airplane_efficiency_factor));
+  
 
-  // TODO: use apply central impulse
-  HeloUtils::LocalApplyImpulse(chassisBody, btVector3(0.0, 0.0, thrust * timeStep),
-                               btVector3(0.0, 0.0, 0.0));
 
   const btVector3 &vel = chassisBody->getLinearVelocity();
   const btMatrix3x3 &inv_trans = chassisBody->getCenterOfMassTransform().getBasis().inverse();
   // This is the component of the velocity that goes in the forward direction
   const btScalar vel_forward = (inv_trans * vel).dot(btVector3(0.0, 0.0, 1.0));
-  HeloUtils::LocalApplyImpulse(chassisBody,
-                               btVector3(0.0,
-                                         vel_forward * 1700.0 * timeStep,
-                                         0.0),
-                               btVector3(0.0, 0.0, 0.0));
-
-  HeloUtils::LocalApplyImpulse(chassisBody,
-                               btVector3(0.0,
-                                         0.0,
-                                         HeloUtils::POW2(vel_forward) * -9.0 * timeStep),
-                               btVector3(0.0, 0.0, 0.0));
-
+  applyThrust(timeStep);
+  applyLift(timeStep, vel_forward);
+  applyDrag(timeStep, vel_forward);
+  applyRudders(timeStep, vel_forward);
 }
 
-void AirplaneVehicle::setThrust(btScalar t)
+void AirplaneVehicle::setInput(const AirplaneVehicle::ControlData &cd)
 {
-  thrust = t;
+  // Does it matter ? 
+#warning Not thread safe, AirplaneVehicle lives in physics thread
+  controlData = cd;
 }
+
+void Airplane::setThrottle(Ogre::Real fraction)
+{
+  controlData.thrust = fraction;
+  airplane->setInput(controlData);
+}
+
