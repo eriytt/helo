@@ -75,6 +75,7 @@ protected:
   void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
   void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
   void loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
+  static void ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre::Real, Ogre::Real> > &pair_list);
 };
 
 #endif // CONFIGURATION_H

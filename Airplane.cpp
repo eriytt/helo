@@ -2,20 +2,22 @@
 
 AirplaneVehicle::AirplaneData Airplane::DataToAirplaneVehicleData(const AirplaneData &data)
 {
-  // Car::CarData cd;
-  // cd.name = data.name;
-  // cd.meshname = data.meshname;
-  // cd.position = data.position;
-  // cd.size = data.size;
-  // cd.weight = data.weight;
-  
-  // cd.wheelData.resize(data.wheelData.size());
-
-  // for (size_t i = 0; i < data.wheelData.size(); ++i)
-  //   cd.wheelData[i] = data.wheelData[i];
-
   AirplaneVehicle::AirplaneData d;
-  
+  d.dragPolarK = data.dragPolarK;
+
+  for (size_t i = 0; i < data.engineData.size(); ++i)
+    {
+      const Engine &e = data.engineData[i];
+      AirplaneVehicle::Engine ve(HeloUtils::Ogre2BulletVector(e.position),
+                                 HeloUtils::Ogre2BulletVector(e.direction),
+                                 e.maxThrust);
+      d.engines.push_back(ve);
+    }  
+
+  for (size_t i = 0; i < data.cl_alpha_values.size(); ++i)
+    d.clAlpha.addDataPoint(data.cl_alpha_values[i].first,
+                           data.cl_alpha_values[i].second);
+
   return d;
 }
 

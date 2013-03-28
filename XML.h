@@ -9,10 +9,29 @@ namespace XMLUtils {
     XMLError(const std::string &reason) : std::runtime_error(reason) {}
   };
 
+  class NodeLookupError : public XMLError
+  {
+  public:
+    NodeLookupError(const std::string &reason): XMLError(reason) {}
+  };
+
   template <typename T>
   T GetAttrValue(const TiXmlAttribute *attr)
   {
     throw XMLError("Not implemented for this type");
+  }
+
+  TiXmlNode *AssertGetNode(TiXmlNode *parent, const char *n0, const char *n1 = NULL, const char *n2 = NULL,
+                           const char *n3 = NULL, const char *n4 = NULL, const char *n5 = NULL)
+  {
+    if (n0 == NULL)
+      return parent;
+
+    TiXmlNode *n = parent->IterateChildren(n0, NULL);
+    if (not n)
+      throw NodeLookupError(parent->ValueStr() + " has no child child named '" + std::string(n0) + "'");
+
+    return AssertGetNode(n, n1, n2, n3, n4, n5);
   }
 
   template <>
@@ -130,5 +149,4 @@ nosuchattribute:
         ++count;
     return count;
   }
-
 }

@@ -55,6 +55,20 @@ public:
 class Airplane : public Car
 {
 public:
+  class Engine
+  {
+  public:
+    Ogre::Vector3 position;
+    Ogre::Vector3 direction;
+    Ogre::Real maxThrust;
+
+  public:
+    Engine() {}
+    Engine(const btVector3 &pos, const btVector3 &dir, const btScalar thrust) :
+      position(pos), direction(dir), maxThrust(thrust) {}
+  };
+
+public:
   typedef struct
   {
     Ogre::String name;
@@ -63,6 +77,7 @@ public:
     Ogre::Vector3 size;
     Ogre::Real weight;
     std::vector<WheelData> wheelData;
+    std::vector<Engine> engineData;
     std::vector<std::pair<Ogre::Real, Ogre::Real> > cl_alpha_values;
     Ogre::Real dragPolarK;
   } AirplaneData;

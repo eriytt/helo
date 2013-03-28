@@ -83,17 +83,18 @@ namespace HeloUtils {
     return Ogre::Vector3(btVec.m_floats);
   }
 
+  inline btVector3 Ogre2BulletVector(const Ogre::Vector3 &oVec)
+  {
+    return btVector3(oVec.x, oVec.y, oVec.z);
+  }
+
+
   inline void Ogre2BulletVector(const Ogre::Vector3 &oVec, btVector3 &btVec)
   {
     btVec.setX(oVec.x);
     btVec.setY(oVec.y);
     btVec.setZ(oVec.z);
     
-  }
-
-  inline btVector3 Ogre2BulletVector(const Ogre::Vector3 &oVec)
-  {
-    return btVector3(oVec.x, oVec.y, oVec.z);
   }
 
   class PieceWiseLinearFunction {

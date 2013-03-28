@@ -3,6 +3,26 @@
    meshname="a10.mesh"
    weight="11321">
   <size x="17.53" y="2.47" z="16.26"/>
+
+  <engines>
+    <engine maxthrust="5000">
+      <postition x="0" y="0" z="0"/>
+      <direction x="0" y="0" z="1.0"/>
+    </engine>
+
+    <engine maxthrust="5000">
+      <postition x="0" y="0" z="0"/>
+      <direction x="0" y="0" z="1.0"/>
+    </engine>
+  </engines>
+
+  <aerodynamics dragPolarK="5.0">
+    <liftcooefficient>
+      <point x="0" y="0"/>
+      <point x="6.29" y="0"/>
+    </liftcooefficient>
+  </aerodynamics>
+
   <wheels>
     <wheel
        spring="50000"
