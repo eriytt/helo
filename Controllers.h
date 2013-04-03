@@ -110,4 +110,36 @@ public:
   bool axisMoved(const OIS::JoyStickEvent&, int);
 };
 
+
+class Airplane;
+
+class AirplaneJoystickController : public Controller, public OIS::JoyStickListener
+{
+protected:
+  OIS::JoyStick &joystick;
+  Airplane &airplane;
+
+public:
+  AirplaneJoystickController(OIS::JoyStick &js, Airplane &ap) : joystick(js), airplane(ap) {}
+  bool buttonPressed(const OIS::JoyStickEvent&, int) {return true;}
+  bool buttonReleased(const OIS::JoyStickEvent&, int) {return true;}
+  bool axisMoved(const OIS::JoyStickEvent&, int);
+  void update(float timeDelta) {}
+  void setActive(bool a);
+};
+
+class AirplaneKeyController : public Controller, public OIS::KeyListener
+{
+protected:
+  OIS::Keyboard &keyboard;
+  Airplane &airplane;
+
+public:
+  AirplaneKeyController(OIS::Keyboard &kb, Airplane &ap) : keyboard(kb), airplane(ap) {}
+  bool keyPressed(const OIS::KeyEvent&);
+  bool keyReleased(const OIS::KeyEvent&);
+  void update(float timeDelta);
+};
+
+
 #endif

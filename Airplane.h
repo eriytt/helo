@@ -22,15 +22,23 @@ public:
     HeloUtils::PieceWiseLinearFunction clAlpha;
     btScalar dragPolarK;
     std::vector<Engine> engines;
+    btScalar wingArea;
+    btScalar elevatorSensitivity;
+    btScalar rudderSensitivity;
+    btScalar aileronSensitivity;
+    btScalar pitchStability;
+    btScalar pitchStability2;
+    btScalar yawStability;
+    btScalar yawStability2;
+    btScalar rollStability;
   } AirplaneData;
 
 public:
   typedef struct {
     float thrust;
-    float steer_angle;
-    float clutch;
-    float brake;
-    int shift_gear;
+    float rudder;
+    float elevator;
+    float aileron;
   } ControlData;
 
 
@@ -40,13 +48,13 @@ protected:
 
 protected:
   virtual void applyThrust(btScalar timeStep);
-  virtual void applyLift(btScalar timeStep, btScalar velocityForward);
-  virtual void applyDrag(btScalar timeStep, btScalar velocityForward);
-  virtual void applyRudders(btScalar timeStep, btScalar velocityForward);
+  virtual void applyLift(btScalar timeStep, const btVector3 &localVelocity);
+  virtual void applyDrag(btScalar timeStep, const btVector3 &localVelocity);
+  virtual void applyRudders(btScalar timeStep, const btVector3 &localVelocity,
+                            const btVector3 &localAngularVelocity);
 
 public:
-  AirplaneVehicle(btRigidBody *fuselage, const AirplaneData &data) :
-    CBRaycastVehicle(fuselage), d(data) {}
+  AirplaneVehicle(btRigidBody *fuselage, const AirplaneData &data);
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar step);
   void setInput(const ControlData &cd);
 };
@@ -80,6 +88,15 @@ public:
     std::vector<Engine> engineData;
     std::vector<std::pair<Ogre::Real, Ogre::Real> > cl_alpha_values;
     Ogre::Real dragPolarK;
+    Ogre::Real wingArea;
+    Ogre::Real aileronSensitivity;
+    Ogre::Real elevatorSensitivity;
+    Ogre::Real rudderSensitivity;
+    Ogre::Real pitchStability1;
+    Ogre::Real pitchStability2;
+    Ogre::Real yawStability1;
+    Ogre::Real yawStability2;
+    Ogre::Real rollStability;
   } AirplaneData;
 
 private:
@@ -91,7 +108,10 @@ protected:
 
 public:
   Airplane(const AirplaneData &data, Ogre::Root *root);
-  void setThrottle(Ogre::Real fraction);
+  //  void setThrottle(Ogre::Real fraction);
+  virtual Controller *createController(OIS::Object *dev);
+  void setInput() {airplane->setInput(controlData);}
+  AirplaneVehicle::ControlData &getControlData() {return controlData;}
 };
 
 #endif // AIRPLANE_H

@@ -313,7 +313,7 @@ void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Og
     TiXmlNode *ensn = XMLUtils::AssertGetNode(n, "engines");
     ad.engineData.resize(XMLUtils::GetNumChildren(ensn, "engine"));
     TiXmlNode *en = NULL;
-    for (int i = 0; (en = wsn->IterateChildren(std::string("engine"), en)); ++i)
+    for (int i = 0; (en = ensn->IterateChildren(std::string("engine"), en)); ++i)
       {
         ad.engineData[i].position = XMLUtils::GetVectorParam<Ogre::Vector3>("position", en);
         ad.engineData[i].direction = XMLUtils::GetVectorParam<Ogre::Vector3>("direction", en);
@@ -322,8 +322,20 @@ void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Og
 
     TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
     ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
+    ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
+    ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
+    ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
+    ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);
 
-    ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"), ad.cl_alpha_values);
+    TiXmlNode *stab = XMLUtils::AssertGetNode(n, "aerodynamics", "stability");
+    ad.pitchStability1 = XMLUtils::GetAttribute<float>("pitch1", stab);
+    ad.pitchStability2 = XMLUtils::GetAttribute<float>("pitch2", stab);
+    ad.yawStability1 = XMLUtils::GetAttribute<float>("yaw1", stab);
+    ad.yawStability2 = XMLUtils::GetAttribute<float>("yaw2", stab);
+    ad.rollStability = XMLUtils::GetAttribute<float>("roll", stab);
+      
+    ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
+                   ad.cl_alpha_values);
   } 
   catch (XMLUtils::NodeLookupError e)
     {

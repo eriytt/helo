@@ -17,6 +17,11 @@ namespace HeloUtils {
   static const float PI_2 = M_PI_2;
   static const float PI_4 = M_PI_4;
 
+  inline float GetAirDensity(float altitude)
+  {
+    return 1.2041;
+  }
+
   template < typename T >
   inline T clamp(const T &max, const T &min, const T &val)
   {
@@ -47,6 +52,19 @@ namespace HeloUtils {
     return x * x;
   }
 
+  template < typename T >
+  inline T Deg2Rad(const T &x)
+  {
+    return x / 360.0 * 2.0 * PI;
+  }
+
+  template < typename T >
+  inline T Rad2Deg(const T &x)
+  {
+    return x * 360.0 / (2.0 * PI);
+  }
+
+
   inline void LocalApplyForce(btRigidBody *body, const btVector3 &force, const btVector3 &point)
   {
     const btMatrix3x3 &rot = body->getCenterOfMassTransform().getBasis();
@@ -69,6 +87,13 @@ namespace HeloUtils {
     const btMatrix3x3 &rot = body->getCenterOfMassTransform().getBasis();
     btVector3 appliedTorque = rot * torque;
     body->applyTorque(appliedTorque);
+  }
+
+  inline void LocalApplyTorqueImpulse(btRigidBody *body, const btVector3 &torqueImpulse)
+  {
+    const btMatrix3x3 &rot = body->getCenterOfMassTransform().getBasis();
+    btVector3 appliedTorqueImpulse = rot * torqueImpulse;
+    body->applyTorqueImpulse(appliedTorqueImpulse);
   }
 
   inline void Bullet2OgreVector(const btVector3 &btVec, Ogre::Vector3 &oVec)
@@ -108,8 +133,8 @@ namespace HeloUtils {
       while(upper_index < fdata.size() && x > fdata[upper_index].first)
 	++upper_index;
 
-      std::pair<float, float> u = fdata[upper_index];
-      std::pair<float, float> l = fdata[upper_index - 1];
+      const std::pair<float, float> &u = fdata[upper_index];
+      const std::pair<float, float> &l = fdata[upper_index - 1];
       x -= l.first;
 
       /* Linearly interpolate the found curve section */
@@ -119,6 +144,21 @@ namespace HeloUtils {
     void addDataPoint(float x, float y)
     {
       fdata.push_back(std::pair<float, float>(x, y));
+    }
+
+    void mirrorData(float at, float multiplier = 1.0)
+    {
+      std::vector< std::pair<float, float> > mirror_data;
+      size_t num_values = fdata.size();
+      for (int i = num_values - 1; i >= 0; --i)
+        {
+          std::pair<float, float> m = fdata[i];
+          m.first = at - m.first;
+          m.second *= multiplier;
+          mirror_data.push_back(m);
+        }
+      for (size_t i = 0; i < num_values; ++i)
+          fdata.push_back(mirror_data[i]);
     }
 
   };
