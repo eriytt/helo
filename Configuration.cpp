@@ -69,25 +69,7 @@ void Configuration::readMissions(TiXmlNode *parent)
                              "No mission definitions found'");
 }
 
-void Configuration::readVehicles(TiXmlNode *parent)
-{
-  TiXmlNode *child = NULL;
-  while((child = parent->IterateChildren("Vehicle", child)))
-    {
-      Vehicle v;
-      v.name = XMLUtils::GetAttribute<std::string>("name", child);
-      v.path = XMLUtils::GetAttribute<std::string>("path", child);
-      const std::string type(XMLUtils::GetAttribute<std::string>("type", child));
-      Ogre::Vector3 pos(XMLUtils::GetVectorParam<Ogre::Vector3>("position", child));
-
-      //std::cout << "New vehicle: name = " << v.name << ", path = " << v.path << std::endl;
-
-      loadVehicle(type, v.name, pos);
-      vehicles.push_back(v);
-    }
-}
-
-void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Car::CarData cd;
   cd.position = position;
@@ -127,7 +109,7 @@ void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::V
   controllables.push_back(car);
 }
 
-void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Helicopter::HelicopterData hd;
   hd.name = name;
@@ -177,7 +159,7 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
   controllables.push_back(helicopter);
 }
 
-void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Tank::TankData td;
   td.position = position;
@@ -277,10 +259,11 @@ void Configuration::ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre
 }
 
 
-void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position)
+void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Airplane::AirplaneData ad;
   ad.position = position;
+  ad.rotation = rotation;
   ad.name = name;
 
   ad.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
@@ -347,7 +330,7 @@ void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Og
   controllables.push_back(airplane);
 }
 
-void Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position)
+void Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Ogre::ResourceGroupManager &rgm = Ogre::ResourceGroupManager::getSingleton();
   if (not rgm.resourceGroupExists("Vehicles/" + type))
@@ -375,13 +358,13 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
 
       std::string vehicle_class(XMLUtils::GetAttribute<std::string>("class", n));
       if (vehicle_class == "Car")
-	loadCar(n, name, position);
+	loadCar(n, name, position, rotation);
       else if (vehicle_class == "Helicopter")
-	loadHelicopter(n, name, position);
+	loadHelicopter(n, name, position, rotation);
       else if (vehicle_class == "Tank")
-	loadTank(n, name, position);
+	loadTank(n, name, position, rotation);
       else if (vehicle_class == "Airplane")
-	loadAirplane(n, name, position);
+	loadAirplane(n, name, position, rotation);
       else
 	ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
     }
@@ -432,7 +415,10 @@ void Configuration::loadMission(std::string mission_name)
                   const std::string type(XMLUtils::GetAttribute<std::string>("type", v));
                   const std::string name(XMLUtils::GetAttribute<std::string>("name", v));
                   const Ogre::Vector3 pos = XMLUtils::GetVectorParam<Ogre::Vector3>("position", v);
-                  loadVehicle(type, name, pos);
+                  Ogre::Vector3 rot;
+                  if (XMLUtils::GetNumChildren(v, "rotation"))
+                    rot = HeloUtils::Deg2Rad(XMLUtils::GetVectorParam<Ogre::Vector3>("rotation", v));
+                  loadVehicle(type, name, pos, rot);
                 }
             }
         }

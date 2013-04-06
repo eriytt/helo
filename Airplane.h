@@ -82,6 +82,7 @@ public:
     Ogre::String name;
     Ogre::String meshname;
     Ogre::Vector3 position;
+    Ogre::Vector3 rotation;
     Ogre::Vector3 size;
     Ogre::Real weight;
     std::vector<WheelData> wheelData;

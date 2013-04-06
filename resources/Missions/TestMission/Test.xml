@@ -2,6 +2,7 @@
   <Vehicles>
     <Vehicle type="A10" name="a10.0">
       <position x="1880.96" y="4.0" z="1750.3"/>
+      <rotation x="5" y="130" z="0"/>
     </Vehicle>
 
     <Vehicle type="HMMWV" name="hmmwv.0">
