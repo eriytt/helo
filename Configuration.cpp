@@ -73,6 +73,7 @@ void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::V
 {
   Car::CarData cd;
   cd.position = position;
+  cd.rotation = rotation;
   cd.name = name;
 
   cd.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
@@ -114,6 +115,7 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
   Helicopter::HelicopterData hd;
   hd.name = name;
   hd.pos = position;
+  hd.rotation = rotation;
 
   hd.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
   hd.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
@@ -163,6 +165,7 @@ void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::
 {
   Tank::TankData td;
   td.position = position;
+  td.rotation = rotation;
   td.name = name;
 
   td.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);

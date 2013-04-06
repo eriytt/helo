@@ -69,6 +69,7 @@ public:
     Ogre::String meshname;
     Ogre::Vector3 size;
     Ogre::Vector3 pos;
+    Ogre::Vector3 rotation;
     btScalar boomLength;
     btScalar weight;
     Rotor::RotorDataList rotorData;

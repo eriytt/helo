@@ -484,6 +484,7 @@ Car::Car(const Car::CarData &data, Ogre::Root *root)
   btTransform tr;
   tr.setIdentity();
   tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
+  tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
 
   body = Physics::CreateRigidBody(data.weight, tr, shape, node);
   rayCastVehicle = new CBRaycastVehicle(body);
