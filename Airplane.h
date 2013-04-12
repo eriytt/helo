@@ -21,8 +21,10 @@ public:
   typedef struct {
     HeloUtils::PieceWiseLinearFunction clAlpha;
     btScalar dragPolarK;
+    btScalar dragPolarD0;
     std::vector<Engine> engines;
     btScalar wingArea;
+    btScalar wingAngle;
     btScalar elevatorSensitivity;
     btScalar rudderSensitivity;
     btScalar aileronSensitivity;
@@ -89,7 +91,9 @@ public:
     std::vector<Engine> engineData;
     std::vector<std::pair<Ogre::Real, Ogre::Real> > cl_alpha_values;
     Ogre::Real dragPolarK;
+    Ogre::Real dragPolarD0;
     Ogre::Real wingArea;
+    Ogre::Real wingAngle;
     Ogre::Real aileronSensitivity;
     Ogre::Real elevatorSensitivity;
     Ogre::Real rudderSensitivity;

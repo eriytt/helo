@@ -308,7 +308,9 @@ void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Og
 
     TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
     ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
+    ad.dragPolarD0 = XMLUtils::GetAttribute<float>("dragPolarD0", dyn);
     ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
+    ad.wingAngle = XMLUtils::GetAttribute<float>("wingangle", dyn);
     ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
     ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
     ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);

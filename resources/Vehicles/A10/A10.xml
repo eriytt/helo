@@ -17,8 +17,10 @@
   </engines>
 
   <aerodynamics
-     dragPolarK="5.0"
+     dragPolarK="0.043809"
+     dragPolarD0="0.007106"
      wingarea="47.0"
+     wingangle="1.501857"
      rudderSensitivity="1500"
      elevatorSensitivity="1500"
      aileronSensitivity="3000" >
@@ -30,7 +32,7 @@
        roll="200000"/>
     <liftcoefficient>
       <point x="0" y="0"/>
-      <point x="14.0" y="1.3423"/>
+      <point x="8.810351" y="0.951518"/>
       <point x="20.0" y="0.8233"/>
       <point x="26.0" y="1.0193"/>
       <point x="45.0" y="1.085"/>

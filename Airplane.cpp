@@ -4,7 +4,9 @@ AirplaneVehicle::AirplaneData Airplane::DataToAirplaneVehicleData(const Airplane
 {
   AirplaneVehicle::AirplaneData d;
   d.dragPolarK = data.dragPolarK;
+  d.dragPolarD0 = data.dragPolarD0;
   d.wingArea = data.wingArea;
+  d.wingAngle = HeloUtils::Deg2Rad(d.wingAngle);
   d.elevatorSensitivity = data.elevatorSensitivity;
   d.rudderSensitivity = data.rudderSensitivity;
   d.aileronSensitivity = data.aileronSensitivity;
@@ -123,10 +125,11 @@ void AirplaneVehicle::applyLift(btScalar timeStep, const btVector3 &localVelocit
     angle_of_attack -= atan2(fw_vel.getY(), fw_vel.getZ());
 
   //std::cout << "Angle of attack: " <<  HeloUtils::Rad2Deg(angle_of_attack) << std::endl;
-  btScalar cl = d.clAlpha[fmod(angle_of_attack, 2 * HeloUtils::PI)];
+  btScalar q = HeloUtils::GetAirDensity(0.0) * fw_vel.length2() / 2.0;
+  btScalar cl = d.clAlpha[fmod(angle_of_attack + d.wingAngle, 2 * HeloUtils::PI)];
   //cl = 1.4;
   //std::cout << "Cl: " << cl << std::endl;
-  btScalar q = HeloUtils::GetAirDensity(0.0) * fw_vel.length2() / 2.0;
+
   btScalar lift_force = cl * d.wingArea * q;
 
   btVector3 liftVec(fw_vel.cross(btVector3(1.0, 0.0, 0.0)));
@@ -134,18 +137,31 @@ void AirplaneVehicle::applyLift(btScalar timeStep, const btVector3 &localVelocit
 
   //std::cout << "Lift force: " << lift_force << std::endl;
   HeloUtils::LocalApplyImpulse(chassisBody,
-                               liftVec * lift_force * 1.2 * timeStep,
+                               liftVec * lift_force * timeStep,
                                btVector3(0.0, 0.0, 0.0));
 
 }
 
 void AirplaneVehicle::applyDrag(btScalar timeStep, const btVector3 &localVelocity)
 {
-  // HeloUtils::LocalApplyImpulse(chassisBody,
-  //                              btVector3(0.0,
-  //                                        0.0,
-  //                                        HeloUtils::POW2(velocityForward) * -9.0 * timeStep),
-  //                              btVector3(0.0, 0.0, 0.0));
+  btVector3 fw_vel(localVelocity);
+  fw_vel.setX(0.0);
+
+  btScalar angle_of_attack = HeloUtils::Deg2Rad(3.0);
+  if (fw_vel.length2() != 0.0)
+    angle_of_attack -= atan2(fw_vel.getY(), fw_vel.getZ());
+
+  btScalar q = HeloUtils::GetAirDensity(0.0) * fw_vel.length2() / 2.0;
+  btScalar cl = d.clAlpha[fmod(angle_of_attack + d.wingAngle, 2 * HeloUtils::PI)];
+
+  btScalar drag_force = (d.dragPolarD0 + (d.dragPolarK * HeloUtils::POW2(cl))) * (d.wingArea * q);
+
+  btVector3 dragVec(-fw_vel);
+  dragVec.normalize();
+
+  HeloUtils::LocalApplyImpulse(chassisBody,
+                               dragVec * drag_force * timeStep,
+                               btVector3(0.0, 0.0, 0.0));
 }
 
 void AirplaneVehicle::applyRudders(btScalar timeStep, const btVector3 &localVelocity, const btVector3 &localAngularVelocity)
@@ -154,12 +170,6 @@ void AirplaneVehicle::applyRudders(btScalar timeStep, const btVector3 &localVelo
   btScalar dpitch(localAngularVelocity.getX());
   btScalar dyaw(localAngularVelocity.getY());
 
-  // btScalar pitchStability(1000.0);
-  // btScalar pitchStability2(2000000.0);
-  // btScalar yawStability(3000.0);
-  // btScalar yawStability2(3000000.0);
-  // btScalar rollStability(500000.0);
-    
   btScalar elevator = localVelocity.getZ() * d.elevatorSensitivity * controlData.elevator;
   btScalar pitch_correction((localVelocity.getY() * -d.pitchStability)
                             + (HeloUtils::POW2(dpitch) * d.pitchStability2
