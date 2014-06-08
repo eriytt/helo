@@ -69,12 +69,12 @@ protected:
 
 protected:
   void readMissions(TiXmlNode *parent);
-  void readVehicles(TiXmlNode *parent);
-  void loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position);
-  void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
-  void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
-  void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
-  void loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position);
+  void loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  void loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  static void ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre::Real, Ogre::Real> > &pair_list);
 };
 
 #endif // CONFIGURATION_H

@@ -109,6 +109,7 @@ Helicopter::Helicopter(const HelicopterData &data, Ogre::Root *root)
   btTransform tr;
   tr.setIdentity();
   tr.setOrigin(btVector3(data.pos.x, data.pos.y, data.pos.z));
+  tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
 
   fuselageBody = Physics::CreateRigidBody(data.weight, tr, shape, node);
 
