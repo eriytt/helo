@@ -7,6 +7,7 @@
 #include "Physics.h"
 #include "Utils.h"
 #include "Controllers.h"
+#include "Vehicle.h"
 
 class Rotor
 {
@@ -60,7 +61,7 @@ public:
 };
 
 
-class Helicopter : public PhysicsObject, public Controllable, public HeloUtils::Trackable
+class Helicopter : public PhysicsObject, public Controllable, public HeloUtils::Trackable, public Vehicle
 {
 public:
   typedef struct

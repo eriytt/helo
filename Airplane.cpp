@@ -41,6 +41,7 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
   controlData.elevator = 0.0;
   controlData.rudder = 0.0;
   controlData.aileron = 0.0;
+  hardpoints = NULL;
 
   Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
 

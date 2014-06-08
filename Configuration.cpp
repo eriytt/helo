@@ -70,7 +70,7 @@ void Configuration::readMissions(TiXmlNode *parent)
                              "No mission definitions found'");
 }
 
-void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
+Vehicle *Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Car::CarData cd;
   cd.position = position;
@@ -109,9 +109,10 @@ void Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::V
   Car *car = new Car(cd, root);
   physics->addObject(car);
   controllables.push_back(car);
+  return car;
 }
 
-void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
+Vehicle *Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Helicopter::HelicopterData hd;
   hd.name = name;
@@ -134,7 +135,7 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
 			     n->ValueStr() + " has no child child named 'rotors'");
 
   hd.rotorData.resize(XMLUtils::GetNumChildren(rsn, "rotor"));
-
+  
   TiXmlNode *rn = NULL;
   for (int i = 0; (rn = rsn->IterateChildren(std::string("rotor"), rn)); ++i)
     {
@@ -160,9 +161,10 @@ void Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, const 
 
   physics->addObject(helicopter);
   controllables.push_back(helicopter);
+  return helicopter;
 }
 
-void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
+Vehicle *Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Tank::TankData td;
   td.position = position;
@@ -248,6 +250,7 @@ void Configuration::loadTank(TiXmlNode *n, const std::string &name, const Ogre::
   Tank *tank = new Tank(td, root);
   physics->addObject(tank);
   controllables.push_back(tank);
+  return tank;
 }
 
 void Configuration::ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre::Real, Ogre::Real> > &pair_list)
@@ -263,7 +266,7 @@ void Configuration::ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre
 }
 
 
-void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
+Vehicle *Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Airplane::AirplaneData ad;
   ad.position = position;
@@ -325,18 +328,34 @@ void Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Og
       
     ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
                    ad.cl_alpha_values);
+
+    TiXmlNode *hpsn = XMLUtils::AssertGetNode(n, "hardpoints");
+    TiXmlNode *hpcfg = NULL;
+    for (int i = 0; (hpcfg = hpsn->IterateChildren(std::string("conf"), hpcfg)); ++i)
+      {
+        std::string id = XMLUtils::GetAttribute<std::string>("id", hpcfg);
+        std::string idstr = n->GetDocument()->ValueStr() + id;
+        if (Hardpoint::HasConfig(idstr))
+          continue;
+        
+        Hardpoint::Config cfg = loadHardpointConfig(hpcfg);
+        Hardpoint::RegisterConfig(idstr, cfg);
+      }
   } 
   catch (XMLUtils::NodeLookupError e)
     {
       ConfigurationError(n->GetDocument()->ValueStr(), e.what());
     }
 
+    
+
   Airplane *airplane = new Airplane(ad, root);
   physics->addObject(airplane);
   controllables.push_back(airplane);
+  return airplane;
 }
 
-void Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
+Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Ogre::ResourceGroupManager &rgm = Ogre::ResourceGroupManager::getSingleton();
   if (not rgm.resourceGroupExists("Vehicles/" + type))
@@ -364,17 +383,35 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
 
       std::string vehicle_class(XMLUtils::GetAttribute<std::string>("class", n));
       if (vehicle_class == "Car")
-	loadCar(n, name, position, rotation);
+	return loadCar(n, name, position, rotation);
       else if (vehicle_class == "Helicopter")
-	loadHelicopter(n, name, position, rotation);
+	return loadHelicopter(n, name, position, rotation);
       else if (vehicle_class == "Tank")
-	loadTank(n, name, position, rotation);
+	return loadTank(n, name, position, rotation);
       else if (vehicle_class == "Airplane")
-	loadAirplane(n, name, position, rotation);
+	return loadAirplane(n, name, position, rotation);
       else
 	ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
     }
+  return NULL;
 }
+
+Hardpoint::Config Configuration::loadHardpointConfig(TiXmlNode *n)
+{
+  Hardpoint::Config cfg;
+  TiXmlNode *cfgnode = n;
+
+  TiXmlNode *hp = NULL; 
+  for (int i = 0; (hp = cfgnode->IterateChildren(std::string("hardpoint"), hp)); ++i)
+    {
+      Ogre::Vector3 pos = XMLUtils::GetVectorParam<Ogre::Vector3>("position", hp);;
+      Ogre::Vector3 dir = XMLUtils::GetVectorParam<Ogre::Vector3>("direction", hp);;
+      int hpid = XMLUtils::GetAttribute<int>("id", hp);;
+      cfg.push_back(Hardpoint::Point(hpid, pos, dir));
+    }
+  return cfg;
+}
+
 
 void Configuration::loadMission(std::string mission_name)
 {
@@ -424,7 +461,23 @@ void Configuration::loadMission(std::string mission_name)
                   Ogre::Vector3 rot;
                   if (XMLUtils::GetNumChildren(v, "rotation"))
                     rot = HeloUtils::Deg2Rad(XMLUtils::GetVectorParam<Ogre::Vector3>("rotation", v));
-                  loadVehicle(type, name, pos, rot);
+                  Vehicle *vehicle = loadVehicle(type, name, pos, rot);
+
+                  // TODO: factor out
+
+                  if (TiXmlNode *arms = XMLUtils::GetNode(v, "armaments"))
+                    {
+                      std::string cfgname = type + XMLUtils::GetAttribute<std::string>("hardpointConfig", arms);
+                      vehicle->setHardpointConfig(Hardpoint::GetConfig(cfgname));
+                      vehicle->addArmament(new DumbBomb, 0);
+                        
+                      TiXmlNode *arm = NULL;
+                      for (int i = 0; (arm = arms->IterateChildren(std::string("armament"), arm)); ++i)
+                        {
+                          // TODO: do some clever arms loading
+                        }
+                    }
+
                 }
             }
         }

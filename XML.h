@@ -34,6 +34,20 @@ namespace XMLUtils {
     return AssertGetNode(n, n1, n2, n3, n4, n5);
   }
 
+  TiXmlNode *GetNode(TiXmlNode *parent, const char *n0, const char *n1 = NULL, const char *n2 = NULL,
+                     const char *n3 = NULL, const char *n4 = NULL, const char *n5 = NULL)
+  {
+    try
+      {
+        return AssertGetNode(parent, n0, n1, n2, n3, n4, n5);
+      }
+    catch (NodeLookupError e)
+      {
+        return NULL;
+      }
+  }
+
+
   template <>
   int GetAttrValue(const TiXmlAttribute *attr)
   {

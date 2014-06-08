@@ -1,3 +1,4 @@
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -195,5 +196,4 @@ namespace HeloUtils {
   Ogre::Real Fraction(T1 nominator, T2 denominator) {return static_cast<Ogre::Real>(nominator) / static_cast<Ogre::Real>(denominator);}
 
 } // namespace HeloUtils
-
 #endif // UTILS_H

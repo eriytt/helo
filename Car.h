@@ -10,6 +10,7 @@
 #include "Physics.h"
 #include "Utils.h"
 #include "Controllers.h"
+#include "Vehicle.h"
 
 #define BRAKE_MAX 32767
 #define CAR_LENGTH 4.923
@@ -237,7 +238,7 @@ protected:
   virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
 
-class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackable
+class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackable, public Vehicle
 {
 public:
   typedef CBRaycastVehicle::WheelData WheelData;

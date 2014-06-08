@@ -2,6 +2,7 @@
 #define AIRPLANE_H
 
 #include "Car.h"
+#include "HardPoints.h"
 
 class AirplaneVehicle : public CBRaycastVehicle
 {

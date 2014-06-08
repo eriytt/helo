@@ -6,9 +6,12 @@
 
 #include <Ogre.h>
 
+#include "HardPoints.h"
+
 class TiXmlNode;
 class Physics;
 class Controllable;
+class Vehicle;
 
 class Configuration
 {
@@ -42,18 +45,18 @@ protected:
     std::string path;
   } Mission;
 
-  typedef struct
-  {
-    std::string name;
-    std::string path;
-  } Vehicle;
+  /* typedef struct */
+  /* { */
+  /*   std::string name; */
+  /*   std::string path; */
+  /* } VehicleSpec; */
 
   std::vector<Controllable*> controllables;
 
 protected:
   std::string resource_base_path;
   std::vector<Mission> missions;
-  std::vector<Vehicle> vehicles;
+  //std::vector<VehicleSpec> vehicles;
   Ogre::Root *root;
   Physics *physics;
   bool runPhysicsInThread;
@@ -69,11 +72,13 @@ protected:
 
 protected:
   void readMissions(TiXmlNode *parent);
-  void loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
-  void loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
-  void loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
-  void loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
-  void loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Vehicle *loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Vehicle *loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Vehicle *loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Vehicle *loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  Hardpoint::Config loadHardpointConfig(TiXmlNode *n);
+
   static void ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre::Real, Ogre::Real> > &pair_list);
 };
 
