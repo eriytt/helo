@@ -30,6 +30,7 @@ public:
     void updateParams(const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain);
     void updateParamsForCompositeMap(const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain);
     void requestOptions(Ogre::Terrain* terrain);
+    void setLightmapEnabled(bool enabled);
 
   };
 };

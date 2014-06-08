@@ -1,6 +1,7 @@
 #include "Configuration.h"
 
 #include <Ogre.h>
+#include <Plugins/BSPSceneManager/OgreBspSceneManagerPlugin.h>
 
 #include "TinyXMLResourceManager.h"
 #include "XML.h"
@@ -11,7 +12,7 @@
 
 void Configuration::loadConfig()
 {
-  TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().create("helo.xml", "helo");
+  TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource("helo.xml", "helo").staticCast<TinyXMLResource>();
 
   // actually load our xml file
   xml->load();
@@ -313,11 +314,11 @@ void Configuration::loadVehicle(const std::string &type, const std::string &name
       rgm.createResourceGroup(type, false);
       rgm.addResourceLocation(resource_base_path +"Vehicles/" + type, "FileSystem", type);
       rgm.initialiseResourceGroup(type);
-      TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().create(type + ".xml", type);
+      TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource(type + ".xml", type).staticCast<TinyXMLResource>();
       xml->load();
     }
 
-  TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createOrRetrieve(type + ".xml", type).first;
+  TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createOrRetrieve(type + ".xml", type).first.staticCast<TinyXMLResource>();
 
   if(xml->getError())
     {
@@ -364,7 +365,7 @@ void Configuration::loadMission(std::string mission_name)
       // for (Ogre::StringVector::iterator i = p->begin(); i != p->end(); ++i)
       //   std::cout << *i << std::endl;
 
-      TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().create( m->name + ".xml", m->name);
+      TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource( m->name + ".xml", m->name).staticCast<TinyXMLResource>();
  
       // actually load our xml file
       xml->load();

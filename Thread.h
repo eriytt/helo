@@ -90,7 +90,7 @@ public:
     if (thread.joinable())
       {
 	if (timeout > 0.0)
-	  thread.timed_join(boost::posix_time::milliseconds(timeout));
+	  thread.try_join_for(boost::chrono::milliseconds(static_cast<long>(timeout * 1000)));
 	else
 	  thread.join();
       }

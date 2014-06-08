@@ -107,3 +107,6 @@ void TerrainMaterial::Profile::requestOptions(Ogre::Terrain* terrain)
     terrain->_setCompositeMapRequired(false);
 }
 
+void TerrainMaterial::Profile::setLightmapEnabled(bool enabled)
+{
+}

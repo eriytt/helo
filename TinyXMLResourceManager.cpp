@@ -7,16 +7,16 @@
 using namespace Ogre;
  
  
-template<> TinyXMLResourceManager* Singleton<TinyXMLResourceManager>::ms_Singleton = 0;
+template<> TinyXMLResourceManager* Singleton<TinyXMLResourceManager>::msSingleton = 0;
 TinyXMLResourceManager* TinyXMLResourceManager::getSingletonPtr()
 {
-   return ms_Singleton;
+   return msSingleton;
 }
  
  
 TinyXMLResourceManager& TinyXMLResourceManager::getSingleton()
 {
-   assert( ms_Singleton );  return ( *ms_Singleton );
+   assert( msSingleton );  return ( *msSingleton );
 }
  
  
@@ -43,11 +43,4 @@ Resource* TinyXMLResourceManager::createImpl(const String& name, ResourceHandle 
                                              const NameValuePairList* params)
 {
    return OGRE_NEW TinyXMLResource(this, name, handle, group, isManual, loader);
-}
- 
- 
-TinyXMLPtr TinyXMLResourceManager::createManual( const String& name, const String& groupName, ManualResourceLoader* loader)
-{
-   // Don't try to get existing, create should fail if already exists
-   return create(name, groupName, true, loader);
 }

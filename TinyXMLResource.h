@@ -8,34 +8,23 @@
 #include <tinyxml.h>
  
 #include "Ogre.h"
- 
- 
-// Forward declaration
-class TinyXMLPtr;
- 
+
+
 class TinyXMLResource : public Ogre::Resource
 {
 public:
- 
+
    /** Constructor - use resource manager's create method rather than this.
    */
    TinyXMLResource(Ogre::ResourceManager* creator, const Ogre::String& name, Ogre::ResourceHandle handle,
       const Ogre::String& group, bool isManual = false, Ogre::ManualResourceLoader* loader = 0);
- 
+
    ~TinyXMLResource();
- 
+
    /** Assignment operator to allow easy copying between TinyXMLResources.
    */
    TinyXMLResource& operator=( const TinyXMLResource& rhs );
- 
-   /** Creates a new copy of this TinyXMLResource with the same settings but a new name.
-   @param newName The name for the cloned TinyXMLResource
-   @param changeGroup If true, the resource group of the clone is changed
-   @param newGroup Only required if changeGroup is true; the new group to assign
-   */
-   TinyXMLPtr clone(const Ogre::String& newName, bool changeGroup = false, 
-      const Ogre::String& newGroup = Ogre::StringUtil::BLANK);
- 
+
    /** Returns the actual TinyXML document.
    @remarks
    The return value is upcasted to an TiXmlNode to have a consistent
@@ -82,23 +71,7 @@ protected:
  
    TiXmlDocument        mTinyXMLDoc;
 };
- 
- 
-/** Specialisation of Ogre::SharedPtr to allow Ogre::SharedPtr to be assigned to TinyXMLPtr 
-@note Has to be a subclass since we need operator=.
-We could templatise this instead of repeating per Resource subclass, 
-except to do so requires a form VC6 does not support i.e.
-ResourceSubclassPtr<T> : public Ogre::SharedPtr<T>
-*/
-class TinyXMLPtr : public Ogre::SharedPtr<TinyXMLResource> 
-{
-public:
-   TinyXMLPtr() : Ogre::SharedPtr<TinyXMLResource>() {}
-   explicit TinyXMLPtr(TinyXMLResource* rep) : Ogre::SharedPtr<TinyXMLResource>(rep) {}
-   TinyXMLPtr(const TinyXMLPtr& r) : Ogre::SharedPtr<TinyXMLResource>(r) {} 
-   TinyXMLPtr(const Ogre::ResourcePtr& r);
-   /// Operator used to convert a ResourcePtr to a TinyXMLPtr
-   TinyXMLPtr& operator=(const Ogre::ResourcePtr& r);
-};
- 
+
+typedef Ogre::SharedPtr<TinyXMLResource> TinyXMLPtr;
+
 #endif  // TINYXMLRESORCE_H

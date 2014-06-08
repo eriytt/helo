@@ -44,11 +44,6 @@ public:
    preventing link errors.
    */
    static TinyXMLResourceManager* getSingletonPtr();
- 
-   /** Creates a new TinyXMLResource specifically for manual definition rather
-   than loading from an object file. 
-   */
-   TinyXMLPtr createManual( const Ogre::String& name, const Ogre::String& groupName, Ogre::ManualResourceLoader* loader = 0);
 };
  
 #endif  // TINYXMLRESOURCEMANAGER_H
