@@ -262,8 +262,40 @@ bool AirplaneKeyController::keyPressed(const OIS::KeyEvent& e)
     cd.thrust = 1.0;
   else if (cd.thrust < -0.0)
     cd.thrust = 0.0;
+
+  if (e.key == OIS::KC_A)
+    cd.aileron += 0.1;
+  else if (e.key == OIS::KC_D)
+    cd.aileron -= 0.1;
+
+  if (cd.aileron > 1.0)
+    cd.aileron = 1.0;
+  else if (cd.aileron < -0.0)
+    cd.aileron = 0.0;
+
+  if (e.key == OIS::KC_L)
+    cd.rudder += 0.1;
+  else if (e.key == OIS::KC_J)
+    cd.rudder -= 0.1;
+
+  if (cd.rudder > 1.0)
+    cd.rudder = 1.0;
+  else if (cd.rudder < -0.0)
+    cd.rudder = 0.0;
+
+
+  if (e.key == OIS::KC_I)
+    cd.elevator += 0.1;
+  else if (e.key == OIS::KC_K)
+    cd.elevator -= 0.1;
+
+  if (cd.elevator > 1.0)
+    cd.elevator = 1.0;
+  else if (cd.elevator < -0.0)
+    cd.elevator = 0.0;
+
   airplane.setInput();
-  
+
   return true;
 }
 
@@ -276,6 +308,8 @@ void AirplaneKeyController::update(float timeDelta)
 {
   if (not active)
     return;
+
+  std::cout << "Controller is active" << std::endl;
 
   AirplaneVehicle::ControlData &cd = airplane.getControlData();
 
