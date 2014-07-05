@@ -7,6 +7,7 @@ class PythonConsole: public XTermConsole
 {
 public:
   PythonConsole(const std::string &xterm = "xterm") : XTermConsole(xterm) {}
+  virtual ~PythonConsole() {}
 
 };
 
@@ -19,6 +20,7 @@ protected:
 
 public:
   Python(bool console, const std::string &xterm = "xterm");
+  virtual ~Python();
   bool needsToRun();
   void run(void);
 

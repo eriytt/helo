@@ -17,6 +17,18 @@ Python::Python(bool console, const std::string &xterm) : console(nullptr)
   }
 }
 
+Python::~Python()
+{
+  if (console)
+    {
+      readline->uninstallCallback();
+      delete readline;
+
+      console->close();
+      delete console;
+    }
+}
+
 bool Python::needsToRun()
 {
   if (not console)
