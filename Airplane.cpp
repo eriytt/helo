@@ -309,8 +309,6 @@ void AirplaneKeyController::update(float timeDelta)
   if (not active)
     return;
 
-  std::cout << "Controller is active" << std::endl;
-
   AirplaneVehicle::ControlData &cd = airplane.getControlData();
 
   if (keyboard.isKeyDown(OIS::KC_W))

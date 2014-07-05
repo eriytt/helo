@@ -158,3 +158,16 @@ void Physics::work()
   //  figure out how long the timestep should be
   //  internalStep(timestep);
 }
+
+
+void Physics::stop()
+{
+  if (runInThread and physicsThread->isRunning())
+    physicsThread->stop();
+}
+
+void Physics::resume()
+{
+  if (runInThread and (not physicsThread->isRunning()))
+      physicsThread->resume();
+}

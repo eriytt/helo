@@ -11,6 +11,7 @@
 #include "Tank.h"
 #include "Character.h"
 //#include "Configuration.h"
+#include "Python.h"
 
 class Error {
 public:
@@ -24,12 +25,14 @@ public:
 Ogre::String heloApp::DefaultTerrainResourceGroup("Terrain/Default");
 
 heloApp::heloApp(): mRoot(0), cam(0), timer(0), conf(0), terrain(0),
-		    physics(0), lastFrameTime_us(0), mExit(false)
+		    physics(0), python(0), lastFrameTime_us(0), mExit(false)
 {
 }
 
 heloApp::~heloApp()
 {
+  if (python)
+    delete python;
   if (physics)
     delete physics;
 
@@ -646,6 +649,11 @@ int heloApp::main(int argc, char *argv[])
       exit(-1);
     }
 
+  if (conf->xtermPath() != "")
+    python = new Python(true, conf->xtermPath());
+  else
+    python = new Python(true);
+
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), conf->physicsInThread());
   conf->setPhysics(physics);
@@ -705,37 +713,34 @@ int heloApp::main(int argc, char *argv[])
 
   physics->finishConfiguration();
 
+  mainLoop();
+
+  return 0;
+}
+
+void heloApp::mainLoop()
+{
+  const std::vector<Controllable*> &controllables = conf->getControllables();
   timer->reset();
   lastFrameTime_us = timer->getMicroseconds();
   while (not mExit) {
-    //std::cout << "rendering" << std::endl;
     unsigned long frame_time = timer->getMicroseconds();
     Ogre::Real tdelta = (frame_time - lastFrameTime_us) / Ogre::Real(1000000);
     lastFrameTime_us = frame_time;
     physics->step();
     physics->sync();
 
+    if (python->needsToRun())
+      {
+	// If physics doesn't run in a thread the stop/resume should
+	// be nops
+	physics->stop();
+	python->run();
+	physics->resume();
+      }
+
     inputHandler->update();
     handleInput(tdelta);
-    //soldier->update(tdelta);
-    //btTransform trans = sphere->getWorldTransform();
-    //Ogre::Real mat[16];
-    // Ogre::matrix omat(mat[0],mat[1],mat[2],mat[3],
-    // 		      mat[4],mat[5],mat[6],mat[7],
-    // 		      mat[8],mat[9],mat[10],mat[11],
-    // 		      mat[12],mat[13],mat[14],mat[15]);
-    // std::cout << mat[0] << " " << mat[1]<< " "  << mat[2]<< " "  << mat[3]<< " "  << std::endl
-    // 	      << mat[4]<< " "  << mat[5]<< " "  << mat[6]<< " "  << mat[7]<< " "  << std::endl
-    // 	      << mat[8]<< " "  << mat[9]<< " "  << mat[10]<< " "  << mat[11]<< " "   << std::endl
-    // 	      << mat[12]<< " "  << mat[13]<< " "  << mat[14]<< " "  << mat[15]<< " "  << std::endl;
-    //std::cout << mat[12] << " "  << mat[13] << " "  << mat[14] <<  std::endl;
-    //sphere_node->setPosition(Ogre::Vector3(mat[12], mat[13], mat[14]));
-    //trans.getOpenGLMatrix(mat);
-
-    // Ogre::SceneNode *n;
-    // n = current_vehicle->getSceneNode();
-    // n = current_car->getSceneNode();
-    // n = soldier->getSceneNode();
     HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
     if (t)
       {
@@ -760,8 +765,6 @@ int heloApp::main(int argc, char *argv[])
     doOgreUpdate();
     //usleep(50000);
   }
-
-  return 0;
 }
 
 void heloApp::cycleControllable()

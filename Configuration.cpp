@@ -41,6 +41,7 @@ void Configuration::loadConfig()
 			     node->ValueStr() + " has no child child named 'Settings'");
 
 	  runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", sn);
+	  xterm = XMLUtils::GetAttribute<std::string>("xterm", sn);
 
 
           // child = NULL;

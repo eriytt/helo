@@ -11,6 +11,7 @@ class Physics;
 class Terrain;
 class btRigidBody;
 class Controllable;
+class Python;
 
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
@@ -36,6 +37,7 @@ protected:
   void setupCEGUI();
   void createFrameListener();
   bool doOgreUpdate();
+  void mainLoop();
   bool frameStarted(const Ogre::FrameEvent& evt);
   void handleInput(Ogre::Real delta);
 
@@ -44,6 +46,7 @@ protected:
   Configuration *conf;
   Terrain *terrain;
   Physics *physics;
+  Python *python;
   unsigned long lastFrameTime_us;
   bool mExit;
 

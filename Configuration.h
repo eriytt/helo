@@ -60,15 +60,17 @@ protected:
   Ogre::Root *root;
   Physics *physics;
   bool runPhysicsInThread;
+  std::string xterm;
 
  public:
-  Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false) {}
+  Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false), xterm("") {}
   void setResourceBase(const std::string &base) {resource_base_path = base;}
   void loadConfig();
   void setPhysics(Physics *p) {physics = p;}
   void loadMission(std::string mission_name);
   const std::vector<Controllable*> &getControllables() {return controllables;}
   bool physicsInThread() {return runPhysicsInThread;}
+  const std::string & xtermPath() {return xterm;}
 
 protected:
   void readMissions(TiXmlNode *parent);

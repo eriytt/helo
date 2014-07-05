@@ -110,6 +110,8 @@ public:
   void step();
   void sync();
   void work();
+  void stop();
+  void resume();
   btDynamicsWorld *getWorld() {return world;}
 
   static btRigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape,
