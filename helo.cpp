@@ -650,9 +650,9 @@ int heloApp::main(int argc, char *argv[])
     }
 
   if (conf->xtermPath() != "")
-    python = new Python(true, conf->xtermPath());
+    python = new Python(argv[0], true, conf->xtermPath());
   else
-    python = new Python(true);
+    python = new Python(argv[0], true);
 
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), conf->physicsInThread());

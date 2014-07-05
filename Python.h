@@ -17,9 +17,10 @@ class Python : Readline::LineHandler
 protected:
   PythonConsole *console;
   Readline *readline;
+  char *prog;
 
 public:
-  Python(bool console, const std::string &xterm = "xterm");
+  Python(std::string program, bool console, const std::string &xterm = "xterm");
   virtual ~Python();
   bool needsToRun();
   void run(void);
