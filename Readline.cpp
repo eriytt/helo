@@ -53,6 +53,12 @@ void Readline::CallbackTrampoline(char *line)
   (*lh)(line);
 }
 
+void Readline::setPrompt(const std::string &prompt)
+{
+  this->prompt = prompt;
+  rl_set_prompt(this->prompt.c_str());
+}
+
 void Readline::uninstallCallback()
 {
   rl_callback_handler_remove();

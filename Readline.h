@@ -47,7 +47,7 @@ protected:
 public:
   static Readline *CreateReadline(ExtConsole &console, const std::string &prompt);
   static void CallbackTrampoline(char *);
-  void setPrompt(const std::string &prompt) {this->prompt = prompt;}
+  void setPrompt(const std::string &prompt);
   std::string read();
   void write(const std::string &out);
   void installCallback(LineHandler *callback);

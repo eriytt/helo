@@ -1,14 +1,12 @@
 #include "Python.h"
 
 #include <iostream>
-#include <sstream>
 
 #include <poll.h>
 
-#include <Python.h>
 
 Python::Python(std::string program, bool console, const std::string &xterm) : 
-  console(nullptr)
+  console(nullptr), interpreter(nullptr)
 {
   if (console) {
     this->console = new PythonConsole(xterm);
@@ -35,13 +33,14 @@ Python::Python(std::string program, bool console, const std::string &xterm) :
 	"sys.stdout  = f\n"
 	"sys.stderr = f\n"
 	"sys.stdin = f\n";
-      std::cout << "Running python code:" << std::endl << os.str().c_str();
       PyRun_SimpleString(os.str().c_str());
 
-      // TODO: init code module
-      PyRun_SimpleString("from time import time,ctime\n"
-                     "print '*************************************Today is',ctime(time())\n");
-    }
+      // init code module
+      PyRun_SimpleString("import code\n"
+			 "interpreter = code.InteractiveInterpreter()\n");
+      PyObject* main = PyImport_AddModule("__main__");
+      interpreter = PyObject_GetAttrString(main, "interpreter");
+   }
 }
 
 Python::~Python()
@@ -77,12 +76,24 @@ bool Python::needsToRun()
 void Python::run(void)
 {
   //std::cout << "Running python" << std::endl;
-
   if (console)
     readline->readAsync();
 }
 
 void Python::operator()(char *line)
 {
-  std::cout << "Callback: " << line << std::endl;
+  command.append(line);
+  PyObject* res = PyObject_CallMethod(interpreter, "runsource", "(s)", command.c_str());
+
+  if (res == Py_True)
+    {
+      // Not a complete line of code
+      command.append("\n");
+      readline->setPrompt("... ");
+    }
+  else
+    {
+      command.clear();
+      readline->setPrompt(">>> ");
+    }
 }

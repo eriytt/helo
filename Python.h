@@ -1,6 +1,10 @@
 #ifndef PYTHON_H
 #define PYTHON_H
 
+#include <sstream>
+
+#include <Python.h>
+
 #include "Readline.h"
 
 class PythonConsole: public XTermConsole
@@ -18,6 +22,8 @@ protected:
   PythonConsole *console;
   Readline *readline;
   char *prog;
+  PyObject *interpreter;
+  std::string command;
 
 public:
   Python(std::string program, bool console, const std::string &xterm = "xterm");
