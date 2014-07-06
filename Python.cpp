@@ -82,6 +82,9 @@ void Python::run(void)
 
 void Python::operator()(char *line)
 {
+  if (not line) // TODO: is this eof? close terminal?
+    return;
+
   command.append(line);
   PyObject* res = PyObject_CallMethod(interpreter, "runsource", "(s)", command.c_str());
 
