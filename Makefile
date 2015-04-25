@@ -42,12 +42,24 @@ LUA_LDFLAGS = -llua5.1
 LDFLAGS = $(BULLET_LDFLAGS) $(OGRE_LDFLAGS) $(OIS_LDFLAGS) $(BOOST_LDFLAGS) ${ZZIP_LDFLAGS} ${TINYXML_LDFLAGS} ${READLINE_LDFLAGS} ${PYTHON_LDFLAGS} \
 	${LUA_LDFLAGS}
 
-all: helo
+all: helo datapkg
 
 helo: $(OBJECTS)
 	g++ -o $@ $(OBJECTS) $(LDFLAGS)
 
+DATADIRS = resources/Armaments resources/Missions/ resources/Vehicles/
+DATAFILES = $(shell find ${DATADIRS} -type f ! -name '*.xml' ! -name '*~' )
+DATAPKG_FILE = helodata.tgz
+
+datapkg: ${DATAPKG_FILE}
+
+${DATAPKG_FILE}: ${DATAFILES}
+	tar -czf ${DATAPKG_FILE} $^
+
 clean:
 	rm -f $(OBJECTS) helo
+
+datapkg-clean:
+	rm -f ${DATAPKG_FILE}
 
 -include $(OBJECTS:%.o=%.d)
