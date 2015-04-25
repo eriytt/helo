@@ -732,7 +732,7 @@ void heloApp::mainLoop()
     physics->step();
     physics->sync();
 
-    if (scripter->needsToRun())
+    if (scripter and scripter->needsToRun())
       {
 	// If physics doesn't run in a thread the stop/resume should
 	// be nops
