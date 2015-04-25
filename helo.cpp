@@ -11,7 +11,9 @@
 #include "Tank.h"
 #include "Character.h"
 //#include "Configuration.h"
+#include "ScriptEngine.h"
 #include "Python.h"
+#include "Lua.h"
 
 class Error {
 public:
@@ -25,14 +27,14 @@ public:
 Ogre::String heloApp::DefaultTerrainResourceGroup("Terrain/Default");
 
 heloApp::heloApp(): mRoot(0), cam(0), timer(0), conf(0), terrain(0),
-		    physics(0), python(0), lastFrameTime_us(0), mExit(false)
+		    physics(0), scripter(0), lastFrameTime_us(0), mExit(false)
 {
 }
 
 heloApp::~heloApp()
 {
-  if (python)
-    delete python;
+  if (scripter)
+    delete scripter;
   if (physics)
     delete physics;
 
@@ -649,10 +651,10 @@ int heloApp::main(int argc, char *argv[])
       exit(-1);
     }
 
-  if (conf->xtermPath() != "")
-    python = new Python(argv[0], true, conf->xtermPath());
-  else
-    python = new Python(argv[0], true);
+  if (conf->usePython())
+    scripter = new Python(argv[0], true, conf->xtermPath());
+  else if (conf->useLua())
+    scripter = new Lua(argv[0], true, conf->xtermPath());
 
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), conf->physicsInThread());
@@ -730,12 +732,12 @@ void heloApp::mainLoop()
     physics->step();
     physics->sync();
 
-    if (python->needsToRun())
+    if (scripter->needsToRun())
       {
 	// If physics doesn't run in a thread the stop/resume should
 	// be nops
 	physics->stop();
-	python->run();
+	scripter->run();
 	physics->resume();
       }
 

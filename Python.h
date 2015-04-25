@@ -6,6 +6,7 @@
 #include <Python.h>
 
 #include "Readline.h"
+#include "ScriptEngine.h"
 
 class PythonConsole: public XTermConsole
 {
@@ -16,7 +17,7 @@ public:
 };
 
 
-class Python : Readline::LineHandler
+class Python : public ScriptEngine, Readline::LineHandler
 {
 protected:
   PythonConsole *console;

@@ -3,7 +3,7 @@ HOSTNAME = $(shell hostname --fqdn)
 PATHS = paths.$(HOSTNAME)
 include $(PATHS)
 
-OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o
+OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o
 
 ifeq ($(OPTIMIZE), yes)
   DEBUG_FLAGS = -O2
@@ -24,7 +24,10 @@ TINYXML_CXXFLAGS = -I${TINYXML}/include
 
 PYTHON_CXXFLAGS = -I/usr/include/python2.7
 
-CXXFLAGS = -Wall -std=c++11 -MMD $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_CXXFLAGS) $(BULLET_CXXFLAGS) ${OIS_CXXFLAGS} ${TINYXML_CXXFLAGS} ${PYTHON_CXXFLAGS}
+LUA_CXXFLAGS = -I/usr/include/lua5.1
+
+CXXFLAGS = -Wall -std=c++11 -MMD $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_CXXFLAGS) $(BULLET_CXXFLAGS) ${OIS_CXXFLAGS} ${TINYXML_CXXFLAGS} ${PYTHON_CXXFLAGS} \
+	${LUA_CXXFLAGS}
 
 OGRE_LDFLAGS = -L$(OGRE)/lib -lOgreMain${OGRE_DEBUG_SUFFIX} -lOgreTerrain${OGRE_DEBUG_SUFFIX} -lOgrePaging${OGRE_DEBUG_SUFFIX}
 BULLET_LDFLAGS = -L$(BULLET)/lib -lBulletDynamics -lBulletCollision  -lLinearMath
@@ -34,8 +37,10 @@ ZZIP_LDFLAGS = -L${ZZIP}/lib -lzzip
 TINYXML_LDFLAGS = -L${TINYXML}/lib -ltinyxml
 READLINE_LDFLAGS = -lreadline
 PYTHON_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lpython2.7
+LUA_LDFLAGS = -llua5.1
 
-LDFLAGS = $(BULLET_LDFLAGS) $(OGRE_LDFLAGS) $(OIS_LDFLAGS) $(BOOST_LDFLAGS) ${ZZIP_LDFLAGS} ${TINYXML_LDFLAGS} ${READLINE_LDFLAGS} ${PYTHON_LDFLAGS}
+LDFLAGS = $(BULLET_LDFLAGS) $(OGRE_LDFLAGS) $(OIS_LDFLAGS) $(BOOST_LDFLAGS) ${ZZIP_LDFLAGS} ${TINYXML_LDFLAGS} ${READLINE_LDFLAGS} ${PYTHON_LDFLAGS} \
+	${LUA_LDFLAGS}
 
 all: helo
 

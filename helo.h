@@ -11,7 +11,7 @@ class Physics;
 class Terrain;
 class btRigidBody;
 class Controllable;
-class Python;
+class ScriptEngine;
 
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
@@ -46,7 +46,7 @@ protected:
   Configuration *conf;
   Terrain *terrain;
   Physics *physics;
-  Python *python;
+  ScriptEngine *scripter;
   unsigned long lastFrameTime_us;
   bool mExit;
 

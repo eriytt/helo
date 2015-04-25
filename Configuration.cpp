@@ -10,6 +10,12 @@
 #include "Tank.h"
 #include "Airplane.h"
 
+Configuration::Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false),  python(false), lua(false)
+{
+  // TODO: lookup xterm in path
+  xterm = "/usr/bin/xterm";
+}
+
 void Configuration::loadConfig()
 {
   TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource("helo.xml", "helo").staticCast<TinyXMLResource>();
@@ -39,10 +45,7 @@ void Configuration::loadConfig()
 	  if (not sn)
 	    throw ConfigurationError(node->GetDocument()->ValueStr(),
 			     node->ValueStr() + " has no child child named 'Settings'");
-
-	  runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", sn);
-	  xterm = XMLUtils::GetAttribute<std::string>("xterm", sn);
-
+	  readSettings(sn);
 
           // child = NULL;
           // while((child = node->IterateChildren("Vehicles", child)))
@@ -53,6 +56,28 @@ void Configuration::loadConfig()
           throw ConfigurationError(std::string("Error loading configuration: ") + e.what());
         }
      }
+}
+
+void Configuration::readSettings(TiXmlNode *settings)
+{
+  runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", settings);
+  // TODO: allow xterm to be missing
+  xterm = XMLUtils::GetAttribute<std::string>("xterm", settings);
+
+  TiXmlNode *child = NULL;
+  while((child = settings->IterateChildren("Python", child)))
+    {
+      python = XMLUtils::GetAttribute<bool>("enabled", child);
+    }
+
+  while((child = settings->IterateChildren("Lua", child)))
+    {
+      lua = XMLUtils::GetAttribute<bool>("enabled", child);
+    }
+
+  if (python and lua)
+    throw ConfigurationError("Scripting in both lua and python not supported");
+
 }
 
 void Configuration::readMissions(TiXmlNode *parent)

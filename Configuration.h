@@ -61,19 +61,25 @@ protected:
   Physics *physics;
   bool runPhysicsInThread;
   std::string xterm;
+  bool python;
+  bool lua;
 
  public:
-  Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false), xterm("") {}
+  Configuration(Ogre::Root *r);
   void setResourceBase(const std::string &base) {resource_base_path = base;}
   void loadConfig();
   void setPhysics(Physics *p) {physics = p;}
   void loadMission(std::string mission_name);
   const std::vector<Controllable*> &getControllables() {return controllables;}
   bool physicsInThread() {return runPhysicsInThread;}
+
   const std::string & xtermPath() {return xterm;}
+  bool usePython() {return python;}
+  bool useLua() {return lua;}
 
 protected:
   void readMissions(TiXmlNode *parent);
+  void readSettings(TiXmlNode *settings);
   Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);

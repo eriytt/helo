@@ -1,8 +1,10 @@
 <helo>
   <Settings
       physicsInThread="true"
-      xterm="./xterm"/>
-
+      xterm="./xterm">
+    <Python enabled="true"/>
+    <Lua enabled="true"/>
+  </Settings>
 
   <Missions>
     <Mission name="Test" path="./Missions/TestMission"/>

@@ -86,7 +86,9 @@ void Python::operator()(char *line)
     return;
 
   command.append(line);
-  PyObject* res = PyObject_CallMethod(interpreter, "runsource", "(s)", command.c_str());
+  // ugly const_casts, but it seems unlikely that python would touch
+  // those strings...
+  PyObject* res = PyObject_CallMethod(interpreter, const_cast<char*>("runsource"), const_cast<char*>("(s)"), command.c_str());
 
   if (res == Py_True)
     {
