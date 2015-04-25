@@ -10,7 +10,7 @@
 #include "Tank.h"
 #include "Airplane.h"
 
-Configuration::Configuration(Ogre::Root *r) : root(r), physics(NULL), runPhysicsInThread(false),  python(false), lua(false)
+Configuration::Configuration(Ogre::Root *r) : startMission(""), root(r), physics(NULL), runPhysicsInThread(false),  python(false), lua(false)
 {
   // TODO: lookup xterm in path
   xterm = "/usr/bin/xterm";
@@ -61,8 +61,9 @@ void Configuration::loadConfig()
 void Configuration::readSettings(TiXmlNode *settings)
 {
   runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", settings);
-  // TODO: allow xterm to be missing
-  xterm = XMLUtils::GetAttribute<std::string>("xterm", settings);
+
+  if (XMLUtils::HasAttribute("xterm", settings))
+    xterm = XMLUtils::GetAttribute<std::string>("xterm", settings);
 
   TiXmlNode *child = NULL;
   while((child = settings->IterateChildren("Python", child)))
@@ -76,12 +77,15 @@ void Configuration::readSettings(TiXmlNode *settings)
     }
 
   if (python and lua)
-    throw ConfigurationError("Scripting in both lua and python not supported");
+    throw ConfigurationError(settings->GetDocument()->ValueStr(), "Scripting in both lua and python not supported");
 
 }
 
 void Configuration::readMissions(TiXmlNode *parent)
 {
+  if (XMLUtils::HasAttribute("start", parent))
+    startMission = XMLUtils::GetAttribute<std::string>("start", parent);
+
   TiXmlNode *child = NULL;
   while((child = parent->IterateChildren(child)))
     {
@@ -91,9 +95,14 @@ void Configuration::readMissions(TiXmlNode *parent)
       missions.push_back(mission);
     }
 
+  // TODO: Should this really be necessary? Starting with empty
+  // missions should be allowed.
   if (not missions.size())
     throw ConfigurationError(parent->GetDocument()->ValueStr(),
                              "No mission definitions found'");
+
+  if (startMission != "" and not std::any_of(missions.begin(), missions.end(), [&](const Mission &m) {return m.name == startMission;}))
+    throw ConfigurationError(parent->GetDocument()->ValueStr(), std::string("Mission ") + startMission + " not defined");
 }
 
 Vehicle *Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)

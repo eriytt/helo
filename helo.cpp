@@ -663,14 +663,17 @@ int heloApp::main(int argc, char *argv[])
   physics->addBody(terrain->createBody());
 
 
-  try
+  if (conf->getStartMission() != "")
     {
-      conf->loadMission("Test");
-    }
-  catch (Configuration::ConfigurationError e)
-    {
-      Error::ErrMessage(e.what());
-      exit(-1);
+      try
+	{
+	  conf->loadMission(conf->getStartMission());
+	}
+      catch (Configuration::ConfigurationError e)
+	{
+	  Error::ErrMessage(e.what());
+	  exit(-1);
+	}
     }
 
 
@@ -703,12 +706,16 @@ int heloApp::main(int argc, char *argv[])
       Controllable *c = *i;
       c->createController(dev);
     }
-  currentControllable = controllables.size() - 1;
-  cycleControllable();
 
-  HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
-  Ogre::SceneNode *sn = t->getSceneNode();
-  cam->setAutoTracking(true, sn);
+  if (controllables.size())
+    {
+      currentControllable = controllables.size() - 1;
+      cycleControllable();
+
+      HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
+      Ogre::SceneNode *sn = t->getSceneNode();
+      cam->setAutoTracking(true, sn);
+    }
 
   // cam->setAutoTracking(true, current_car->getSceneNode());
   // cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
@@ -743,26 +750,29 @@ void heloApp::mainLoop()
 
     inputHandler->update();
     handleInput(tdelta);
-    HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
-    if (t)
+    if (controllables.size())
       {
-        Ogre::SceneNode *sn = t->getSceneNode();
-        cam->setAutoTracking(true, sn, t->getTrackOffset());
-        cam->setFixedYawAxis(true, t->getCameraUp());
+	HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
+	if (t)
+	  {
+	    Ogre::SceneNode *sn = t->getSceneNode();
+	    cam->setAutoTracking(true, sn, t->getTrackOffset());
+	    cam->setFixedYawAxis(true, t->getCameraUp());
 
-        if (t->cameraFollow())
-           {
-	     Ogre::Vector3 current = cam->getPosition();
-             Ogre::Vector3 desired = sn->convertLocalToWorldPosition(t->getCameraPosition());
-	     Ogre::Vector3 error = desired - current;
-	     HeloUtils::Trackable::CameraParams params = t->getCameraParameters();
-	     Ogre::Vector3 newpos = current + (error * params.p * tdelta);
-	     // TODO: compensate for ground level, preferably soft...
-	     Ogre::Real terrain_height = terrain->getHeight(newpos.x, newpos.z);
-	     if (newpos.y < terrain_height + params.minGroundOffset)
-	       newpos.y = terrain_height + params.minGroundOffset;
-             cam->setPosition(newpos);
-           }
+	    if (t->cameraFollow())
+	      {
+		Ogre::Vector3 current = cam->getPosition();
+		Ogre::Vector3 desired = sn->convertLocalToWorldPosition(t->getCameraPosition());
+		Ogre::Vector3 error = desired - current;
+		HeloUtils::Trackable::CameraParams params = t->getCameraParameters();
+		Ogre::Vector3 newpos = current + (error * params.p * tdelta);
+		// TODO: compensate for ground level, preferably soft...
+		Ogre::Real terrain_height = terrain->getHeight(newpos.x, newpos.z);
+		if (newpos.y < terrain_height + params.minGroundOffset)
+		  newpos.y = terrain_height + params.minGroundOffset;
+		cam->setPosition(newpos);
+	      }
+	  }
       }
     doOgreUpdate();
     //usleep(50000);
@@ -772,6 +782,9 @@ void heloApp::mainLoop()
 void heloApp::cycleControllable()
 {
   const std::vector<Controllable*> &controllables = conf->getControllables();
+  if (not controllables.size())
+    return;
+
   Controller *c = controllables[currentControllable]->getController();
   if (c)
     c->setActive(false);
@@ -807,75 +820,11 @@ bool heloApp::keyPressed(const OIS::KeyEvent &e)
       return true;
     }
 
-//   switch (e.key)
-//     {
-//     case OIS::KC_SPACE:
-//       current_vehicle->startEngines(true);
-//       break;
-
-//     case OIS::KC_W:
-//       current_vehicle->setCollective(1.0);
-//       break;
-//     case OIS::KC_S:
-//       current_vehicle->setCollective(-1.0);
-//       break;
-
-//     case OIS::KC_A:
-//       current_vehicle->setSteer(1.0);
-//       break;
-//     case OIS::KC_D:
-//       current_vehicle->setSteer(-1.0);
-//       break;
-
-//     case OIS::KC_I:
-//       current_vehicle->setCyclicForward(1.0);
-//       break;
-//     case OIS::KC_K:
-//       current_vehicle->setCyclicForward(-1.0);
-//       break;
-
-//     case OIS::KC_L:
-//       current_vehicle->setCyclicRight(1.0);
-//       break;
-//     case OIS::KC_J:
-//       current_vehicle->setCyclicRight(-1.0);
-//       break;
-
-//     default: /* Other keys not handled*/
-//       break;
-//     }
-
   return true;
 }
 
 bool heloApp::keyReleased(const OIS::KeyEvent &e)
 {
-//   switch (e.key)
-//     {
-//     case OIS::KC_W:
-//     case OIS::KC_S:
-//       current_vehicle->setCollective(0.0);
-//       break;
-
-//     case OIS::KC_A:
-//     case OIS::KC_D:
-//       current_vehicle->setSteer(0.0);
-//       break;
-
-//     case OIS::KC_I:
-//     case OIS::KC_K:
-//       current_vehicle->setCyclicForward(0.0);
-//       break;
-
-//     case OIS::KC_L:
-//     case OIS::KC_J:
-//       current_vehicle->setCyclicRight(0.0);
-//       break;
-
-//     default: /* Other keys not handled*/
-//       break;
-//     }
-
   return true;
 }
 
@@ -942,6 +891,10 @@ bool heloApp::keyReleased(const OIS::KeyEvent &e)
 void heloApp::handleInput(Ogre::Real delta)
 {
   const std::vector<Controllable*> &controllables = conf->getControllables();
+
+  if (not controllables.size())
+    return;
+
   Controller *c = controllables[currentControllable]->getController();
   if (c)
     c->update(static_cast<float>(delta));

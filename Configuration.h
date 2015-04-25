@@ -56,6 +56,7 @@ protected:
 protected:
   std::string resource_base_path;
   std::vector<Mission> missions;
+  std::string startMission;
   //std::vector<VehicleSpec> vehicles;
   Ogre::Root *root;
   Physics *physics;
@@ -76,6 +77,7 @@ protected:
   const std::string & xtermPath() {return xterm;}
   bool usePython() {return python;}
   bool useLua() {return lua;}
+  const std::string & getStartMission() {return startMission;}
 
 protected:
   void readMissions(TiXmlNode *parent);

@@ -76,7 +76,7 @@ namespace XMLUtils {
       }
     catch (XMLError e)
       {
-        throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to float.");        
+        throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to float.");
       }
     return static_cast<float>(ret);
   }
@@ -105,6 +105,23 @@ namespace XMLUtils {
   }
 
 
+  bool HasAttribute(const std::string attrname, const TiXmlNode* node)
+  {
+    const TiXmlElement *element = node->ToElement();
+    if (not element)
+      throw XMLError("Node " + node->ValueStr() + "is not an element");
+
+    const TiXmlAttribute *attr = element->FirstAttribute();
+    if (not attr)
+      return false;
+
+    do
+      if (attrname == attr->Name())
+	  return true;
+    while ((attr = attr->Next()));
+    return false;
+  }
+
   template <typename T>
   T GetAttribute(const std::string attrname, const TiXmlNode* node)
   {
@@ -115,8 +132,8 @@ namespace XMLUtils {
     const TiXmlAttribute *attr = element->FirstAttribute();
     if (not attr)
       goto nosuchattribute;
-    
-    do 
+
+    do
       {
         if (attrname == attr->Name())
           try
