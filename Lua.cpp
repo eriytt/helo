@@ -57,6 +57,13 @@ Lua::~Lua()
 {
 }
 
+void Lua::openLib(LuaOpenFunc f)
+{
+  // TODO: do we need to clean the stack after this?
+  if (not f(luaState))
+    throw std::exception();
+}
+
 bool Lua::needsToRun()
 {
   if (not console)
@@ -117,9 +124,8 @@ void Lua::operator()(char *line)
       res = lua_pcall(luaState, 0, 0, 0);
       if (res)
 	{
-	  std::string errmsg("Lua error: ");
-	  errmsg += lua_tostring(luaState, -1);
-	  write(console->getFD(), errmsg.c_str(), errmsg.length());
+	  std::string errmsg(lua_tostring(luaState, -1));
+	  write(console->getFD(), (errmsg + '\n').c_str(), errmsg.length() + 1);
 	  lua_pop(luaState, 1);  /* pop error message from the stack */
 	}
 

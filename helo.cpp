@@ -634,6 +634,8 @@ Controllable *heloApp::create_Soldier(const Ogre::String name, const Ogre::Vecto
   return soldier;
 }
 
+extern "C" int luaopen_helo(lua_State* L); // defined in the lua wrapper
+
 int heloApp::main(int argc, char *argv[])
 {
   initOGRE();
@@ -654,7 +656,11 @@ int heloApp::main(int argc, char *argv[])
   if (conf->usePython())
     scripter = new Python(argv[0], true, conf->xtermPath());
   else if (conf->useLua())
-    scripter = new Lua(argv[0], true, conf->xtermPath());
+    {
+      Lua *lua = new Lua(argv[0], true, conf->xtermPath());
+      lua->openLib(luaopen_helo);
+      scripter = lua;
+    }
 
   // TODO: maybe there should be some space above the highest top of the terrain?
   physics = new Physics(terrain->getBounds(), conf->physicsInThread());

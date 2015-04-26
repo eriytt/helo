@@ -1,9 +1,11 @@
-helo
+^helo$
 ^.*\.d$
 ^\#.*\#$
 ^.*\.o$
 ^.*~$
 ^.*\.log$
+^.*wrap\.cpp$
+^.*\.tgz$
 ^xterm$
 ^uxterm$
 

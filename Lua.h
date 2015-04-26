@@ -23,6 +23,9 @@ public:
 
 class Lua : public ScriptEngine, public Readline::LineHandler
 {
+public:
+  typedef int (*LuaOpenFunc)(lua_State* L);
+
 protected:
   lua_State *luaState;
   LuaConsole *console;
@@ -35,6 +38,9 @@ public:
 public:
   Lua(std::string program, bool console, const std::string &xterm = "xterm");
   virtual ~Lua();
+  void openLib(LuaOpenFunc f);
+
+  // from ScriptEngine
   bool needsToRun();
   void run(void);
 

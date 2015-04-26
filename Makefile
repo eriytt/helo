@@ -3,7 +3,7 @@ HOSTNAME = $(shell hostname --fqdn)
 PATHS = paths.$(HOSTNAME)
 include $(PATHS)
 
-OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o
+OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o lua_wrap.o
 
 ifeq ($(OPTIMIZE), yes)
   DEBUG_FLAGS = -O2
@@ -57,9 +57,15 @@ ${DATAPKG_FILE}: ${DATAFILES}
 	tar -czf ${DATAPKG_FILE} $^
 
 clean:
-	rm -f $(OBJECTS) helo
+	rm -f $(OBJECTS) helo ${LUA_WRAPPER}
 
 datapkg-clean:
 	rm -f ${DATAPKG_FILE}
+
+# Lua wrapping
+LUA_WRAPPER = lua_wrap.cpp 
+${LUA_WRAPPER}: helo.i
+	swig -c++ -lua -o $@ $< 
+
 
 -include $(OBJECTS:%.o=%.d)
