@@ -15,6 +15,22 @@ class ScriptEngine;
 
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
+public:
+  class HeloException : public std::runtime_error
+  {
+  protected:
+    const std::string reason;
+  public:
+    HeloException(const std::string &msg) :
+      runtime_error(""), reason(msg) {}
+
+    ~HeloException() throw() {}
+
+    virtual const char* what() const throw()
+    {
+      return reason.c_str();
+    }
+  };
 
 protected:
   static Ogre::String DefaultTerrainResourceGroup;
