@@ -7,6 +7,7 @@
 #include "Configuration.h"
 
 // Forward declarations
+class Camera;
 class Physics;
 class Terrain;
 class btRigidBody;
@@ -38,7 +39,6 @@ protected:
   // OGRE stuff
 protected:
   Ogre::Root *mRoot;
-  Ogre::Camera *cam;
   Ogre::Timer * timer;
   InputHandler *inputHandler;
 
@@ -61,6 +61,7 @@ protected:
 protected:
   Configuration *conf;
   Terrain *terrain;
+  Camera *camera;
   Physics *physics;
   ScriptEngine *scripter;
   unsigned long lastFrameTime_us;
@@ -76,13 +77,13 @@ protected:
   unsigned int currentControllable;
   void cycleControllable();
 
-protected:
-  Controllable *create_HMMWV(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
-  Controllable *create_Defender(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
-  Controllable *create_Chinook(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
-  Controllable *create_M93A1(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
-  Controllable *create_M1Abrams(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
-  Controllable *create_Soldier(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+// protected:
+//   Controllable *create_HMMWV(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+//   Controllable *create_Defender(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+//   Controllable *create_Chinook(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+//   Controllable *create_M93A1(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+//   Controllable *create_M1Abrams(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
+//   Controllable *create_Soldier(const Ogre::String name, const Ogre::Vector3 &position, Ogre::Root *root, Physics &physics);
 
 
 public:
@@ -92,7 +93,11 @@ public:
   bool keyPressed(const OIS::KeyEvent &e);
   bool keyReleased(const OIS::KeyEvent &e);
 
+
 public:
   static heloApp *theApp;
+  Terrain *getTerrain() {return terrain;}
+  Camera *getCamera() {return camera;}
+  Configuration *getConfiguration() {return conf;}
 };
 #endif // HELO_H

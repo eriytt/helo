@@ -190,6 +190,10 @@ namespace HeloUtils {
       params.minGroundOffset = 5.0;
       return params;
     }
+
+    template <typename T>
+    static Trackable *toTrackable(T *from) {return dynamic_cast<Trackable*>(from);}
+
   };
 
   template <typename T1, typename T2>

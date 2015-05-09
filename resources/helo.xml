@@ -2,11 +2,11 @@
   <Settings
       physicsInThread="true"
       xterm="./xterm">
-    <Python enabled="true"/>
+    <Python enabled="false"/>
     <Lua enabled="true"/>
   </Settings>
 
-  <Missions>
+  <Missions start="Test">
     <Mission name="Test" path="./Missions/TestMission"/>
   </Missions>
   <Vehicles>

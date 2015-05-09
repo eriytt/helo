@@ -3,6 +3,7 @@
 
 #include "helo.h"
 #include "Terrain.h"
+#include "Camera.h"
 #include "Physics.h"
 
 // TODO: hopefully not needed here indefinately
@@ -27,7 +28,7 @@ public:
 Ogre::String heloApp::DefaultTerrainResourceGroup("Terrain/Default");
 heloApp *heloApp::theApp = 0;
 
-heloApp::heloApp(): mRoot(0), cam(0), timer(0), conf(0), terrain(0),
+heloApp::heloApp(): mRoot(0), timer(0), conf(0), terrain(0), camera(0),
 		    physics(0), scripter(0), lastFrameTime_us(0), mExit(false)
 {
   if (theApp)
@@ -646,6 +647,7 @@ int heloApp::main(int argc, char *argv[])
   initOGRE();
 
   terrain = new ::Terrain(mRoot, DefaultTerrainResourceGroup);
+  camera->setTerrain(terrain);
 
   conf = new Configuration(mRoot);
   try
@@ -724,8 +726,9 @@ int heloApp::main(int argc, char *argv[])
       cycleControllable();
 
       HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
-      Ogre::SceneNode *sn = t->getSceneNode();
-      cam->setAutoTracking(true, sn);
+      camera->setTrackable(t);
+      //Ogre::SceneNode *sn = t->getSceneNode();
+      //cam->setAutoTracking(true, sn);
     }
 
   // cam->setAutoTracking(true, current_car->getSceneNode());
@@ -761,30 +764,7 @@ void heloApp::mainLoop()
 
     inputHandler->update();
     handleInput(tdelta);
-    if (controllables.size())
-      {
-	HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
-	if (t)
-	  {
-	    Ogre::SceneNode *sn = t->getSceneNode();
-	    cam->setAutoTracking(true, sn, t->getTrackOffset());
-	    cam->setFixedYawAxis(true, t->getCameraUp());
-
-	    if (t->cameraFollow())
-	      {
-		Ogre::Vector3 current = cam->getPosition();
-		Ogre::Vector3 desired = sn->convertLocalToWorldPosition(t->getCameraPosition());
-		Ogre::Vector3 error = desired - current;
-		HeloUtils::Trackable::CameraParams params = t->getCameraParameters();
-		Ogre::Vector3 newpos = current + (error * params.p * tdelta);
-		// TODO: compensate for ground level, preferably soft...
-		Ogre::Real terrain_height = terrain->getHeight(newpos.x, newpos.z);
-		if (newpos.y < terrain_height + params.minGroundOffset)
-		  newpos.y = terrain_height + params.minGroundOffset;
-		cam->setPosition(newpos);
-	      }
-	  }
-      }
+    camera->update(tdelta);
     doOgreUpdate();
     //usleep(50000);
   }

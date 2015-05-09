@@ -1,11 +1,13 @@
 #include "helo.h"
 
-using namespace Ogre;
-
 #include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
 
 #include "TinyXMLResourceManager.h"
+
+#include "Camera.h"
+
+using namespace Ogre;
+namespace fs = boost::filesystem;
 
 void heloApp::createRoot()
 {
@@ -50,7 +52,7 @@ void heloApp::initializeResourceGroups()
 void heloApp::setupScene()
 {
   SceneManager *mgr = mRoot->createSceneManager("DefaultSceneManager", "SceneManager");
-  cam = mgr->createCamera("Camera");
+  Ogre::Camera *cam = mgr->createCamera("Camera");
   Viewport* vp = mRoot->getAutoCreatedWindow()->addViewport(cam, 0 , 0.0, 0.0, 1.0, 1.0);
   vp->setBackgroundColour(ColourValue::Blue);
 
@@ -59,7 +61,9 @@ void heloApp::setupScene()
   cam->setNearClipDistance(0.1);
   cam->setFarClipDistance(50000);
   if (mRoot->getRenderSystem()->getCapabilities()->hasCapability(RSC_INFINITE_FAR_PLANE))
-    cam->setFarClipDistance(0);   // enable infinite far clip distance if we can
+    cam->setFarClipDistance(0);   // enable infinite far clip distance
+				  // if we can
+  camera = new ::Camera(cam); // Ogre::Camera shadows Camera
 
 
   Vector3 lightdir(0.55, -0.3, 0.75);
