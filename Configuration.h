@@ -64,6 +64,8 @@ protected:
   std::string xterm;
   bool python;
   bool lua;
+  std::vector<std::string> preScripts;
+  std::vector<std::string> postScripts;
 
  public:
   Configuration(Ogre::Root *r);
@@ -77,11 +79,14 @@ protected:
   const std::string & xtermPath() {return xterm;}
   bool usePython() {return python;}
   bool useLua() {return lua;}
+  const std::vector<std::string> &getPreScripts() {return preScripts;}
+  const std::vector<std::string> &getPostScripts() {return postScripts;}
   const std::string & getStartMission() {return startMission;}
 
 protected:
   void readMissions(TiXmlNode *parent);
   void readSettings(TiXmlNode *settings);
+  void readScriptEngine(TiXmlNode *se);
   Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);

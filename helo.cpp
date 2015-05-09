@@ -675,6 +675,9 @@ int heloApp::main(int argc, char *argv[])
   conf->setResourceBase("./resources/");
   physics->addBody(terrain->createBody());
 
+  if (scripter)
+    for (const std::string &script : conf->getPreScripts())
+      scripter->runFile(script);
 
   if (conf->getStartMission() != "")
     {
@@ -735,6 +738,11 @@ int heloApp::main(int argc, char *argv[])
   // cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
 
   physics->finishConfiguration();
+
+  if (scripter)
+    for (const std::string &script : conf->getPostScripts())
+      scripter->runFile(script);
+
 
   mainLoop();
 

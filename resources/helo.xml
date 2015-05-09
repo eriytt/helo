@@ -2,8 +2,12 @@
   <Settings
       physicsInThread="true"
       xterm="./xterm">
-    <Python enabled="false"/>
-    <Lua enabled="true"/>
+    <Python enabled="false">
+    </Python>
+
+    <Lua enabled="true">
+      <run script="test.lua" postconf="true"/>
+    </Lua>
   </Settings>
 
   <Missions start="Test">

@@ -58,6 +58,20 @@ void Configuration::loadConfig()
      }
 }
 
+void Configuration::readScriptEngine(TiXmlNode *se)
+{
+  TiXmlNode* run = NULL;
+
+  while((run = se->IterateChildren("run", run))) {
+    bool postconf = false;
+
+    if (XMLUtils::HasAttribute("postconf", run))
+      postconf = XMLUtils::GetAttribute<bool>("postconf", run);
+
+    (postconf ? postScripts : preScripts).push_back(XMLUtils::GetAttribute<std::string>("script", run));
+  }
+}
+
 void Configuration::readSettings(TiXmlNode *settings)
 {
   runPhysicsInThread = XMLUtils::GetAttribute<bool>("physicsInThread", settings);
@@ -68,12 +82,14 @@ void Configuration::readSettings(TiXmlNode *settings)
   TiXmlNode *child = NULL;
   while((child = settings->IterateChildren("Python", child)))
     {
-      python = XMLUtils::GetAttribute<bool>("enabled", child);
+      if ((python = XMLUtils::GetAttribute<bool>("enabled", child)))
+	readScriptEngine(child);
     }
 
   while((child = settings->IterateChildren("Lua", child)))
     {
-      lua = XMLUtils::GetAttribute<bool>("enabled", child);
+      if ((lua = XMLUtils::GetAttribute<bool>("enabled", child)))
+	readScriptEngine(child);
     }
 
   if (python and lua)

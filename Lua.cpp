@@ -1,6 +1,8 @@
 #include "Lua.h"
 
-#include <exception>
+#include <stdexcept>
+
+#include <cassert>
 
 #include <poll.h>
 
@@ -61,7 +63,7 @@ void Lua::openLib(LuaOpenFunc f)
 {
   // TODO: do we need to clean the stack after this?
   if (not f(luaState))
-    throw std::exception();
+    throw std::runtime_error("Unable to open library");
 }
 
 bool Lua::needsToRun()
@@ -83,6 +85,15 @@ void Lua::run(void)
 {
   if (console)
     readline->readAsync();
+}
+
+void Lua::runFile(const std::string &script)
+{
+  assert(luaState);
+
+  if (luaL_loadfile(luaState, script.c_str()) || lua_pcall(luaState, 0, 0, 0))
+  // TODO: throw another exception?
+    throw std::runtime_error(std::string("Cannot run lua file: ") + lua_tostring(luaState, -1));
 }
 
 void Lua::operator()(char *line)
@@ -117,7 +128,7 @@ void Lua::operator()(char *line)
   else if (res == LUA_ERRMEM)
     {
       // Throw exception?
-      throw std::exception(); // "Lua out of memory");
+      throw std::runtime_error("Lua out of memory");
     }
   else
     {

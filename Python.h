@@ -31,6 +31,7 @@ public:
   virtual ~Python();
   bool needsToRun();
   void run(void);
+  void runFile(const std::string &script);
 
   // from ReadLine::LineHandler
   void operator()(char *line);

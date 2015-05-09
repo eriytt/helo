@@ -2,10 +2,12 @@
 
 #include <iostream>
 
+#include <stdexcept>
+
 #include <poll.h>
 
 
-Python::Python(std::string program, bool console, const std::string &xterm) : 
+Python::Python(std::string program, bool console, const std::string &xterm) :
   console(nullptr), interpreter(nullptr)
 {
   if (console) {
@@ -78,6 +80,11 @@ void Python::run(void)
   //std::cout << "Running python" << std::endl;
   if (console)
     readline->readAsync();
+}
+
+void Python::runFile(const std::string &script)
+{
+  throw std::runtime_error("runFile not supported");
 }
 
 void Python::operator()(char *line)
