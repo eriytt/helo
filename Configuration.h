@@ -83,11 +83,13 @@ protected:
   const std::vector<std::string> &getPostScripts() {return postScripts;}
   const std::string & getStartMission() {return startMission;}
 
+public:
+  Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
+  
 protected:
   void readMissions(TiXmlNode *parent);
   void readSettings(TiXmlNode *settings);
   void readScriptEngine(TiXmlNode *se);
-  Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadHelicopter(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
   Vehicle *loadTank(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);

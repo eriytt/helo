@@ -411,7 +411,7 @@ Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &
   Ogre::ResourceGroupManager &rgm = Ogre::ResourceGroupManager::getSingleton();
   if (not rgm.resourceGroupExists("Vehicles/" + type))
     {
-      rgm.createResourceGroup(type, false);
+      rgm.createResourceGroup("Vehicles/" + type, false);
       rgm.addResourceLocation(resource_base_path +"Vehicles/" + type, "FileSystem", type);
       rgm.initialiseResourceGroup(type);
       TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource(type + ".xml", type).staticCast<TinyXMLResource>();

@@ -98,6 +98,7 @@ public:
   static heloApp *theApp;
   Terrain *getTerrain() {return terrain;}
   Camera *getCamera() {return camera;}
+  Physics *getPhysics() {return physics;}
   Configuration *getConfiguration() {return conf;}
 };
 #endif // HELO_H

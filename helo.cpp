@@ -730,12 +730,7 @@ int heloApp::main(int argc, char *argv[])
 
       HeloUtils::Trackable *t = dynamic_cast<HeloUtils::Trackable*>(controllables[currentControllable]);
       camera->setTrackable(t);
-      //Ogre::SceneNode *sn = t->getSceneNode();
-      //cam->setAutoTracking(true, sn);
     }
-
-  // cam->setAutoTracking(true, current_car->getSceneNode());
-  // cam->setAutoTracking(true, soldier->getSceneNode(), Ogre::Vector3(0.0, 0.8, 0.0));
 
   physics->finishConfiguration();
 

@@ -1,6 +1,7 @@
 %module helo
 
 %include "std_vector.i"
+%include "std_string.i"
 
 %{
 #include "helo.h"
@@ -8,6 +9,8 @@
 #include "Utils.h"
 #include "Camera.h"
 #include "Controllers.h"
+#include "Physics.h"
+#include "Vehicle.h"
 %}
 
 %nodefault Ogre;
@@ -78,11 +81,30 @@ class Controllable
 
 %template(ControllableVector) std::vector<Controllable*>;
 
+%nodefault PhysicsObject;
+class PhysicsObject
+{
+public:
+  virtual void finishPhysicsConfiguration(class Physics *phys) = 0;
+};
+
+
+%nodefault Vehicle;
+class Vehicle
+{
+ public:
+  %extend {
+    PhysicsObject *toPhysicsObject() {return dynamic_cast<PhysicsObject*>($self);}
+  }
+};
+
+
 %nodefault Configuration;
 class Configuration
 {
 public:
   const std::vector<Controllable*> &getControllables();
+  Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
 };
 
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
@@ -91,5 +113,6 @@ public:
   static heloApp *theApp;
   Terrain *getTerrain();
   Camera *getCamera();
+  Physics *getPhysics();
   Configuration *getConfiguration();
 };

@@ -17,7 +17,11 @@ cam:setLookAt(helo.Vector3(curp.x, curp.y, curp.z + 1))
 
 conf = app:getConfiguration()
 controllables = conf:getControllables()
-c = controllables[1]
+c = controllables[0]
 t = c:toTrackable()
 cam:setTrackable(t)
 
+phys = app:getPhysics()
+v = conf:loadVehicle("HMMWV", "hmmwv.1", helo.Vector3(1780.96, 2.0, 1635.3), helo.Vector3(0, 190, 0))
+po = v:toPhysicsObject()
+po:finishPhysicsConfiguration(phys)
