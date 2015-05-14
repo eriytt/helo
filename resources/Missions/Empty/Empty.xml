@@ -1,0 +1,8 @@
+<Mission>
+  <Vehicles>
+    <Vehicle type="HMMWV" name="hmmwv.0">
+      <position x="1780.96" y="2.0" z="1625.3"/>
+      <rotation x="0" y="230" z="0"/>
+    </Vehicle>
+  </Vehicles>
+</Mission>
