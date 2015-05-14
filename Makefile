@@ -48,7 +48,7 @@ helo: $(OBJECTS)
 	g++ -o $@ $(OBJECTS) $(LDFLAGS)
 
 DATADIRS = resources/Armaments resources/Missions/ resources/Vehicles/
-DATAFILES = $(shell find ${DATADIRS} -type f ! -name '*.xml' ! -name '*~' )
+DATAFILES = $(shell find ${DATADIRS} -type f ! -name '*.xml' ! -name '*~' ) resources/terrain.png resources/terrain_detail.jpg resources/Sphere.mesh
 DATAPKG_FILE = helodata.tgz
 
 datapkg: ${DATAPKG_FILE}
