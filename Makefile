@@ -32,7 +32,7 @@ CXXFLAGS = -Wall -std=c++11 -MMD $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_CXXFLAGS) $(
 OGRE_LDFLAGS = -L$(OGRE)/lib -lOgreMain${OGRE_DEBUG_SUFFIX} -lOgreTerrain${OGRE_DEBUG_SUFFIX} -lOgrePaging${OGRE_DEBUG_SUFFIX}
 BULLET_LDFLAGS = -L$(BULLET)/lib -lBulletDynamics -lBulletCollision  -lLinearMath
 OIS_LDFLAGS = -L${OIS}/lib -lOIS
-BOOST_LDFLAGS = -lboost_system -lboost_thread -lboost_filesystem -lboost_chrono
+BOOST_LDFLAGS = -lboost_system -lboost_thread -lboost_chrono
 ZZIP_LDFLAGS = -L${ZZIP}/lib -lzzip
 TINYXML_LDFLAGS = -L${TINYXML}/lib -ltinyxml
 READLINE_LDFLAGS = -lreadline
@@ -61,6 +61,9 @@ clean:
 
 datapkg-clean:
 	rm -f ${DATAPKG_FILE}
+
+deb-dep-install:
+	gksu apt-get install g++ libogre-1.9-dev libois-dev libbullet-dev python-dev liblua5.1-0-dev libtinyxml-dev swig libzzip-dev
 
 # Lua wrapping
 LUA_WRAPPER = lua_wrap.cpp 

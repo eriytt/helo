@@ -1,7 +1,6 @@
 <helo>
   <Settings
-      physicsInThread="true"
-      xterm="./xterm">
+      physicsInThread="true">
     <Python enabled="false">
     </Python>
 
