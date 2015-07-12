@@ -5,6 +5,7 @@
 
 #include "InputHandler.h"
 #include "Configuration.h"
+#include "EventQueue.h"
 
 // Forward declarations
 class Camera;
@@ -65,6 +66,7 @@ protected:
   Physics *physics;
   ScriptEngine *scripter;
   unsigned long lastFrameTime_us;
+  EventQueue<unsigned long> queue;
   bool mExit;
 
   // Testing

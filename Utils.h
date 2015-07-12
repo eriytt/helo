@@ -199,5 +199,25 @@ namespace HeloUtils {
   template <typename T1, typename T2>
   Ogre::Real Fraction(T1 nominator, T2 denominator) {return static_cast<Ogre::Real>(nominator) / static_cast<Ogre::Real>(denominator);}
 
+  template<typename T>
+  class SortedList : public std::list<T>
+  {
+  public:
+    typename std::list<T>::iterator insert(const typename std::list<T>::value_type& val)
+    {
+      if (std::list<T>::empty() or std::list<T>::back() < val)
+	{
+	  std::list<T>::push_back(val);
+	  return --std::list<T>::end();
+	}
+
+      typename std::list<T>::iterator insertpos =
+	std::find_if(std::list<T>::begin(),
+		     std::list<T>::end(),
+		     [val](T it) {return val < it;});
+	return std::list<T>::insert(insertpos, val);
+    }
+  };
+
 } // namespace HeloUtils
 #endif // UTILS_H
