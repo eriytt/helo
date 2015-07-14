@@ -64,9 +64,15 @@ protected:
   int callback_registry_key;
 public:
   LuaEventCallback(lua_State *L, int key) : L(L), callback_registry_key(key) {}
-  virtual void operator()(T time, typename EventQueue<T>::EventID id) const {
+  virtual void operator()(T actual_time, T event_time, typename EventQueue<T>::EventID id) const {
+    // set up the stack with the function and input arguments
     lua_rawgeti(L, LUA_REGISTRYINDEX, callback_registry_key);
-    int err = lua_pcall(L, 0, 0, 0);
+    lua_pushinteger(L, actual_time);
+    lua_pushinteger(L, event_time);
+    lua_pushinteger(L, id);
+
+    // do the call
+    int err = lua_pcall(L, 3, 0, 0);
     if (err) {
       std::string errmsg("Lua event failed: ");
       switch (err)

@@ -13,21 +13,20 @@ public:
   class Event
   {
   public:
-    virtual void operator()(T time, EventID id) const {};
+    virtual void operator()(T actual_time, T event_time, EventID id) const = 0;
     virtual void dispose(bool handled) const {delete this;};
     virtual ~Event() {}
   };
 
   template <class L>
   class LambdaEvent : public Event
-  { 
+  {
   protected:
     std::function<L> f;
   public:
     LambdaEvent(std::function<L> lambda) : f(lambda) {}
-    virtual void operator()(T time, EventID id) const {f();}
+    virtual void operator()(T actual_time, T event_time, EventID id) const {f();}
   };
-
 
 protected:
   struct EventQueueEntry
@@ -59,7 +58,7 @@ public:
 	if (e.time > until)
 	  break;
 
-	(*e.e)(e.time, e.id);
+	(*e.e)(until, e.time, e.id);
 	etime = e.time;
 	e.e->dispose(true);
 	queue.pop_front();
@@ -122,6 +121,6 @@ protected:
   std::string s;
 public:
   PrintEvent(const std::string &s) : s(s) {}
-  virtual void operator()(T time, typename EventQueue<T>::EventID id) const {std::cout << "PrintEvent triggered: " << s << std::endl ;}
+  virtual void operator()(T actual_time, T event_time, typename EventQueue<T>::EventID id) const {std::cout << "PrintEvent triggered: " << s << std::endl ;}
 };
 #endif // EVENTQUEUE_H

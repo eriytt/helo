@@ -47,3 +47,10 @@ print("Callbacks: " .. cb1 .. " and " .. cb2)
 
 helo.postEventToQueue(q, 1500000, make_printer(75))
 helo.postEventToQueue(q, 75000, make_printer("Closure at 75 ms"))
+
+function repostable_event(actual_time, event_time, id)
+  print("Repeat callback " .. id .. " at time " .. event_time .. " (+" .. actual_time - event_time .. ")")
+  helo.postEventToQueue(q, event_time + 5000000, repostable_event)
+end
+
+helo.postEventToQueue(q, 5000000, repostable_event)

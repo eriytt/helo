@@ -739,9 +739,9 @@ int heloApp::main(int argc, char *argv[])
       scripter->runFile(script);
 
   queue.postEvent(1 * 1000000,
-  		  new EventQueue<unsigned long>::LambdaEvent<void()>([]() -> void {
-  		      std::cout << "Event (explicit lambda) after 1 seconds" << std::endl;
-  		    }));
+		  new EventQueue<unsigned long>::LambdaEvent<void()>([]() -> void {
+		      std::cout << "Event (explicit lambda) after 1 seconds" << std::endl;
+		    }));
 
   queue.postEvent<void()>(2 * 1000000, []{std::cout << "Event (lambda) after 2 seconds" << std::endl;});
 
@@ -749,7 +749,7 @@ int heloApp::main(int argc, char *argv[])
    		  new PrintEvent<unsigned long>("Event (derived) after 1 seconds"));
 
   queue.postEvent<void()>(3 * 1000000, []{std::cout << "Event (lambda) after 3 seconds" << std::endl;});
-  
+
   mainLoop();
 
   return 0;
