@@ -11,6 +11,7 @@
 #include "Controllers.h"
 #include "Physics.h"
 #include "Vehicle.h"
+#include "Lua.h"
 %}
 
 %nodefault Ogre;
@@ -107,6 +108,65 @@ public:
   Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
 };
 
+%header %{
+typedef EventQueue<unsigned long> ulEventQueue;
+%}
+
+
+%nodefault ulEventQueue;
+class ulEventQueue
+{
+};
+
+%wrapper %{
+static int postEventToQueue(lua_State* L) {
+  EventQueue<unsigned long> *queue = (EventQueue<unsigned long> *) 0;
+  unsigned long at = 0;
+  bool arg3_is_lua_function = false;
+  int arg3_ref = LUA_NOREF;
+  ulEventQueue::EventID eid = -1;
+
+  SWIG_check_num_args("postEventToQueue", 3, 3)
+
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("postEventToQueue",1,"ulEventQueue *");
+  if(!lua_isnumber(L,2)) SWIG_fail_arg("postEventToQueue",2,"unsigned long");
+
+  // Checking of th closure argument
+  arg3_is_lua_function = static_cast<bool>(lua_isfunction(L, 3) && !lua_iscfunction(L, 3));
+  if(!arg3_is_lua_function)
+      SWIG_fail_arg("postEventToQueue",3,"Lua function");
+
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L, 1, reinterpret_cast<void**>(&queue), SWIGTYPE_p_ulEventQueue, 0)))
+    {
+      SWIG_fail_ptr("postEventToQueue",1,SWIGTYPE_p_ulEventQueue);
+    }
+
+  SWIG_contract_assert((lua_tonumber(L, 2) >= 0), "number must not be negative")
+  at = (unsigned long)lua_tonumber(L, 2);
+
+  arg3_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+  eid = queue->postEvent(at, new LuaEventCallback<unsigned long>(L, arg3_ref));
+
+  // clear the stack
+  lua_settop(L, 0);
+
+  // push return value on the stack
+  lua_pushinteger(L, eid);
+
+  // One value returned
+  return 1;
+
+fail:
+  lua_error(L);
+  return 0;
+}
+%}
+
+
+%native(postEventToQueue) unsigned int postEventToQueue(unsigned long at, void *c);
+
+
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
 public:
@@ -115,4 +175,5 @@ public:
   Camera *getCamera();
   Physics *getPhysics();
   Configuration *getConfiguration();
+  ulEventQueue *getEventQueue();
 };

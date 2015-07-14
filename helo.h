@@ -102,5 +102,6 @@ public:
   Camera *getCamera() {return camera;}
   Physics *getPhysics() {return physics;}
   Configuration *getConfiguration() {return conf;}
+  EventQueue<unsigned long> *getEventQueue() {return &queue;}
 };
 #endif // HELO_H

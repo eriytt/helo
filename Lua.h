@@ -26,6 +26,10 @@ class Lua : public ScriptEngine, public Readline::LineHandler
 public:
   typedef int (*LuaOpenFunc)(lua_State* L);
 
+
+public:
+  static void DumpStack(lua_State*);
+
 protected:
   lua_State *luaState;
   LuaConsole *console;
@@ -47,6 +51,46 @@ public:
 
   // from ReadLine::LineHandler
   void operator()(char *line);
+};
+
+
+#include "EventQueue.h"
+
+template <typename T>
+class LuaEventCallback : public EventQueue<T>::Event
+{
+protected:
+  lua_State *L;
+  int callback_registry_key;
+public:
+  LuaEventCallback(lua_State *L, int key) : L(L), callback_registry_key(key) {}
+  virtual void operator()(T time, typename EventQueue<T>::EventID id) const {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, callback_registry_key);
+    int err = lua_pcall(L, 0, 0, 0);
+    if (err) {
+      std::string errmsg("Lua event failed: ");
+      switch (err)
+	{
+	case LUA_ERRRUN:
+	  errmsg += "LUA_ERRRUN: "; break;
+	case LUA_ERRMEM:
+	  errmsg += "LUA_ERRMEM: "; break;
+	case LUA_ERRERR:
+	  errmsg += "LUA_ERRERR: "; break;
+	default:
+	  errmsg += "Unknown lua error code: "; break;
+	}
+
+      // Stack top (-1) contains the error message
+      errmsg += lua_tostring(L, -1);
+      lua_settop(L, 0);
+
+      throw std::runtime_error(errmsg);
+    }
+
+    // Discard possible return values
+    lua_settop(L, 0);
+  }
 };
 
 #endif // LUA_H
