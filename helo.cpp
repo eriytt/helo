@@ -738,17 +738,24 @@ int heloApp::main(int argc, char *argv[])
     for (const std::string &script : conf->getPostScripts())
       scripter->runFile(script);
 
+  using ul_t = unsigned long;
+  using EQ_t = EventQueue<ul_t>;
+  using LE_t = EQ_t::LambdaEvent;
+  using eid_t = EQ_t::EventID;
+
   queue.postEvent(1 * 1000000,
-		  new EventQueue<unsigned long>::LambdaEvent<void()>([]() -> void {
+		  new LE_t([](ul_t at, ul_t et, eid_t id) -> void {
 		      std::cout << "Event (explicit lambda) after 1 seconds" << std::endl;
 		    }));
 
-  queue.postEvent<void()>(2 * 1000000, []{std::cout << "Event (lambda) after 2 seconds" << std::endl;});
+  queue.postEvent(2 * 1000000, [](ul_t at, ul_t et, eid_t id){
+      std::cout << "Event (lambda) after 2 seconds" << std::endl;});
 
   queue.postEvent(1 * 1000000,
    		  new PrintEvent<unsigned long>("Event (derived) after 1 seconds"));
 
-  queue.postEvent<void()>(3 * 1000000, []{std::cout << "Event (lambda) after 3 seconds" << std::endl;});
+  queue.postEvent(3 * 1000000, [](ul_t at, ul_t et, eid_t id){
+      std::cout << "Event (lambda) after 3 seconds" << std::endl;});
 
   mainLoop();
 

@@ -18,14 +18,13 @@ public:
     virtual ~Event() {}
   };
 
-  template <class L>
   class LambdaEvent : public Event
   {
   protected:
-    std::function<L> f;
+    std::function<void(T, T, EventID)> f;
   public:
-    LambdaEvent(std::function<L> lambda) : f(lambda) {}
-    virtual void operator()(T actual_time, T event_time, EventID id) const {f();}
+    LambdaEvent(std::function<void(T, T, EventID)> lambda) : f(lambda) {}
+    virtual void operator()(T actual_time, T event_time, EventID id) const {f(actual_time, event_time, id);}
   };
 
 protected:
@@ -89,11 +88,10 @@ public:
     return new_id;
   }
 
-  template <class L>
-  EventID postEvent(T at, std::function<L> lambda)
+  EventID postEvent(T at, std::function<void(T, T, EventID)> lambda)
   {
     EventID new_id = ectr++;
-    queue.insert(EventQueueEntry(at, new_id, new LambdaEvent<L>(lambda)));
+    queue.insert(EventQueueEntry(at, new_id, new LambdaEvent(lambda)));
     return new_id;
   }
 
