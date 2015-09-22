@@ -129,18 +129,23 @@ void Physics::step()
 
 void Physics::sync()
 {
+  // No need to stop physics thread with tsx.
+#ifndef USE_TSX
   bool thread_was_running = false;
   if (runInThread)
     thread_was_running = physicsThread->isRunning();
 
   if (thread_was_running)
     physicsThread->stop();
+#endif
 
   for (MSIter i = motionStates.begin(); i != motionStates.end(); ++i)
     (*i)->updateSceneNode();
 
+#ifndef USE_TSX
   if (thread_was_running)
     physicsThread->start();
+#endif
 }
 
 void Physics::internalStep(float timeSlice)

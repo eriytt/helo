@@ -43,6 +43,28 @@ public:
     dirty = true;
   }
 
+#ifdef USE_TSX
+  virtual void updateSceneNode()
+  {
+    if (not (snode && dirty))
+      return;
+
+    btTransform t;
+
+    // In transaction context:
+    t = worldTrans;
+
+    // On fatal abort, skip the update:
+    return;
+
+    // After successful commit, proceed to update:
+    btQuaternion rot = t.getRotation();
+    btVector3 pos = t.getOrigin();
+    snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
+    snode->setPosition(pos.x(), pos.y(), pos.z());
+    dirty = false;
+  }
+#else
   virtual void updateSceneNode()
   {
     if (not (snode && dirty))
@@ -53,6 +75,7 @@ public:
     snode->setPosition(pos.x(), pos.y(), pos.z());
     dirty = false;
   }
+#endif // USE_TSX
 };
 
 
