@@ -1,6 +1,8 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
+#include <immintrin.h>
+
 #include <vector>
 
 #include <Ogre.h>
@@ -12,20 +14,23 @@
 class HeloMotionState : public btMotionState
 {
 protected:
+  static const unsigned int TRANSACTION_RETRY_COUNT = 3;
+
+protected:
   btTransform worldTrans;
+  bool dirty;
   btTransform offset;
   Ogre::SceneNode *snode;
-  bool dirty;
 
 public:
   HeloMotionState(const btTransform& startTrans = btTransform::getIdentity(),
 		  Ogre::SceneNode *node = 0,
 		  const btTransform& centerOfMassOffset = btTransform::getIdentity())
     : worldTrans(startTrans),
+      dirty(false),
       offset(centerOfMassOffset),
-      snode(node),
-      dirty(false) {}
-
+      snode(node) {}
+  
   virtual ~HeloMotionState() {}
 
   void setNode(Ogre::SceneNode *node) {
@@ -48,21 +53,39 @@ public:
   {
     if (not (snode && dirty))
       return;
-
+  
     btTransform t;
+    unsigned int retries = HeloMotionState::TRANSACTION_RETRY_COUNT;
 
     // In transaction context:
-    t = worldTrans;
+  transaction_retry:
+    unsigned int xstat = _xbegin();
+    if (xstat == _XBEGIN_STARTED)
+      {
+	t = worldTrans;
+	dirty = false;
+	_xend();
+      }
+    else
+      {
+	if ((xstat & _XABORT_CONFLICT
+	     or xstat & _XABORT_RETRY)
+	    and retries)
+	  {
+	    --retries;
+	    goto transaction_retry;
+	  }
 
-    // On fatal abort, skip the update:
-    return;
+	// On fatal abort or max retry count reached, skip the update:
+	return;
+      }
+      
 
     // After successful commit, proceed to update:
     btQuaternion rot = t.getRotation();
     btVector3 pos = t.getOrigin();
     snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
     snode->setPosition(pos.x(), pos.y(), pos.z());
-    dirty = false;
   }
 #else
   virtual void updateSceneNode()

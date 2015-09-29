@@ -11,6 +11,8 @@ else
   DEBUG_FLAGS = -g
 endif
 
+TSX_CXXFLAGS = -DUSE_TSX -mrtm
+
 # BOOST_THREAD_VERSION=4 must be defined to 4 in ogre 1.9
 # https://ogre3d.atlassian.net/browse/OGRE-398
 OGRE_XTRA_CXXFLAGS = -DBOOST_THREAD_VERSION=4
@@ -27,7 +29,7 @@ PYTHON_CXXFLAGS = -I/usr/include/python2.7
 LUA_CXXFLAGS = -I/usr/include/lua5.1
 
 CXXFLAGS = -Wall -std=c++11 -MMD $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_CXXFLAGS) $(BULLET_CXXFLAGS) ${OIS_CXXFLAGS} ${TINYXML_CXXFLAGS} ${PYTHON_CXXFLAGS} \
-	${LUA_CXXFLAGS}
+	${LUA_CXXFLAGS} ${TSX_CXXFLAGS}
 
 OGRE_LDFLAGS = -L$(OGRE)/lib -lOgreMain${OGRE_DEBUG_SUFFIX} -lOgreTerrain${OGRE_DEBUG_SUFFIX} -lOgrePaging${OGRE_DEBUG_SUFFIX}
 BULLET_LDFLAGS = -L$(BULLET)/lib -lBulletDynamics -lBulletCollision  -lLinearMath
