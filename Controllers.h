@@ -10,6 +10,7 @@ class Controller
 
  public:
   Controller() : active(false) {}
+  virtual ~Controller() {}
   virtual void setActive(bool a) {active = a;}
   virtual void update(float timeDelta) = 0;
 };
@@ -22,9 +23,11 @@ protected:
 public:
   Controllable() : controller(NULL) {}
   Controller *getController() {return controller;};
+  void setController(Controller *c) {controller = c;}
   virtual Controller *createController(OIS::Object *dev) = 0;
 };
 
+class Vehicle;
 class Car;
 
 class CarKeyController : public Controller, public OIS::KeyListener
@@ -53,6 +56,20 @@ public:
   bool axisMoved(const OIS::JoyStickEvent&, int);
   void update(float timeDelta) {}
   void setActive(bool a);
+};
+
+class SimpleCarAutoController : public Controller
+{
+ protected:
+  Car *car;
+  float targetSpeed;
+
+ public:
+  SimpleCarAutoController(Car *c) : car(c), targetSpeed(0.0) {}
+  SimpleCarAutoController(Vehicle *v);
+  virtual void update(float timeDelta);
+  void setSpeed(float s) {targetSpeed = s;}
+  float getSpeed() {return targetSpeed;}
 };
 
 class TankKeyController : public CarKeyController

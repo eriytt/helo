@@ -181,7 +181,9 @@ int heloApp::main(int argc, char *argv[])
 
 void heloApp::mainLoop()
 {
-  const std::vector<Controllable*> &controllables = conf->getControllables();
+  unsigned int updates = 0;
+  unsigned long update_delay = 0;
+
   timer->reset();
   lastFrameTime_us = timer->getMicroseconds();
   while (not mExit) {
@@ -189,7 +191,20 @@ void heloApp::mainLoop()
     Ogre::Real tdelta = (frame_time - lastFrameTime_us) / Ogre::Real(1000000);
     lastFrameTime_us = frame_time;
     physics->step();
+
+    unsigned long ts_update = timer->getMicroseconds();
     physics->sync();
+    update_delay += timer->getMicroseconds() - ts_update;
+    ++updates;
+    if (updates == 10000)
+      {
+	//std::cout << "Performed " << updates << " synchronizations in " << update_delay << " us" << std::endl;
+#ifdef USE_TSX
+	print_aborts();
+#endif        
+	updates = 0;
+	update_delay = 0;
+      }
 
     if (scripter and scripter->needsToRun())
       {
@@ -266,10 +281,15 @@ void heloApp::handleInput(Ogre::Real delta)
   if (not controllables.size())
     return;
 
-  Controller *c = controllables[currentControllable]->getController();
-  if (c)
-    c->update(static_cast<float>(delta));
-
+  // Controller *c = controllables[currentControllable]->getController();
+  // if (c)
+  //   c->update(static_cast<float>(delta));
+  for (Controllable *vehicle : controllables)
+    {
+      Controller *c = vehicle->getController();
+      if (c)
+	c->update(static_cast<float>(delta));
+    }
 }
 
 void heloApp::setSpherePosition(const Ogre::Vector3 &newPos)

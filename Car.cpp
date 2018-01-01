@@ -916,8 +916,7 @@ float Car::getRPM()
 }
 float Car::getSpeed()
 {
-  //return speed;
-  return 0;
+  return static_cast<float>(body->getLinearVelocity().length());
 }
 
 Controller *Car::createController(OIS::Object *dev)

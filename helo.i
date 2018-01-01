@@ -75,10 +75,22 @@ public:
 class Controllable
 {
  public:
+  Controller *getController();
+  void setController(Controller *c);
+
   %extend {
     HeloUtils::Trackable *toTrackable() {return dynamic_cast<HeloUtils::Trackable*>($self);}
   }
 };
+
+class SimpleCarAutoController : public Controller
+{
+ public:
+  SimpleCarAutoController(Vehicle *v);
+  void setSpeed(float s);
+  float getSpeed();
+};
+
 
 %template(ControllableVector) std::vector<Controllable*>;
 
@@ -96,6 +108,7 @@ class Vehicle
  public:
   %extend {
     PhysicsObject *toPhysicsObject() {return dynamic_cast<PhysicsObject*>($self);}
+    Controllable *toControllable() {return dynamic_cast<Controllable*>($self);}
   }
 };
 

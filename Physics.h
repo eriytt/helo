@@ -4,6 +4,7 @@
 #include <immintrin.h>
 
 #include <vector>
+#include <atomic>
 
 #include <Ogre.h>
 
@@ -11,14 +12,46 @@
 
 #include "Thread.h"
 
+void print_aborts();
+
 class HeloMotionState : public btMotionState
 {
+public:
+  class bad_align : public std::bad_alloc
+  {
+    std::string msg;
+  public:
+    bad_align(const std::string &msg) : msg(msg) {}
+    virtual const char* what() const throw() {return msg.c_str();}
+  };
+
 protected:
   static const unsigned int TRANSACTION_RETRY_COUNT = 3;
+  // TODO: allow this constant to be configurable
+  static const size_t CACHE_LINE_SIZE = 64;
+
+#ifdef USE_TSX
+private:
+  void *bufptr;
+
+protected:
+  //  std::atomic<bool> dirty;
+  bool dirty;
+  std::atomic<bool> committed;
+  std::atomic<bool> updating;
+  alignas(CACHE_LINE_SIZE) btTransform committedTrans;
+
+public:
+  void *operator new(size_t size);
+  void operator delete(void *ptr);
+#else
+protected:
+  bool dirty;
+#endif
 
 protected:
   btTransform worldTrans;
-  bool dirty;
+
   btTransform offset;
   Ogre::SceneNode *snode;
 
@@ -26,81 +59,46 @@ public:
   HeloMotionState(const btTransform& startTrans = btTransform::getIdentity(),
 		  Ogre::SceneNode *node = 0,
 		  const btTransform& centerOfMassOffset = btTransform::getIdentity())
-    : worldTrans(startTrans),
-      dirty(false),
+    : dirty(false),
+#ifdef USE_TSX
+      committed(false),
+      updating(false),
+      committedTrans(startTrans),
+#endif
+      worldTrans(startTrans),
       offset(centerOfMassOffset),
       snode(node) {}
-  
   virtual ~HeloMotionState() {}
-
-  void setNode(Ogre::SceneNode *node) {
-    snode = node;
-  }
-
-  virtual void getWorldTransform(btTransform &trans) const {
-    trans = worldTrans;
-  }
-
-  virtual void setWorldTransform(const btTransform &trans) {
+    
+  void setNode(Ogre::SceneNode *node) {snode = node;}
+  virtual void getWorldTransform(btTransform &trans) const {trans = worldTrans;}
+  virtual void setWorldTransform(const btTransform &trans)
+  {
     if(snode == 0)
       return;
+
     worldTrans = trans;
     dirty = true;
   }
+    
+
+  virtual void commitTransform()
+  {
+    if (not dirty)
+      return;
 
 #ifdef USE_TSX
-  virtual void updateSceneNode()
-  {
-    if (not (snode && dirty))
-      return;
-  
-    btTransform t;
-    unsigned int retries = HeloMotionState::TRANSACTION_RETRY_COUNT;
-
-    // In transaction context:
-  transaction_retry:
-    unsigned int xstat = _xbegin();
-    if (xstat == _XBEGIN_STARTED)
-      {
-	t = worldTrans;
-	dirty = false;
-	_xend();
-      }
-    else
-      {
-	if ((xstat & _XABORT_CONFLICT
-	     or xstat & _XABORT_RETRY)
-	    and retries)
-	  {
-	    --retries;
-	    goto transaction_retry;
-	  }
-
-	// On fatal abort or max retry count reached, skip the update:
-	return;
-      }
-      
-
-    // After successful commit, proceed to update:
-    btQuaternion rot = t.getRotation();
-    btVector3 pos = t.getOrigin();
-    snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
-    snode->setPosition(pos.x(), pos.y(), pos.z());
-  }
-#else
-  virtual void updateSceneNode()
-  {
-    if (not (snode && dirty))
-      return;
-    btQuaternion rot = worldTrans.getRotation();
-    btVector3 pos = worldTrans.getOrigin();
-    snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
-    snode->setPosition(pos.x(), pos.y(), pos.z());
+    updating = true;
+    committedTrans = worldTrans;
+    committed = true;
+    updating = false;
+#endif
     dirty = false;
   }
-#endif // USE_TSX
-};
 
+
+  virtual void updateSceneNode();
+};
 
 class PhysicsObject
 {

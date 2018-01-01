@@ -3,7 +3,7 @@ HOSTNAME = $(shell hostname --fqdn)
 PATHS = paths.$(HOSTNAME)
 include $(PATHS)
 
-OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o lua_wrap.o Camera.o
+OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o lua_wrap.o Camera.o Controllers.o
 
 ifeq ($(OPTIMIZE), yes)
   DEBUG_FLAGS = -O2

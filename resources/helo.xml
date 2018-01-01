@@ -6,6 +6,7 @@
 
     <Lua enabled="true">
       <run script="test.lua" postconf="true"/>
+      <run script="tsxbench.lua" postconf="true"/>
     </Lua>
   </Settings>
 

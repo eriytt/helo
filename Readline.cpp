@@ -110,5 +110,5 @@ void Readline::readAsync()
   if (not callback)
     throw ReadlineException("Readline::poll()", "Cannot poll in sync mode, use read");
 
-    rl_callback_read_char();
+  rl_callback_read_char();
 }
