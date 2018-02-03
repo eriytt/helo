@@ -80,6 +80,13 @@ void Configuration::readSettings(TiXmlNode *settings)
     xterm = XMLUtils::GetAttribute<std::string>("xterm", settings);
 
   TiXmlNode *child = NULL;
+
+  child = XMLUtils::AssertGetNode(settings, "Server");
+  sconf.enabled = XMLUtils::GetAttribute<bool>("enabled", child);
+  sconf.port = XMLUtils::GetAttribute<unsigned short>("port", child);
+  sconf.num_clients = XMLUtils::GetAttribute<unsigned char>("num_clients", child);
+  sconf.update_freq = XMLUtils::GetAttribute<unsigned char>("update_freq", child);
+
   while((child = settings->IterateChildren("Python", child)))
     {
       if ((python = XMLUtils::GetAttribute<bool>("enabled", child)))
@@ -433,16 +440,22 @@ Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &
       TiXmlNode* n = node->FirstChild();
 
       std::string vehicle_class(XMLUtils::GetAttribute<std::string>("class", n));
+      Vehicle *v = nullptr;
       if (vehicle_class == "Car")
-	return loadCar(n, name, position, rotation);
+        v = loadCar(n, name, position, rotation);
       else if (vehicle_class == "Helicopter")
-	return loadHelicopter(n, name, position, rotation);
+	v = loadHelicopter(n, name, position, rotation);
       else if (vehicle_class == "Tank")
-	return loadTank(n, name, position, rotation);
+	v = loadTank(n, name, position, rotation);
       else if (vehicle_class == "Airplane")
-	return loadAirplane(n, name, position, rotation);
+	v = loadAirplane(n, name, position, rotation);
       else
-	ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
+	throw ConfigurationError(xml->getName(), "Unsupported vehicle class'" + vehicle_class + "'");
+
+      for (auto l : listeners)
+        l->vehicleLoaded(type, name, position, rotation, v);
+
+      return v;
     }
   return NULL;
 }

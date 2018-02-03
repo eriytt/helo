@@ -35,7 +35,6 @@ private:
   void *bufptr;
 
 protected:
-  //  std::atomic<bool> dirty;
   bool dirty;
   std::atomic<bool> committed;
   std::atomic<bool> updating;
@@ -71,6 +70,7 @@ public:
   virtual ~HeloMotionState() {}
     
   void setNode(Ogre::SceneNode *node) {snode = node;}
+  Ogre::SceneNode *getNode() const {return snode;}
   virtual void getWorldTransform(btTransform &trans) const {trans = worldTrans;}
   virtual void setWorldTransform(const btTransform &trans)
   {
@@ -80,7 +80,6 @@ public:
     worldTrans = trans;
     dirty = true;
   }
-    
 
   virtual void commitTransform()
   {
@@ -96,8 +95,11 @@ public:
     dirty = false;
   }
 
-
-  virtual void updateSceneNode();
+#ifdef USE_TSX
+  bool tsxGetTransform(btTransform &t);
+#endif
+  bool getTransform(btTransform &t) const;
+  void updateSceneNode();
 };
 
 class PhysicsObject
@@ -113,6 +115,12 @@ typedef std::vector < PhysicsObject* > ::iterator PhysObjIter;
 
 class Physics : public ThreadWorker
 {
+public:
+  class Listener {
+  public:
+    virtual void motionStateAdded(const HeloMotionState &ms) = 0;
+  };
+
 protected:
   typedef std::vector<btRigidBody*> BodyVector;
   typedef std::vector<btRigidBody*>::iterator BodyIter;
@@ -137,6 +145,8 @@ protected:
 
   PhysObjVector pobjects;
 
+  std::vector<Listener*> listeners;
+
 protected:
   void internalStep(float timeSlice);
 
@@ -146,6 +156,7 @@ public:
   // TODO: add BodyVector version
   void addBody(btRigidBody *body);
   void addMotionState(HeloMotionState *ms);
+  void addListener(Listener *l) {listeners.push_back(l);}
   void addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies = false);
   void addAction(btActionInterface *action);
   void addObject(PhysicsObject *obj);

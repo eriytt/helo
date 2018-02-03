@@ -14,6 +14,7 @@ class Terrain;
 class btRigidBody;
 class Controllable;
 class ScriptEngine;
+class Server;
 
 class heloApp : public Ogre::FrameListener, public OIS::KeyListener//, public OIS::JoyStickListener
 {
@@ -63,6 +64,7 @@ protected:
   Configuration *conf;
   Terrain *terrain;
   Camera *camera;
+  Server *server = nullptr;
   Physics *physics;
   ScriptEngine *scripter;
   unsigned long lastFrameTime_us;

@@ -3,7 +3,7 @@ HOSTNAME = $(shell hostname --fqdn)
 PATHS = paths.$(HOSTNAME)
 include $(PATHS)
 
-OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o lua_wrap.o Camera.o Controllers.o
+OBJECTS = helo.o Ogre.o Terrain.o Physics.o Helicopter.o Car.o DriveTrain.o Tank.o Character.o InputHandler.o TerrainMaterial.o TinyXMLResource.o TinyXMLResourceManager.o Configuration.o Airplane.o HardPoints.o Python.o Readline.o ExtConsole.o Lua.o lua_wrap.o Camera.o Controllers.o Server.o
 
 ifeq ($(OPTIMIZE), yes)
   DEBUG_FLAGS = -O2
@@ -28,8 +28,10 @@ PYTHON_CXXFLAGS = -I/usr/include/python2.7
 
 LUA_CXXFLAGS = -I/usr/include/lua5.1
 
+SOCKETSTREAM_CXXFLAGS = -I/home/tower/src/3rdparty/socketstream
+
 CXXFLAGS = -Wall -std=c++11 -MMD $(OPT_FLAGS) $(DEBUG_FLAGS) $(OGRE_CXXFLAGS) $(BULLET_CXXFLAGS) ${OIS_CXXFLAGS} ${TINYXML_CXXFLAGS} ${PYTHON_CXXFLAGS} \
-	${LUA_CXXFLAGS} ${TSX_CXXFLAGS}
+	${LUA_CXXFLAGS} ${TSX_CXXFLAGS} ${SOCKETSTREAM_CXXFLAGS}
 
 OGRE_LDFLAGS = -L$(OGRE)/lib -lOgreMain${OGRE_DEBUG_SUFFIX} -lOgreTerrain${OGRE_DEBUG_SUFFIX} -lOgrePaging${OGRE_DEBUG_SUFFIX}
 BULLET_LDFLAGS = -L$(BULLET)/lib -lBulletDynamics -lBulletCollision  -lLinearMath

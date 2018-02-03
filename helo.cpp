@@ -5,6 +5,7 @@
 #include "Terrain.h"
 #include "Camera.h"
 #include "Physics.h"
+#include "Server.h"
 
 // TODO: hopefully not needed here indefinately
 #include "Helicopter.h"
@@ -77,6 +78,8 @@ int heloApp::main(int argc, char *argv[])
       exit(-1);
     }
 
+
+
   if (conf->usePython())
     scripter = new Python(argv[0], true, conf->xtermPath());
   else if (conf->useLua())
@@ -91,6 +94,15 @@ int heloApp::main(int argc, char *argv[])
   conf->setPhysics(physics);
   conf->setResourceBase("./resources/");
   physics->addBody(terrain->createBody());
+
+  auto sconf = conf->getServerConfig();
+  if (sconf.enabled)
+    {
+      server = new Server(sconf.port, sconf.num_clients, sconf.update_freq);
+      conf->addListener(server);
+      physics->addListener(server);
+      server->start();
+    }
 
   if (scripter)
     for (const std::string &script : conf->getPreScripts())

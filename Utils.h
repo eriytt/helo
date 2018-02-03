@@ -109,6 +109,11 @@ namespace HeloUtils {
     return Ogre::Vector3(btVec.m_floats);
   }
 
+  inline Ogre::Quaternion Bullet2OgreQuaternion(const btQuaternion &btQ)
+  {
+    return Ogre::Quaternion(btQ.w(), btQ.x(), btQ.y(), btQ.z());
+  }
+  
   inline btVector3 Ogre2BulletVector(const Ogre::Vector3 &oVec)
   {
     return btVector3(oVec.x, oVec.y, oVec.z);
@@ -178,7 +183,7 @@ namespace HeloUtils {
   public:
     Trackable(const Ogre::Vector3 &campos) : cameraPosition(campos) {}
     Trackable() : cameraPosition((Ogre::Vector3::NEGATIVE_UNIT_Z * 20) + (Ogre::Vector3::UNIT_Y * 3)) {}
-    virtual Ogre::SceneNode *getSceneNode() = 0;
+    virtual Ogre::SceneNode *getSceneNode() const = 0;
     virtual const Ogre::Vector3 &getTrackOffset() {return Ogre::Vector3::ZERO;}
     virtual const Ogre::Vector3 &getCameraUp() {return Ogre::Vector3::UNIT_Y;}
     virtual bool cameraFollow() {return true;}

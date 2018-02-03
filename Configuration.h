@@ -38,6 +38,24 @@ public:
     }
   };
 
+  class LoadListener
+  {
+  public:
+    virtual void vehicleLoaded(const std::string &type,
+                               const std::string &name,
+                               const Ogre::Vector3 &position,
+                               const Ogre::Vector3 &rotation,
+                               const Vehicle *v) = 0;
+  };
+  
+  typedef struct
+  {
+    bool enabled = false;
+    unsigned short port = 4711;
+    unsigned char num_clients = 1;
+    unsigned char update_freq;
+  } ServerConfig;
+
 protected:
   typedef struct
   {
@@ -66,6 +84,9 @@ protected:
   bool lua;
   std::vector<std::string> preScripts;
   std::vector<std::string> postScripts;
+  ServerConfig sconf;
+  std::vector<LoadListener*> listeners;
+  
 
  public:
   Configuration(Ogre::Root *r);
@@ -82,6 +103,8 @@ protected:
   const std::vector<std::string> &getPreScripts() {return preScripts;}
   const std::vector<std::string> &getPostScripts() {return postScripts;}
   const std::string & getStartMission() {return startMission;}
+  const ServerConfig &getServerConfig() {return sconf;}
+  void addListener(LoadListener *l) {listeners.push_back(l);}
 
 public:
   Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);

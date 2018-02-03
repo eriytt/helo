@@ -116,7 +116,7 @@ public:
   void setCyclicForward(float forward) {cyclic_forward = HeloUtils::unit_clamp(forward);}
   void setCyclicRight(float right) {cyclic_right = HeloUtils::unit_clamp(right);}
   void setSteer(float val) {steer = HeloUtils::unit_clamp(val);}
-  Ogre::SceneNode *getSceneNode() {return node;}
+  Ogre::SceneNode *getSceneNode() const {return node;}
   Controller *createController(OIS::Object *dev);
   CameraParams getCameraParameters()
     {

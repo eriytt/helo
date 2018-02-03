@@ -275,7 +275,7 @@ public:
   Car() {} // No initialization, derived classes must do all the work, Do not call this explicitly
   Car(const CarData &data, Ogre::Root *root);
   virtual void finishPhysicsConfiguration(Physics *phys);
-  virtual Ogre::SceneNode *getSceneNode() {return node;}
+  virtual Ogre::SceneNode *getSceneNode() const {return node;}
   virtual void setSteer(Ogre::Real radians_right);
   virtual void setThrottle(Ogre::Real fraction);
   virtual Ogre::Vector3 getPosition();

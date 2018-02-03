@@ -104,17 +104,8 @@ void HeloMotionState::operator delete(void *ptr)
   ::operator delete(buf);
 }
 
-#include "Serialize.hh"
-std::ofstream serstream("serialize.txt");
-ByteStream serializer(serstream);
-
-
-void HeloMotionState::updateSceneNode()
+bool HeloMotionState::tsxGetTransform(btTransform &t)
 {
-  if (not (snode && committed))
-    return;
-  
-  btTransform t;
   unsigned int retries = HeloMotionState::TRANSACTION_RETRY_COUNT;
   aborts[_SYNC_TRIES]++;
  transaction_retry:
@@ -127,9 +118,10 @@ void HeloMotionState::updateSceneNode()
 	_xabort(1);
       //t = committedTrans;
       t = committedTrans;
-      committed = false;
+      committed = true;
       _xend();
     }
+
   else
     {
       update_aborts(xstat);
@@ -146,20 +138,23 @@ void HeloMotionState::updateSceneNode()
       //std::cout << "Skipping synchronization" << std::endl;
       aborts[_SYNC_FAIL]++;
       // On fatal abort or max retry count reached, skip the update:
-      return;
+      return false;
     }
-      
-
-  // After successful commit, proceed to update:
-  //std::cout << "Successful synchronization" << std::endl;
-  aborts[_XABORT_SUCCESS]++;
-  aborts[_SYNC_SUCCESS]++;
+  return true;
+}
+  
+void HeloMotionState::updateSceneNode()
+{
+  if (not (snode && committed))
+    return;
+  
+  btTransform t;
+  if (not tsxGetTransform(t))
+    return;
   btQuaternion rot = t.getRotation();
   btVector3 pos = t.getOrigin();
   snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
   snode->setPosition(pos.x(), pos.y(), pos.z());
-  serializer << reinterpret_cast<void*>(this) << snode->_getFullTransform();
-  
 }
 #else
 void HeloMotionState::updateSceneNode()
@@ -173,6 +168,18 @@ void HeloMotionState::updateSceneNode()
   dirty = false;
 }
 #endif // USE_TSX
+
+bool HeloMotionState::getTransform(btTransform &t) const
+{
+#ifdef USE_TSX
+  //return tsxGetTransform(t);
+  t = committedTrans;
+  return true;
+#else
+  t = worldTrans;
+  return true;
+#endif
+}
 
 btRigidBody* Physics::CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape,
 				      SceneNode *node, btVector3 localInertia)
@@ -244,7 +251,7 @@ Physics::~Physics()
 void Physics::addBody(btRigidBody *body)
 {
   bodies.push_back(body);
-  motionStates.push_back(dynamic_cast<HeloMotionState*>(body->getMotionState()));
+  addMotionState(dynamic_cast<HeloMotionState*>(body->getMotionState()));
   // TODO: stop simulation before adding a body
   world->addRigidBody(body);
 }
@@ -252,6 +259,8 @@ void Physics::addBody(btRigidBody *body)
 void Physics::addMotionState(HeloMotionState *ms)
 {
   motionStates.push_back(ms);
+  for (auto l : listeners)
+    l->motionStateAdded(*ms);
 }
 
 void Physics::addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies)

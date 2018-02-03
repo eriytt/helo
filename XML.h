@@ -1,5 +1,6 @@
 #include  <algorithm>
 #include <cctype>
+#include <climits>
 
 namespace XMLUtils {
 
@@ -45,6 +46,59 @@ namespace XMLUtils {
       {
         return NULL;
       }
+  }
+
+  template <>
+  char GetAttrValue(const TiXmlAttribute *attr)
+  {
+    int ret = 0;
+    if (attr->QueryIntValue(&ret) !=  TIXML_SUCCESS)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to char.");
+
+    if (ret > SCHAR_MAX || ret < SCHAR_MIN)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to char, outside range.");
+    
+    return static_cast<char>(ret);
+  }
+
+  template <>
+  unsigned char GetAttrValue(const TiXmlAttribute *attr)
+  {
+    int ret = 0;
+    if (attr->QueryIntValue(&ret) !=  TIXML_SUCCESS)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to unsigned char.");
+
+    if (ret > UCHAR_MAX || ret < 0)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to unsigned char, outside range.");
+    
+    return static_cast<unsigned char>(ret);
+  }
+
+  
+  template <>
+  short GetAttrValue(const TiXmlAttribute *attr)
+  {
+    int ret = 0;
+    if (attr->QueryIntValue(&ret) !=  TIXML_SUCCESS)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to short.");
+
+    if (ret > SHRT_MAX || ret < SHRT_MIN)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to short, outside range.");
+    
+    return static_cast<short>(ret);
+  }
+
+  template <>
+  unsigned short GetAttrValue(const TiXmlAttribute *attr)
+  {
+    int ret = 0;
+    if (attr->QueryIntValue(&ret) !=  TIXML_SUCCESS)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to unsigned short.");
+
+    if (ret > USHRT_MAX || ret < 0)
+      throw XMLError("Cannot convert value '" + attr->ValueStr() + "' to unsigned short, outside range.");
+    
+    return static_cast<unsigned short>(ret);
   }
 
 

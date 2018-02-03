@@ -8,9 +8,12 @@
       <run script="test.lua" postconf="true"/>
       <run script="tsxbench.lua" postconf="true"/>
     </Lua>
+
+    <Server enabled="true" port="6565" num_clients="1" update_freq="20"/>
   </Settings>
 
-  <Missions start="Empty">
+  <Missions start="Oxham">
     <Mission name="Empty" path="./Missions/Empty"/>
+    <Mission name="Oxham" path="./Missions/Oxham"/>
   </Missions>
 </helo>
