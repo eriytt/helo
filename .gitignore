@@ -1,0 +1,8 @@
+*.o
+*.d
+helo
+helodata.tgz
+Ogre.log
+*_wrap.cpp
+path*
+*.mesh
