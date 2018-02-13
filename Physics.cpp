@@ -147,12 +147,14 @@ void HeloMotionState::updateSceneNode()
 {
   if (not (snode && committed))
     return;
-  
+
   btTransform t;
   if (not tsxGetTransform(t))
     return;
   btQuaternion rot = t.getRotation();
   btVector3 pos = t.getOrigin();
+  // std::cout << "Updating transform for " << snode->getName() << " to "
+  //           << pos.x() << ", " <<pos.y()<< ", " << pos.z() << std::endl;
   snode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
   snode->setPosition(pos.x(), pos.y(), pos.z());
 }

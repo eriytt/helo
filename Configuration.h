@@ -47,7 +47,7 @@ public:
                                const Ogre::Vector3 &rotation,
                                const Vehicle *v) = 0;
   };
-  
+
   typedef struct
   {
     bool enabled = false;
@@ -55,6 +55,8 @@ public:
     unsigned char num_clients = 1;
     unsigned char update_freq;
   } ServerConfig;
+
+
 
 protected:
   typedef struct
@@ -108,7 +110,7 @@ protected:
 
 public:
   Vehicle *loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation);
-  
+
 protected:
   void readMissions(TiXmlNode *parent);
   void readSettings(TiXmlNode *settings);

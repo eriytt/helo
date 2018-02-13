@@ -1,0 +1,8 @@
+<Mission>
+  <Vehicles>
+    <Vehicle type="HMMWV" name="hitachi">
+      <position x="1840.00" y="3.0" z="1660.0"/>
+      <rotation x="0" y="270" z="0"/>
+    </Vehicle>
+  </Vehicles>
+</Mission>

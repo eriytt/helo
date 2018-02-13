@@ -5,23 +5,6 @@
 
 class RaycastTank : public CBRaycastVehicle
 {
-public:
-  class DriveWheelData : public CBRaycastVehicle::WheelData
-  {
-  public:
-    btVector3 realRelPos;
-  };
-
-  typedef CBRaycastVehicle::WheelData SuspensionWheelData;
-
-  class SpinWheelData
-  {
-  public:
-    btVector3 relPos;
-    btVector3 axle;
-    btScalar radius;
-  };
-
 protected:
   class DriveWheel : public CBRaycastVehicle::Wheel
   {
@@ -40,19 +23,19 @@ protected:
   class SuspensionWheel : public CBRaycastVehicle::Wheel
   {
   public:
-    SuspensionWheel(const SuspensionWheelData &data) : CBRaycastVehicle::Wheel(static_cast<const WheelData &>(data)) {}
+    SuspensionWheel(const SuspensionWheelData &data) : CBRaycastVehicle::Wheel(data) {}
     void updateFriction(btScalar timeStep, btRigidBody *chassisBody);
   };
 
   class SpinWheel
   {
   protected:
-    SpinWheelData d;
+    WheelData d;
     btScalar currentAngle;
     btMotionState *motionState;
 
   public:
-    SpinWheel(const SpinWheelData &data): d(data), currentAngle(0.0), motionState(NULL) {}
+    SpinWheel(const WheelData &data): d(data), currentAngle(0.0), motionState(NULL) {}
     const btTransform getTransform() {return btTransform(btTransform(btQuaternion(d.axle, currentAngle), d.relPos));}
     void addRotation(btScalar rotation) {currentAngle += (rotation / d.radius);}
     void setMotionState(btMotionState *ms) {motionState = ms;}
@@ -72,9 +55,9 @@ public:
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar timeStep);
   void setDriveTorques(const std::vector<btScalar> &torques);
   void setSteer(btScalar radians_right);
-  void addWheel(const WheelData &data);
+  void addWheel(const SuspensionWheelData &data);
   void addDriveWheel(const DriveWheelData &data);
-  void addSpinWheel(const SpinWheelData &data);
+  void addSpinWheel(const WheelData &data);
   DriveWheel *getDriveWheel(unsigned int);
   SpinWheel *getSpinWheel(unsigned int);
 };
@@ -82,17 +65,31 @@ public:
 
 class Tank : public Car
 {
-public:
-  typedef RaycastTank::DriveWheelData DriveWheelData;
-  typedef RaycastTank::SpinWheelData SpinWheelData;
+protected:
+  virtual CBRaycastVehicle *createRaycastVehicle(btRigidBody *b);
 
+  virtual Ogre::SceneNode *createSpinWheel(const std::string &prefix,
+                                           const WheelData &wd,
+                                           const btVector3 &globalTranslation,
+                                           const btVector3 &globalRotation,
+                                           Ogre::SceneManager *mgr,
+                                           Ogre::SceneNode *parent);
+
+  virtual Ogre::SceneNode *createDriveWheel(const std::string &prefix,
+                                            const DriveWheelData &wd,
+                                            const btVector3 &globalTranslation,
+                                            const btVector3 &globalRotation,
+                                            Ogre::SceneManager *mgr,
+                                            Ogre::SceneNode *parent);
+
+public:
   class TankData : public Car::CarData
   {
   public:
     Ogre::Vector3 turretPosition;
     Ogre::Vector3 barrelPosition;
-    std::vector<DriveWheelData> driveWheelData;
-    std::vector<SpinWheelData> spinWheelData;
+    //std::vector<DriveWheelData> driveWheelData;
+    //std::vector<WheelData> spinWheelData;
   };
 
 protected:
@@ -100,7 +97,8 @@ protected:
   std::vector<Ogre::SceneNode*> spinWheelNodes;
 
 public:
-  Tank(const TankData &data, Ogre::Root *root);
+  Tank();
+  virtual Tank *load(const TankData &data, Ogre::Root *root);
   void finishPhysicsConfiguration(class Physics *phys);
 };
 

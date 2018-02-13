@@ -1,85 +1,51 @@
 #include "Tank.h"
 
-Tank::Tank(const TankData &data, Ogre::Root *root)
+Ogre::SceneNode *Tank::createSpinWheel(const std::string &prefix,
+                                      const WheelData &wd,
+                                      const btVector3 &globalTranslation,
+                                      const btVector3 &globalRotation,
+                                      Ogre::SceneManager *mgr,
+                                      Ogre::SceneNode *parent)
 {
-  Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
 
-  // create entity
-  Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.meshname);
+  Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
+  Ogre::SceneNode *tnode = parent->createChildSceneNode(prefix + wd.name + "_node");
+  tnode->attachObject(tent);
+  btVector3 wheelpos(wd.relPos);
+  tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
+  spinWheelNodes.push_back(tnode);
+  static_cast<RaycastTank*>(rayCastVehicle)->addSpinWheel(wd);
+  return tnode;
+}
 
-  // create scene node
-  node = mgr->getRootSceneNode()->createChildSceneNode(data.name + "_node");
-  node->attachObject(ent);
+Ogre::SceneNode *Tank::createDriveWheel(const std::string &prefix,
+                                      const DriveWheelData &wd,
+                                      const btVector3 &globalTranslation,
+                                      const btVector3 &globalRotation,
+                                      Ogre::SceneManager *mgr,
+                                      Ogre::SceneNode *parent)
+{
+  Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
+  Ogre::SceneNode *tnode = parent->createChildSceneNode(prefix + wd.name + "_node");
+  tnode->attachObject(tent);
+  tnode->setPosition(HeloUtils::Bullet2OgreVector(wd.realRelPos));
+  driveWheelNodes.push_back(tnode);
+  static_cast<RaycastTank*>(rayCastVehicle)->addDriveWheel(wd);
+  return tnode;
+}
 
-  Ogre::Entity *turret_ent = mgr->createEntity(data.name + "-turrent_ent", "abrams-turret.mesh");
-  Ogre::SceneNode *turret_node = node->createChildSceneNode(data.name + "-turret_node");
-  turret_node->attachObject(turret_ent);
-  turret_node->setPosition(data.turretPosition);
-
-  Ogre::Entity *barrel_ent = mgr->createEntity(data.name + "-barrel_ent", "abrams-barrel.mesh");
-  Ogre::SceneNode *barrel_node = turret_node->createChildSceneNode(data.name + "-barrel_node");
-  barrel_node->attachObject(barrel_ent);
-  barrel_node->setPosition(data.barrelPosition);
+CBRaycastVehicle *Tank::createRaycastVehicle(btRigidBody *b)
+{
+ return new RaycastTank(b);
+}
 
 
-  // create collision shape
-  btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.size.x / 2.0,
-							     data.size.y / 2.0,
-							     data.size.z / 2.0));
-  btCompoundShape *comp = new btCompoundShape();
+Tank::Tank() : Car() {}
 
-  // Transform of hull collision shape
-  btTransform chassis_shape_trans;
-  chassis_shape_trans.setIdentity();
-  chassis_shape_trans.setOrigin(btVector3(0.0, 0.2, 0.0));
-  comp->addChildShape(chassis_shape_trans, chassis_shape);
-  shape = comp;
-
-  // create fuselage rigid body
-  btTransform tr;
-  tr.setIdentity();
-  tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
-  tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
-
-  body = Physics::CreateRigidBody(data.weight, tr, shape, node);
-  RaycastTank *rc_tank = new RaycastTank(body);
-  rayCastVehicle = rc_tank;
-
-  for (unsigned int i = 0; i < data.wheelData.size(); ++i)
-    {
-      const WheelData &wd = data.wheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "-suspension-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-suspension-wheel.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-suspension-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
-      tnode->attachObject(tent);
-      btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
-      tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      wheelNodes.push_back(tnode);
-      rc_tank->addWheel(wd);
-    }
-
-  for (unsigned int i = 0; i < data.driveWheelData.size(); ++i)
-    {
-      const DriveWheelData &wd = data.driveWheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "-drive-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-drive-wheel.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-drive-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
-      tnode->attachObject(tent);
-      btVector3 wheelpos(wd.realRelPos);
-      tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      driveWheelNodes.push_back(tnode);
-      rc_tank->addDriveWheel(wd);
-    }
-
-  for (unsigned int i = 0; i < data.spinWheelData.size(); ++i)
-    {
-      const SpinWheelData &wd = data.spinWheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "-spin-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "abrams-spin-wheel.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "-spin-wheel" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
-      tnode->attachObject(tent);
-      btVector3 wheelpos(wd.relPos);
-      tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      spinWheelNodes.push_back(tnode);
-      rc_tank->addSpinWheel(wd);
-    }
+Tank *Tank::load(const TankData &data, Ogre::Root *root)
+{
+  Car::load(static_cast<const CarData &>(data), root);
+  return this;
 }
 
 void Tank::finishPhysicsConfiguration(class Physics *phys)
@@ -118,7 +84,7 @@ void RaycastTank::addDriveWheel(const DriveWheelData &data)
   driveWheels.push_back(new DriveWheel(data));
 }
 
-void RaycastTank::addSpinWheel(const SpinWheelData &data)
+void RaycastTank::addSpinWheel(const WheelData &data)
 {
   spinWheels.push_back(new SpinWheel(data));
 }
@@ -144,7 +110,7 @@ void RaycastTank::SuspensionWheel::updateFriction(btScalar timeStep, btRigidBody
     }
   else
     {
-      if (not currentSuspensionForce == 0.0)
+      if (not (currentSuspensionForce == 0.0))
 	latIdx = lateralEquilibrium(timeStep, chassisBody);
       assert(not std::isinf(latIdx));
     }
@@ -152,7 +118,7 @@ void RaycastTank::SuspensionWheel::updateFriction(btScalar timeStep, btRigidBody
 }
 
 RaycastTank::DriveWheel::DriveWheel(const DriveWheelData &data) :
-  CBRaycastVehicle::Wheel(static_cast<const WheelData &>(data))
+  CBRaycastVehicle::Wheel(data)
 {
   realRelPos = data.realRelPos;
 }
@@ -201,7 +167,7 @@ void RaycastTank::DriveWheel::updateTread(btScalar timeStep, btRigidBody *chassi
 
   btScalar force = 0.0;
   if (currentLinearVelocity.length() < longitudinal_stick_threshold
-      and not fabs(currentAngularSpeed) < wheel_rotation_stick_threshold
+      and not (fabs(currentAngularSpeed) < wheel_rotation_stick_threshold)
       and brakeTorque)
     force = longitudinalEquilibrium(timeStep, chassisBody);
   else
@@ -277,10 +243,10 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
 	}
 
       for (unsigned int j = (i & 1); j < spinWheels.size(); j += 2)
-	{
-	  spinWheels[j]->addRotation(rotation * timeStep);
-	  spinWheels[j]->updateMotionState();
-	}
+        {
+          spinWheels[j]->addRotation(rotation * timeStep);
+          spinWheels[j]->updateMotionState();
+        }
     }
 
   for (unsigned int i = 0; i < wheels.size(); ++i)
@@ -324,7 +290,7 @@ void RaycastTank::setSteer(btScalar radians_right)
   currentSteerAngle = radians_right;
 }
 
-void RaycastTank::addWheel(const WheelData &data)
+void RaycastTank::addWheel(const SuspensionWheelData &data)
 {
   wheels.push_back(new SuspensionWheel(dynamic_cast<const SuspensionWheelData &>(data)));
 }

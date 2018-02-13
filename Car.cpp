@@ -21,7 +21,7 @@ inline btScalar SlipAngle(btScalar speed, btScalar slip_speed)
   return atan(slip_speed / speed);
 }
 
-CBRaycastVehicle::Wheel::Wheel(const WheelData &data)
+CBRaycastVehicle::Wheel::Wheel(const SuspensionWheelData &data)
 {
   d = data;
   airborne = true; // makes contactPoint and contactNormal undefined
@@ -175,7 +175,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
   else
     {
       //printf("Wheel is stable\n");
-      if (not currentSuspensionForce == 0.0)
+      if (not (currentSuspensionForce == 0.0))
 	latIdx = lateralEquilibrium(timeStep, chassisBody);
       assert(not std::isinf(latIdx));
     }
@@ -245,7 +245,7 @@ void CBRaycastVehicle::Wheel::updateRotation(btScalar timeStep, btRigidBody *cha
 
   btScalar force = 0.0;
   if (currentLinearVelocity.length() < longitudinal_stick_threshold
-      and not fabs(currentAngularSpeed) < wheel_rotation_stick_threshold
+      and not (fabs(currentAngularSpeed) < wheel_rotation_stick_threshold)
       and brakeTorque)
     // We are moving very slowly, wheel is not rolling and breaks are
     // applied, calculate equilibrium instead of using normal impulse
@@ -325,7 +325,7 @@ void CBRaycastVehicle::setAccelerationTorque(unsigned short wheel_index,
   accelerationTorque[wheel_index] = acceleration_torque;
 }
 
-void CBRaycastVehicle::addWheel(const WheelData &data)
+void CBRaycastVehicle::addWheel(const SuspensionWheelData &data)
 {
   wheels.push_back(new Wheel(data));
 }
@@ -451,55 +451,112 @@ void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar t
     }
 }
 
-
-Car::Car(const Car::CarData &data, Ogre::Root *root)
+Ogre::SceneNode *Car::createWheel(const std::string &prefix,
+                                  const SuspensionWheelData &wd,
+                                  const btVector3 &globalTranslation,
+                                  const btVector3 &globalRotation,
+                                  Ogre::SceneManager *mgr,
+                                  Ogre::SceneNode *parent)
 {
+  Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
+  Ogre::SceneNode *tnode = parent->createChildSceneNode(prefix + wd.name + "_node");
+  tnode->attachObject(tent);
+  btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
+  tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
+  wheelNodes.push_back(tnode);
+  rayCastVehicle->addWheel(wd);
+  return tnode;
+}
 
-  Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
+CBRaycastVehicle *Car::createRaycastVehicle(btRigidBody *b)
+{
+ return new CBRaycastVehicle(b);
+}
 
-  // create entity
-  Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.meshname);
+Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
+                                            const BodyData &data,
+                                            const btVector3 &globalTranslation,
+                                            const btVector3 &globalRotation,
+                                            Ogre::SceneManager *mgr,
+                                            Ogre::SceneNode *parent,
+                                            btRigidBody *bParent)
+{
+  if (not parent)
+    parent = mgr->getRootSceneNode();
 
-  ent->setMaterialName("shadow", "Terrain/Default");
+  Ogre::Entity *ent = mgr->createEntity(prefix + data.name + "_ent", data.meshname);
 
-  // create scene node
-  node = mgr->getRootSceneNode()->createChildSceneNode(data.name + "_node");
-  node->attachObject(ent);
+  Ogre::SceneNode *n = mgr->getRootSceneNode()->createChildSceneNode(prefix + data.name + "_node");
+  n->attachObject(ent);
 
-
-  // create collision shape
   btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.size.x / 2.0,
-							     data.size.y / 2.0,
-							     data.size.z / 2.0));
+         						     data.size.y / 2.0,
+                                                             data.size.z / 2.0));
+
   btCompoundShape *comp = new btCompoundShape();
 
   // Transform of hull collision shape
   btTransform chassis_shape_trans;
   chassis_shape_trans.setIdentity();
-  chassis_shape_trans.setOrigin(btVector3(0.0, 0.5, 0.0));
+  chassis_shape_trans.setOrigin(HeloUtils::Ogre2BulletVector(data.colShapeOffset));
   comp->addChildShape(chassis_shape_trans, chassis_shape);
   shape = comp;
 
+  btVector3 localTranslation(globalTranslation + HeloUtils::Ogre2BulletVector(data.relativePosition));
   // create fuselage rigid body
   btTransform tr;
   tr.setIdentity();
-  tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
-  tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
+  tr.setOrigin(localTranslation);
+  tr.getBasis().setEulerZYX(globalRotation.x(), globalRotation.y(), globalRotation.z());
 
-  body = Physics::CreateRigidBody(data.weight, tr, shape, node);
-  rayCastVehicle = new CBRaycastVehicle(body);
-  
-  for (unsigned int i = 0; i < data.wheelData.size(); ++i)
+  auto b = Physics::CreateRigidBody(data.mass, tr, shape, n);
+  if (not bodies.size())
+    rayCastVehicle = createRaycastVehicle(b);
+  bodies.push_back(b);
+
+  if (bParent)
     {
-      const WheelData &wd = data.wheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "hmmwv-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
-      tnode->attachObject(tent);
-      btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
-      tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      wheelNodes.push_back(tnode);
-      rayCastVehicle->addWheel(wd);
+      btTransform pTrans(btMatrix3x3(1.0, 0.0, 0.0,
+                                     0.0, 1.0, 0.0,
+                                     0.0, 0.0, 1.0),
+                         HeloUtils::Ogre2BulletVector(data.relativePosition));
+      btTransform cTrans(btMatrix3x3(1.0, 0.0, 0.0,
+                                     0.0, 1.0, 0.0,
+                                     0.0, 0.0, 1.0),
+                         btVector3(0.0, 0.0, 0.0));
+
+      constraints.push_back(new btFixedConstraint(*bParent, *b, pTrans, cTrans));
     }
+
+  for (auto wd : data.suspensionWheels)
+    createWheel(prefix + data.name + ".", wd, globalTranslation, globalRotation, mgr, n);
+
+  for (auto wd : data.wheels)
+    createSpinWheel(prefix + data.name + ".", static_cast<const WheelData &>(wd),
+                    globalTranslation, globalRotation, mgr, n);
+
+  for (auto wd : data.driveWheels)
+    this->createDriveWheel(prefix + data.name + ".", static_cast<const DriveWheelData &>(wd),
+                           globalTranslation, globalRotation, mgr, n);
+
+
+  for (auto cd : data.children)
+    createBodiesAndWheels(prefix + data.name + ".", cd, localTranslation, globalRotation, mgr, n, b);
+
+  return n;
+}
+
+Car::Car() {}
+
+Car *Car::load(const CarData &data, Ogre::Root *root)
+{
+  Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
+  for (auto b : data.bodies)
+    node = createBodiesAndWheels(data.name + ".",
+                                 b,
+                                 HeloUtils::Ogre2BulletVector(data.position),
+                                 HeloUtils::Ogre2BulletVector(data.rotation),
+                                 mgr);
 
   /*init driveline variables*/
   // engine = new Engine(TORQUE_WHEEL_THICKNESS
@@ -553,12 +610,19 @@ Car::Car(const Car::CarData &data, Ogre::Root *root)
   // latMu.addDataPoint(25.0, 0.9 * lat_scale);
   // latMu.addDataPoint(35.0, 0.8 * lat_scale);
   // latMu.addDataPoint(90.0, 0.6 * lat_scale);
+  return this;
 }
 
 void Car::finishPhysicsConfiguration(Physics *phys)
 {
-  phys->addBody(body);
+  for (auto b : bodies)
+    phys->addBody(b);
+
+  for (auto c : constraints)
+    phys->addConstraint(c, true);
+
   phys->addAction(dynamic_cast<btActionInterface*>(rayCastVehicle));
+
   for (unsigned int i = 0; i != wheelNodes.size(); ++i)
     {
       btTransform wheel_trans(rayCastVehicle->getWheel(i)->getTransform());
@@ -916,7 +980,7 @@ float Car::getRPM()
 }
 float Car::getSpeed()
 {
-  return static_cast<float>(body->getLinearVelocity().length());
+  return static_cast<float>(bodies[0]->getLinearVelocity().length());
 }
 
 Controller *Car::createController(OIS::Object *dev)

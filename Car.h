@@ -129,16 +129,21 @@ inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
 class CBRaycastVehicle : public btActionInterface
 {
 public:
-  // Structure with enough information to attach a wheel to the car
-  typedef struct
+  struct WheelData
   {
+    std::string name;
+    std::string meshname;
     btVector3 relPos;
+    btVector3 axle;
+    btScalar radius;
+  };
+
+  struct SuspensionWheelData : WheelData
+  {
     btScalar suspensionLength;
     btScalar maxLengthUp;
     btScalar maxLengthDown;
     btVector3 direction;
-    btVector3 axle;
-    btScalar radius;
     btScalar spring;
     btScalar dampUp;
     btScalar dampDown;
@@ -146,13 +151,18 @@ public:
     btScalar driveCoeff;
     btScalar brakeCoeff;
     btScalar momentOfInertia;
-  } WheelData;
+  };
+
+  struct DriveWheelData : SuspensionWheelData
+  {
+    btVector3 realRelPos;
+  };
 
 protected:
   class Wheel
   {
   protected:
-    WheelData d;
+    SuspensionWheelData d;
 
   protected:
     // State variables, updated every time step
@@ -178,7 +188,7 @@ protected:
     btMotionState *motionState;
 
   public:
-    Wheel(const WheelData &data);
+    Wheel(const SuspensionWheelData &data);
     void updateContact(btCollisionWorld *world, btRigidBody *chassisBody);
     void updateSuspension();
     virtual void updateFriction(btScalar timeStep, btRigidBody *chassisBody);
@@ -219,7 +229,7 @@ protected:
 public:
   CBRaycastVehicle(btRigidBody* chassis);
 
-  virtual void addWheel(const WheelData &data);
+  virtual void addWheel(const SuspensionWheelData &data);
   virtual void setAccelerationTorque(unsigned short wheel_index, btScalar acceleration_torque);
   virtual void setBrakeTorque(btScalar brake_torque) {brakingTorque = brake_torque;}
   virtual btScalar getWheelRotationSpeed(unsigned short wheelIndex);
@@ -242,17 +252,41 @@ class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackab
 {
 public:
   typedef CBRaycastVehicle::WheelData WheelData;
+  typedef CBRaycastVehicle::SuspensionWheelData SuspensionWheelData;
+  typedef CBRaycastVehicle::DriveWheelData DriveWheelData;
 
-  typedef struct
+  struct BodyData {
+    std::string name;
+    std::string meshname;
+    float mass;
+    Ogre::Vector3 relativePosition;
+    Ogre::Vector3 size;
+    Ogre::Vector3 colShapeOffset;
+    std::vector<BodyData> children;
+    std::vector<WheelData> wheels;
+    std::vector<SuspensionWheelData> suspensionWheels;
+    std::vector<DriveWheelData> driveWheels;
+  };
+
+  struct CarData
   {
     Ogre::String name;
-    Ogre::String meshname;
     Ogre::Vector3 position;
     Ogre::Vector3 rotation;
-    Ogre::Vector3 size;
-    Ogre::Real weight;
-    std::vector<WheelData> wheelData;
-  } CarData;
+    std::vector<BodyData> bodies;
+  };
+
+  // typedef struct
+  // {
+  //   Ogre::String name;
+  //   Ogre::String meshname;
+  //   Ogre::Vector3 position;
+  //   Ogre::Vector3 rotation;
+  //   std::vector<Configuration::BodyData> bodies;
+  //   Ogre::Vector3 size;
+  //   Ogre::Real weight;
+  //   std::vector<WheelData> wheelData;
+  // } CarData;
 
  protected:
   CBRaycastVehicle *rayCastVehicle;
@@ -262,18 +296,46 @@ public:
 
   // Bullet
   btCollisionShape *shape;
-  btRigidBody *body;
+  std::vector<btRigidBody*> bodies;
   std::vector<Ogre::SceneNode*> wheelNodes;
+  std::vector<btTypedConstraint *> constraints;
 
 
 protected:
+  Ogre::SceneNode *createWheel(const std::string &prefix,
+                               const SuspensionWheelData &wd,
+                               const btVector3 &globalTranslation,
+                               const btVector3 &globalRotation,
+                               Ogre::SceneManager *mgr,
+                               Ogre::SceneNode *parent);
 
+  virtual CBRaycastVehicle *createRaycastVehicle(btRigidBody *b);
+
+  virtual Ogre::SceneNode *createSpinWheel(const std::string &prefix,
+                                           const WheelData &wd,
+                                           const btVector3 &globalTranslation,
+                                           const btVector3 &globalRotation,
+                                           Ogre::SceneManager *mgr,
+                                           Ogre::SceneNode *parent) {return nullptr;}
+
+  virtual Ogre::SceneNode *createDriveWheel(const std::string &prefix,
+                                            const DriveWheelData &wd,
+                                            const btVector3 &globalTranslation,
+                                            const btVector3 &globalRotation,
+                                            Ogre::SceneManager *mgr,
+                                            Ogre::SceneNode *parent) { return nullptr; }
+
+  Ogre::SceneNode *createBodiesAndWheels(const std::string &prefix,
+                                         const BodyData &data,
+                                         const btVector3 &globalTranslation,
+                                         const btVector3 &globalRotation,
+                                         Ogre::SceneManager *mgr,
+                                         Ogre::SceneNode *parent = nullptr,
+                                         btRigidBody *bParent = nullptr);
 
 public:
-
- public:
-  Car() {} // No initialization, derived classes must do all the work, Do not call this explicitly
-  Car(const CarData &data, Ogre::Root *root);
+  Car();
+  virtual Car *load(const CarData &data, Ogre::Root *root);
   virtual void finishPhysicsConfiguration(Physics *phys);
   virtual Ogre::SceneNode *getSceneNode() const {return node;}
   virtual void setSteer(Ogre::Real radians_right);

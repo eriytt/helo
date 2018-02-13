@@ -1,320 +1,395 @@
 <Vehicle
     class="Tank"
-    meshname="abrams.mesh"
     weight="61300">
-  <size x="3.66" y="1.3" z="7.93"/>
   <turretPosition x="0.0" y="0.609" z="0.03"/>
   <barrelPosition x="0.0" y="0.407" z="1.412"/>
-  <wheels>
+  <bodies>
+    <body
+        name="Body"
+        meshname="Body.mesh"
+        weight="55000" >
+      <relativePosition x="0.0" y="0.0" z="0.0"/>
+      <size x="3.66" y="1.02" z="7.93"/>
+      <!--collisionShapeOffset x="0.0" y="-0.05" z="0.0"/-->
+      <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+      <body
+          name="Turrent"
+          meshname="Turret.mesh"
+          weight="6000.0">
+        <relativePosition x="0.0" y="0.84" z="0.73"/>
+        <size x="2.83" y="0.83" z="3.962"/>
+        <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
 
-    <!-- 1st right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="2.103"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+        <body
+            name="Barrel"
+            meshname="Barrel.mesh"
+            weight="300.0">
+          <relativePosition x="0.0" y="-0.064" z="3.187"/>
+          <size x="0.151" y="0.226" z="3.207"/>
+          <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+        </body>
+      </body>
 
-    <!-- 1st left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="2.103"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 1st right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR1"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="2.103"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 2nd right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="1.201"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 1st left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL1"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="2.103"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 2nd left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="1.201"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 2nd right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR2"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="1.201"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 3rd right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="0.487"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 2nd left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL2"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="1.201"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 3rd left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="0.487"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 3rd right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR3"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="0.487"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 4th right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="-0.22"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 3rd left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL3"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="0.487"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 4th left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="-0.22"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 4th right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR4"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="-0.22"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 5th right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="-0.945"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 4th left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL4"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="-0.22"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 5th left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="-0.945"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 5th right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR5"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="-0.945"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 6th right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="-1.687"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 5th left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL5"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="-0.945"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 6th right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="-1.687"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 6th right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR6"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="-1.687"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 7th right wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="-1.35" y="0.0" z="-2.464"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 6th left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL6"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="-1.687"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- 7th left wheel -->
-    <wheel
-       spring="600000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="0.55"
-       maxLengthUp="0.05"
-       maxLengthDown="0.90"
-       radius="0.348"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="0.0"
-       momentOfInertia="300">
-      <relativePosition x="1.35" y="0.0" z="-2.464"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- 7th right wheel -->
+      <wheel
+          type="suspension"
+          name="WheelR7"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="-1.35" y="0.0" z="-2.464"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-  </wheels>
+      <!-- 7th left wheel -->
+      <wheel
+          type="suspension"
+          name="WheelL7"
+          meshname="abrams-suspension-wheel.mesh"
+          spring="600000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="0.55"
+          maxLengthUp="0.05"
+          maxLengthDown="0.90"
+          radius="0.348"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="0.0"
+          momentOfInertia="300">
+        <relativePosition x="1.35" y="0.0" z="-2.464"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
+      <!-- right drive wheel -->
+      <wheel
+          type="drive"
+          name="DriveWheelR"
+          meshname="abrams-drive-wheel.mesh"
+          spring="0"
+          dampUp="0"
+          dampDown="0"
+          suspensionLength="50.0"
+          maxLengthUp="0.00"
+          maxLengthDown="10.0"
+          radius="0.3433"
+          steerCoeff="0.0"
+          driveCoeff="1.0"
+          brakeCoeff="1.0"
+          momentOfInertia="2000">
+        <relativePosition x="-1.518" y="0.0" z="0.0"/>
+        <realRelativePosition x="-1.518" y="0.062" z="-3.143"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-  <driveWheels>
-    <!-- right drive wheel -->
-    <wheel
-       spring="0"
-       dampUp="0"
-       dampDown="0"
-       suspensionLength="50.0"
-       maxLengthUp="0.00"
-       maxLengthDown="10.0"
-       radius="0.3433"
-       steerCoeff="0.0"
-       driveCoeff="1.0"
-       brakeCoeff="1.0"
-       momentOfInertia="2000">
-      <relativePosition x="-1.518" y="0.0" z="0.0"/>
-      <realRelativePosition x="-1.518" y="0.062" z="-3.143"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- left drive wheel -->
+      <wheel
+          type="drive"
+          name="DriveWheelL"
+          meshname="abrams-drive-wheel.mesh"
+          spring="0"
+          dampUp="0"
+          dampDown="0"
+          suspensionLength="50.0"
+          maxLengthUp="0.00"
+          maxLengthDown="10.0"
+          radius="0.3433"
+          steerCoeff="0.0"
+          driveCoeff="1.0"
+          brakeCoeff="1.0"
+          momentOfInertia="2000">
+        <relativePosition x="1.518" y="0.0" z="0.0"/>
+        <realRelativePosition x="1.518" y="0.062" z="-3.143"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-    <!-- left drive wheel -->
-    <wheel
-       spring="0"
-       dampUp="0"
-       dampDown="0"
-       suspensionLength="50.0"
-       maxLengthUp="0.00"
-       maxLengthDown="10.0"
-       radius="0.3433"
-       steerCoeff="0.0"
-       driveCoeff="1.0"
-       brakeCoeff="1.0"
-       momentOfInertia="2000">
-      <relativePosition x="1.518" y="0.0" z="0.0"/>
-      <realRelativePosition x="1.518" y="0.062" z="-3.143"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+      <!-- right spin wheel -->
+      <wheel
+          type="spin"
+          name="SpinWheelR"
+          meshname="abrams-spin-wheel.mesh"
+          radius="0.3171">
+        <relativePosition x="-1.503" y="0.003" z="3.223"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-  </driveWheels>
+      <!-- left spin wheel -->
+      <wheel
+          type="spin"
+          name="SpinWheelL"
+          meshname="abrams-spin-wheel.mesh"
+          radius="0.3171">
+        <relativePosition x="1.503" y="0.003" z="3.223"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
 
-  <spinWheels>
-    <!-- right spin wheel -->
-    <wheel  radius="0.3171">
-      <relativePosition x="-1.503" y="0.003" z="3.223"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
+    </body>
 
-    <!-- left spin wheel -->
-    <wheel  radius="0.3171">
-      <relativePosition x="1.503" y="0.003" z="3.223"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
-  </spinWheels>
+  </bodies>
 
 </Vehicle>

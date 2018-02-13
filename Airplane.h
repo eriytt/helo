@@ -19,7 +19,8 @@ public:
       position(pos), direction(dir), maxThrust(thrust) {}
   };
 
-  typedef struct {
+  struct AirplaneData : Car::CarData
+  {
     HeloUtils::PieceWiseLinearFunction clAlpha;
     btScalar dragPolarK;
     btScalar dragPolarD0;
@@ -29,12 +30,12 @@ public:
     btScalar elevatorSensitivity;
     btScalar rudderSensitivity;
     btScalar aileronSensitivity;
-    btScalar pitchStability;
+    btScalar pitchStability1;
     btScalar pitchStability2;
-    btScalar yawStability;
+    btScalar yawStability1;
     btScalar yawStability2;
     btScalar rollStability;
-  } AirplaneData;
+  };
 
 public:
   typedef struct {
@@ -66,44 +67,13 @@ public:
 class Airplane : public Car
 {
 public:
-  class Engine
+  typedef AirplaneVehicle::Engine Engine
+;
+  struct AirplaneData: AirplaneVehicle::AirplaneData
   {
-  public:
-    Ogre::Vector3 position;
-    Ogre::Vector3 direction;
-    Ogre::Real maxThrust;
-
-  public:
-    Engine() {}
-    Engine(const btVector3 &pos, const btVector3 &dir, const btScalar thrust) :
-      position(pos), direction(dir), maxThrust(thrust) {}
-  };
-
-public:
-  typedef struct
-  {
-    Ogre::String name;
-    Ogre::String meshname;
-    Ogre::Vector3 position;
-    Ogre::Vector3 rotation;
-    Ogre::Vector3 size;
-    Ogre::Real weight;
-    std::vector<WheelData> wheelData;
     std::vector<Engine> engineData;
     std::vector<std::pair<Ogre::Real, Ogre::Real> > cl_alpha_values;
-    Ogre::Real dragPolarK;
-    Ogre::Real dragPolarD0;
-    Ogre::Real wingArea;
-    Ogre::Real wingAngle;
-    Ogre::Real aileronSensitivity;
-    Ogre::Real elevatorSensitivity;
-    Ogre::Real rudderSensitivity;
-    Ogre::Real pitchStability1;
-    Ogre::Real pitchStability2;
-    Ogre::Real yawStability1;
-    Ogre::Real yawStability2;
-    Ogre::Real rollStability;
-  } AirplaneData;
+  };
 
 private:
   static AirplaneVehicle::AirplaneData DataToAirplaneVehicleData(const AirplaneData &data);

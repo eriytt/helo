@@ -11,23 +11,21 @@ AirplaneVehicle::AirplaneData Airplane::DataToAirplaneVehicleData(const Airplane
   d.rudderSensitivity = data.rudderSensitivity;
   d.aileronSensitivity = data.aileronSensitivity;
 
-  for (size_t i = 0; i < data.engineData.size(); ++i)
+  for (size_t i = 0; i < data.engines.size(); ++i)
     {
-      const Engine &e = data.engineData[i];
-      AirplaneVehicle::Engine ve(HeloUtils::Ogre2BulletVector(e.position),
-                                 HeloUtils::Ogre2BulletVector(e.direction),
-                                 e.maxThrust);
+      const Engine &e = data.engines[i];
+      AirplaneVehicle::Engine ve(e.position, e.direction, e.maxThrust);
       d.engines.push_back(ve);
-    }  
+    }
 
   for (size_t i = 0; i < data.cl_alpha_values.size(); ++i)
     d.clAlpha.addDataPoint(HeloUtils::Deg2Rad(data.cl_alpha_values[i].first),
                            data.cl_alpha_values[i].second);
   d.clAlpha.mirrorData(HeloUtils::Deg2Rad(360.0), -1.0);
 
-  d.pitchStability = data.pitchStability1;
+  d.pitchStability1 = data.pitchStability1;
   d.pitchStability2 = data.pitchStability2;
-  d.yawStability = data.yawStability1;
+  d.yawStability1 = data.yawStability1;
   d.yawStability2 = data.yawStability2;
   d.rollStability = data.rollStability;
 
@@ -46,18 +44,18 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
   Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
 
   // create entity
-  Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.meshname);
+  Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.bodies[0].meshname);
 
   //ent->setMaterialName("shadow", "Terrain/Default");
 
   // create scene node
-  node = mgr->getRootSceneNode()->createChildSceneNode(data.name + "_node");
+  node = mgr->getRootSceneNode()->createChildSceneNode(data.bodies[0].name + "_node");
   node->attachObject(ent);
 
   // create collision shape
-  btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.size.x / 2.0,
-							     data.size.y / 2.0,
-							     data.size.z / 2.0));
+  btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.bodies[0].size.x / 2.0,
+							     data.bodies[0].size.y / 2.0,
+							     data.bodies[0].size.z / 2.0));
   btCompoundShape *comp = new btCompoundShape();
 
   // Transform of hull collision shape
@@ -73,16 +71,15 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
   tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
   tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
 
-  body = Physics::CreateRigidBody(data.weight, tr, shape, node);
-  airplane = new AirplaneVehicle(body, DataToAirplaneVehicleData(data));
+  bodies.push_back(Physics::CreateRigidBody(data.bodies[0].mass, tr, shape, node));
+  airplane = new AirplaneVehicle(bodies[0], DataToAirplaneVehicleData(data));
   rayCastVehicle = airplane;
 
-  
-  for (unsigned int i = 0; i < data.wheelData.size(); ++i)
+  for (unsigned int i = 0; i < data.bodies[0].suspensionWheels.size(); ++i)
     {
-      const WheelData &wd = data.wheelData[i];
-      Ogre::Entity *tent = mgr->createEntity(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "a10-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
+      const SuspensionWheelData &wd = data.bodies[0].suspensionWheels[i];
+      Ogre::Entity *tent = mgr->createEntity(data.bodies[0].name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "a10-tire.mesh");
+      Ogre::SceneNode *tnode = node->createChildSceneNode(data.bodies[0].name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
       tnode->attachObject(tent);
       btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
@@ -172,14 +169,14 @@ void AirplaneVehicle::applyRudders(btScalar timeStep, const btVector3 &localVelo
   btScalar dyaw(localAngularVelocity.getY());
 
   btScalar elevator = localVelocity.getZ() * d.elevatorSensitivity * controlData.elevator;
-  btScalar pitch_correction((localVelocity.getY() * -d.pitchStability)
+  btScalar pitch_correction((localVelocity.getY() * -d.pitchStability1)
                             + (HeloUtils::POW2(dpitch) * d.pitchStability2
                                * (dpitch < 0.0 ? 1.0 : -1.0)));
   HeloUtils::LocalApplyTorqueImpulse(chassisBody,
                                      btVector3((elevator + pitch_correction) * timeStep, 0, 0));
 
   btScalar rudder(localVelocity.getZ() * d.rudderSensitivity * controlData.rudder);
-  btScalar yaw_correction((localVelocity.getX() * d.yawStability)
+  btScalar yaw_correction((localVelocity.getX() * d.yawStability1)
                           + (HeloUtils::POW2(dyaw) * d.yawStability2
                              * (dyaw < 0.0 ? 1.0 : -1.0)));
   HeloUtils::LocalApplyTorqueImpulse(chassisBody,
@@ -195,7 +192,7 @@ void AirplaneVehicle::applyRudders(btScalar timeStep, const btVector3 &localVelo
 void AirplaneVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
 {
   CBRaycastVehicle::updateAction(collisionWorld, timeStep);
-  
+
   const btVector3 &vel = chassisBody->getLinearVelocity();
   const btVector3 &avel = chassisBody->getAngularVelocity();
   const btMatrix3x3 &inv_trans = chassisBody->getCenterOfMassTransform().getBasis().inverse();
@@ -210,7 +207,7 @@ void AirplaneVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar ti
 
 void AirplaneVehicle::setInput(const AirplaneVehicle::ControlData &cd)
 {
-  // Does it matter ? 
+  // Does it matter ?
 #warning Not thread safe, AirplaneVehicle lives in physics thread
   controlData = cd;
 }

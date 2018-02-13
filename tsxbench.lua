@@ -1,6 +1,6 @@
 function addTanks(numTanks)
    local terrain = app:getTerrain()
-   local rot = helo.Vector3(0, 190, 0)
+   local rot = helo.Vector3(0, 100 / 180.0 * 3.14, 0)
    for n = 1,numTanks do
       local x = 1780.96 + n * 20
       local z = 1635.3 + n * 20

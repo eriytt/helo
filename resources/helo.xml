@@ -9,7 +9,7 @@
       <run script="tsxbench.lua" postconf="true"/>
     </Lua>
 
-    <Server enabled="true" port="6565" num_clients="1" update_freq="20"/>
+    <Server enabled="false" port="6565" num_clients="1" update_freq="20"/>
   </Settings>
 
   <Missions start="Oxham">

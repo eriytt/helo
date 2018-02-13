@@ -26,7 +26,7 @@ void Configuration::loadConfig()
   if(xml->getError())
     {
       Ogre::LogManager::getSingletonPtr()
-        ->logMessage("An error occured in file " + xml->getName() + 
+        ->logMessage("An error occured in file " + xml->getName() +
                      " : " + Ogre::String(xml->getErrorDesc()));
       throw ConfigurationError(xml->getName(), xml->getErrorDesc());
     }
@@ -128,6 +128,95 @@ void Configuration::readMissions(TiXmlNode *parent)
     throw ConfigurationError(parent->GetDocument()->ValueStr(), std::string("Mission ") + startMission + " not defined");
 }
 
+Car::WheelData loadSpinWheel(TiXmlNode *wn)
+{
+  Car::WheelData wd;
+  wd.name = XMLUtils::GetAttribute<std::string>("name", wn);
+  wd.relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+  wd.axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+  wd.meshname = XMLUtils::GetAttribute<Ogre::String>("meshname", wn);
+  wd.radius = XMLUtils::GetAttribute<float>("radius", wn);
+  return wd;
+}
+
+Car::DriveWheelData loadDriveWheel(TiXmlNode *wn)
+{
+  Tank::DriveWheelData wd;
+  wd.name = XMLUtils::GetAttribute<std::string>("name", wn);
+  wd.relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+  wd.realRelPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("realRelativePosition", wn));
+  wd.suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+  wd.maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+  wd.maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+  wd.direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+  wd.axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+  wd.radius = XMLUtils::GetAttribute<float>("radius", wn);
+  wd.spring = XMLUtils::GetAttribute<float>("spring", wn);
+  wd.dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+  wd.dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+  wd.steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+  wd.driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+  wd.brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+  wd.momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+  wd.meshname = XMLUtils::GetAttribute<Ogre::String>("meshname", wn);
+  return wd;
+}
+
+Car::SuspensionWheelData loadSuspensionWheel(TiXmlNode *wn)
+{
+  Car::SuspensionWheelData wd;
+  wd.name = XMLUtils::GetAttribute<std::string>("name", wn);
+  wd.relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+  wd.suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+  wd.maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+  wd.maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+  wd.direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+  wd.axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+  wd.radius = XMLUtils::GetAttribute<float>("radius", wn);
+  wd.spring = XMLUtils::GetAttribute<float>("spring", wn);
+  wd.dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+  wd.dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+  wd.steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+  wd.driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+  wd.brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+  wd.momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+  wd.meshname = XMLUtils::GetAttribute<Ogre::String>("meshname", wn);
+
+  return wd;
+}
+
+Car::BodyData loadBody(TiXmlNode *n)
+{
+  Car::BodyData data;
+
+  data.name = XMLUtils::GetAttribute<std::string>("name", n);
+  data.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
+  data.mass = XMLUtils::GetAttribute<float>("weight", n);
+  data.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
+  data.relativePosition = XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", n);
+  data.colShapeOffset = XMLUtils::GetVectorParam<Ogre::Vector3>("collisionShapeOffset", n);
+
+  TiXmlNode *c = NULL;
+  for (int i = 0; (c = n->IterateChildren("body", c)); ++i)
+    data.children.push_back(loadBody(c));
+
+  for (int i = 0; (c = n->IterateChildren("wheel", c)); ++i)
+    {
+      std::string type = XMLUtils::GetAttribute<std::string>("type", c);
+      if (type == "spin")
+        data.wheels.push_back(loadSpinWheel(c));
+      else if (type == "drive")
+        data.driveWheels.push_back(loadDriveWheel(c));
+      else if (type == "suspension")
+        data.suspensionWheels.push_back(loadSuspensionWheel(c));
+      else
+        throw Configuration::ConfigurationError
+          (c->GetDocument()->ValueStr(),
+           std::string("Wheel cannot have type '") + type + "'");
+    }
+  return data;
+}
+
 Vehicle *Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
   Car::CarData cd;
@@ -135,36 +224,15 @@ Vehicle *Configuration::loadCar(TiXmlNode *n, const std::string &name, const Ogr
   cd.rotation = rotation;
   cd.name = name;
 
-  cd.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
-  cd.weight = XMLUtils::GetAttribute<float>("weight", n);
-  cd.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
-
-  TiXmlNode *wsn = n->IterateChildren("wheels", NULL);
-  if (not wsn)
+  TiXmlNode *bsn = n->IterateChildren("bodies", NULL);
+  if (not bsn)
     throw ConfigurationError(n->GetDocument()->ValueStr(),
-			     n->ValueStr() + " has no child child named 'wheels'");
+			     n->ValueStr() + " has no child child named 'bodies'");
+  TiXmlNode *bn = NULL;
+  for (int i = 0; (bn = bsn->IterateChildren(std::string("body"), bn)); ++i)
+    cd.bodies.push_back(loadBody(bn));
 
-  cd.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
-
-  TiXmlNode *wn = NULL;
-  for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
-    {
-      cd.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
-      cd.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
-      cd.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
-      cd.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
-      cd.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
-      cd.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
-      cd.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
-      cd.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
-      cd.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
-      cd.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
-      cd.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
-      cd.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
-      cd.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
-      cd.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
-    }
-  Car *car = new Car(cd, root);
+  Car *car = (new Car)->load(cd, root);
   physics->addObject(car);
   controllables.push_back(car);
   return car;
@@ -193,7 +261,7 @@ Vehicle *Configuration::loadHelicopter(TiXmlNode *n, const std::string &name, co
 			     n->ValueStr() + " has no child child named 'rotors'");
 
   hd.rotorData.resize(XMLUtils::GetNumChildren(rsn, "rotor"));
-  
+
   TiXmlNode *rn = NULL;
   for (int i = 0; (rn = rsn->IterateChildren(std::string("rotor"), rn)); ++i)
     {
@@ -229,83 +297,15 @@ Vehicle *Configuration::loadTank(TiXmlNode *n, const std::string &name, const Og
   td.rotation = rotation;
   td.name = name;
 
-  td.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
-  td.weight = XMLUtils::GetAttribute<float>("weight", n);
-  td.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
-  td.turretPosition = XMLUtils::GetVectorParam<Ogre::Vector3>("turretPosition", n);
-  td.barrelPosition = XMLUtils::GetVectorParam<Ogre::Vector3>("barrelPosition", n);
-
-  TiXmlNode *wsn = n->IterateChildren("wheels", NULL);
-  if (not wsn)
+  TiXmlNode *bsn = n->IterateChildren("bodies", NULL);
+  if (not bsn)
     throw ConfigurationError(n->GetDocument()->ValueStr(),
-			     n->ValueStr() + " has no child child named 'wheels'");
+			     n->ValueStr() + " has no child child named 'bodies'");
+  TiXmlNode *bn = NULL;
+  for (int i = 0; (bn = bsn->IterateChildren(std::string("body"), bn)); ++i)
+    td.bodies.push_back(loadBody(bn));
 
-  td.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
-
-  TiXmlNode *wn = NULL;
-  for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
-    {
-      td.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
-      td.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
-      td.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
-      td.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
-      td.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
-      td.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
-      td.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
-      td.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
-      td.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
-      td.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
-      td.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
-      td.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
-      td.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
-      td.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
-    }
-
-
-  TiXmlNode *dwsn = n->IterateChildren("driveWheels", NULL);
-  if (not dwsn)
-    throw ConfigurationError(n->GetDocument()->ValueStr(),
-			     n->ValueStr() + " has no child child named 'driveWheels'");
-
-  td.driveWheelData.resize(XMLUtils::GetNumChildren(dwsn, "wheel"));
-
-  wn = NULL;
-  for (int i = 0; (wn = dwsn->IterateChildren(std::string("wheel"), wn)); ++i)
-    {
-      td.driveWheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
-      td.driveWheelData[i].realRelPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("realRelativePosition", wn));
-      td.driveWheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
-      td.driveWheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
-      td.driveWheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
-      td.driveWheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
-      td.driveWheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
-      td.driveWheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
-      td.driveWheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
-      td.driveWheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
-      td.driveWheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
-      td.driveWheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
-      td.driveWheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
-      td.driveWheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
-      td.driveWheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
-    }
-
-  TiXmlNode *swsn = n->IterateChildren("spinWheels", NULL);
-  if (not swsn)
-    throw ConfigurationError(n->GetDocument()->ValueStr(),
-			     n->ValueStr() + " has no child child named 'spinWheels'");
-
-  td.spinWheelData.resize(XMLUtils::GetNumChildren(dwsn, "wheel"));
-
-  wn = NULL;
-  for (int i = 0; (wn = swsn->IterateChildren(std::string("wheel"), wn)); ++i)
-    {
-      td.spinWheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
-      td.spinWheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
-      td.spinWheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
-    }
-
-
-  Tank *tank = new Tank(td, root);
+  Tank *tank = (new Tank)->load(td, root);
   physics->addObject(tank);
   controllables.push_back(tank);
   return tank;
@@ -326,91 +326,92 @@ void Configuration::ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre
 
 Vehicle *Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
-  Airplane::AirplaneData ad;
-  ad.position = position;
-  ad.rotation = rotation;
-  ad.name = name;
+  // Airplane::AirplaneData ad;
+  // ad.position = position;
+  // ad.rotation = rotation;
+  // ad.name = name;
 
-  ad.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
-  ad.weight = XMLUtils::GetAttribute<float>("weight", n);
-  ad.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
+  // ad.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
+  // ad.weight = XMLUtils::GetAttribute<float>("weight", n);
+  // ad.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
 
-  try {
-    TiXmlNode *wsn = XMLUtils::AssertGetNode(n, "wheels");
-    ad.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
+  // try {
+  //   TiXmlNode *wsn = XMLUtils::AssertGetNode(n, "wheels");
+  //   ad.wheelData.resize(XMLUtils::GetNumChildren(wsn, "wheel"));
 
-    TiXmlNode *wn = NULL;
-    for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
-      {
-        ad.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
-        ad.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
-        ad.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
-        ad.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
-        ad.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
-        ad.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
-        ad.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
-        ad.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
-        ad.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
-        ad.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
-        ad.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
-        ad.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
-        ad.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
-        ad.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
-      }
+  //   TiXmlNode *wn = NULL;
+  //   for (int i = 0; (wn = wsn->IterateChildren(std::string("wheel"), wn)); ++i)
+  //     {
+  //       ad.wheelData[i].relPos = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", wn));
+  //       ad.wheelData[i].suspensionLength = XMLUtils::GetAttribute<float>("suspensionLength", wn);
+  //       ad.wheelData[i].maxLengthUp = XMLUtils::GetAttribute<float>("maxLengthUp", wn);
+  //       ad.wheelData[i].maxLengthDown = XMLUtils::GetAttribute<float>("maxLengthDown", wn);
+  //       ad.wheelData[i].direction = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("direction", wn));
+  //       ad.wheelData[i].axle = HeloUtils::Ogre2BulletVector(XMLUtils::GetVectorParam<Ogre::Vector3>("axle", wn));
+  //       ad.wheelData[i].radius = XMLUtils::GetAttribute<float>("radius", wn);
+  //       ad.wheelData[i].spring = XMLUtils::GetAttribute<float>("spring", wn);
+  //       ad.wheelData[i].dampUp = XMLUtils::GetAttribute<float>("dampUp", wn);
+  //       ad.wheelData[i].dampDown = XMLUtils::GetAttribute<float>("dampDown", wn);
+  //       ad.wheelData[i].steerCoeff = XMLUtils::GetAttribute<float>("steerCoeff", wn);
+  //       ad.wheelData[i].driveCoeff = XMLUtils::GetAttribute<float>("driveCoeff", wn);
+  //       ad.wheelData[i].brakeCoeff = XMLUtils::GetAttribute<float>("brakeCoeff", wn);;
+  //       ad.wheelData[i].momentOfInertia = XMLUtils::GetAttribute<float>("momentOfInertia", wn);
+  //     }
 
-    TiXmlNode *ensn = XMLUtils::AssertGetNode(n, "engines");
-    ad.engineData.resize(XMLUtils::GetNumChildren(ensn, "engine"));
-    TiXmlNode *en = NULL;
-    for (int i = 0; (en = ensn->IterateChildren(std::string("engine"), en)); ++i)
-      {
-        ad.engineData[i].position = XMLUtils::GetVectorParam<Ogre::Vector3>("position", en);
-        ad.engineData[i].direction = XMLUtils::GetVectorParam<Ogre::Vector3>("direction", en);
-        ad.engineData[i].maxThrust = XMLUtils::GetAttribute<float>("maxthrust", en);
-      }
+  //   TiXmlNode *ensn = XMLUtils::AssertGetNode(n, "engines");
+  //   ad.engineData.resize(XMLUtils::GetNumChildren(ensn, "engine"));
+  //   TiXmlNode *en = NULL;
+  //   for (int i = 0; (en = ensn->IterateChildren(std::string("engine"), en)); ++i)
+  //     {
+  //       ad.engineData[i].position = XMLUtils::GetVectorParam<Ogre::Vector3>("position", en);
+  //       ad.engineData[i].direction = XMLUtils::GetVectorParam<Ogre::Vector3>("direction", en);
+  //       ad.engineData[i].maxThrust = XMLUtils::GetAttribute<float>("maxthrust", en);
+  //     }
 
-    TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
-    ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
-    ad.dragPolarD0 = XMLUtils::GetAttribute<float>("dragPolarD0", dyn);
-    ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
-    ad.wingAngle = XMLUtils::GetAttribute<float>("wingangle", dyn);
-    ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
-    ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
-    ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);
+  //   TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
+  //   ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
+  //   ad.dragPolarD0 = XMLUtils::GetAttribute<float>("dragPolarD0", dyn);
+  //   ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
+  //   ad.wingAngle = XMLUtils::GetAttribute<float>("wingangle", dyn);
+  //   ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
+  //   ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
+  //   ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);
 
-    TiXmlNode *stab = XMLUtils::AssertGetNode(n, "aerodynamics", "stability");
-    ad.pitchStability1 = XMLUtils::GetAttribute<float>("pitch1", stab);
-    ad.pitchStability2 = XMLUtils::GetAttribute<float>("pitch2", stab);
-    ad.yawStability1 = XMLUtils::GetAttribute<float>("yaw1", stab);
-    ad.yawStability2 = XMLUtils::GetAttribute<float>("yaw2", stab);
-    ad.rollStability = XMLUtils::GetAttribute<float>("roll", stab);
+  //   TiXmlNode *stab = XMLUtils::AssertGetNode(n, "aerodynamics", "stability");
+  //   ad.pitchStability1 = XMLUtils::GetAttribute<float>("pitch1", stab);
+  //   ad.pitchStability2 = XMLUtils::GetAttribute<float>("pitch2", stab);
+  //   ad.yawStability1 = XMLUtils::GetAttribute<float>("yaw1", stab);
+  //   ad.yawStability2 = XMLUtils::GetAttribute<float>("yaw2", stab);
+  //   ad.rollStability = XMLUtils::GetAttribute<float>("roll", stab);
       
-    ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
-                   ad.cl_alpha_values);
+  //   ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
+  //                  ad.cl_alpha_values);
 
-    TiXmlNode *hpsn = XMLUtils::AssertGetNode(n, "hardpoints");
-    TiXmlNode *hpcfg = NULL;
-    for (int i = 0; (hpcfg = hpsn->IterateChildren(std::string("conf"), hpcfg)); ++i)
-      {
-        std::string id = XMLUtils::GetAttribute<std::string>("id", hpcfg);
-        std::string idstr = n->GetDocument()->ValueStr() + id;
-        if (Hardpoint::HasConfig(idstr))
-          continue;
+  //   TiXmlNode *hpsn = XMLUtils::AssertGetNode(n, "hardpoints");
+  //   TiXmlNode *hpcfg = NULL;
+  //   for (int i = 0; (hpcfg = hpsn->IterateChildren(std::string("conf"), hpcfg)); ++i)
+  //     {
+  //       std::string id = XMLUtils::GetAttribute<std::string>("id", hpcfg);
+  //       std::string idstr = n->GetDocument()->ValueStr() + id;
+  //       if (Hardpoint::HasConfig(idstr))
+  //         continue;
         
-        Hardpoint::Config cfg = loadHardpointConfig(hpcfg);
-        Hardpoint::RegisterConfig(idstr, cfg);
-      }
-  } 
-  catch (XMLUtils::NodeLookupError e)
-    {
-      ConfigurationError(n->GetDocument()->ValueStr(), e.what());
-    }
+  //       Hardpoint::Config cfg = loadHardpointConfig(hpcfg);
+  //       Hardpoint::RegisterConfig(idstr, cfg);
+  //     }
+  // } 
+  // catch (XMLUtils::NodeLookupError e)
+  //   {
+  //     ConfigurationError(n->GetDocument()->ValueStr(), e.what());
+  //   }
 
     
 
-  Airplane *airplane = new Airplane(ad, root);
-  physics->addObject(airplane);
-  controllables.push_back(airplane);
-  return airplane;
+  // Airplane *airplane = new Airplane(ad, root);
+  // physics->addObject(airplane);
+  // controllables.push_back(airplane);
+  // return airplane;
+  return nullptr;
 }
 
 Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
