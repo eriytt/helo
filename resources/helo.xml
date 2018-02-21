@@ -5,8 +5,8 @@
     </Python>
 
     <Lua enabled="true">
-      <run script="test.lua" postconf="true"/>
-      <run script="tsxbench.lua" postconf="true"/>
+      <!--run script="test.lua" postconf="true"/-->
+      <!--run script="tsxbench.lua" postconf="true"/-->
     </Lua>
 
     <Server enabled="false" port="6565" num_clients="1" update_freq="20"/>

@@ -156,7 +156,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
   if (currentLinearVelocity.length() > lateral_stick_threshold
       or rotational_speed_squared > rotational_stick_threshold_squared)
     {
-      //printf("Wheel is unstable\n");
+      //std::cout << "Wheel is unstable" << std::endl;
       // Calculate lateral slip.
       // Lateral slip is the speed of the car in the contact point
       // projected on the axle of the tire
@@ -174,7 +174,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
     }
   else
     {
-      //printf("Wheel is stable\n");
+      //std::cout << "Wheel is stable" << std::endl;
       if (not (currentSuspensionForce == 0.0))
 	latIdx = lateralEquilibrium(timeStep, chassisBody);
       assert(not std::isinf(latIdx));
@@ -192,7 +192,7 @@ void CBRaycastVehicle::Wheel::updateFriction(btScalar timeStep, btRigidBody *cha
   //longIdx = 0.0f;
   //latIdx = clamp(-slip_angle * 2.3f, -1.0f, 1.0f);
 
-
+  //std::cout << "longIdx: " << longIdx << " latIdx: " << latIdx << std::endl;
   // Multiply the lateral slip with a saturation factor that is zero
   // when the car is not moving
   //if (latIdx > 0.8)
@@ -262,7 +262,9 @@ void CBRaycastVehicle::Wheel::updateRotation(btScalar timeStep, btRigidBody *cha
 btVector3 CBRaycastVehicle::Wheel::sumForces()
 {
 #warning Redo the coordinates correctly
-  //return btVector3(currentAccelerationForce, currentSuspensionForce, latIdx * currentSuspensionForce);
+  // TODO: The suspension force should be projected on the ground normal,
+  //       otherwise a vehicle that is not perfectly balanced will get a
+  //       net force in the "leaning" direction, probably forwards or backwards.
   return btVector3(latIdx * currentSuspensionForce, currentSuspensionForce, currentAccelerationForce);
 }
 
@@ -325,9 +327,10 @@ void CBRaycastVehicle::setAccelerationTorque(unsigned short wheel_index,
   accelerationTorque[wheel_index] = acceleration_torque;
 }
 
-void CBRaycastVehicle::addWheel(const SuspensionWheelData &data)
+CBRaycastVehicle::Wheel *CBRaycastVehicle::addWheel(const SuspensionWheelData &data)
 {
   wheels.push_back(new Wheel(data));
+  return wheels.back();
 }
 
 void CBRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform)
@@ -426,7 +429,8 @@ btScalar CBRaycastVehicle::getWheelRotationSpeed(unsigned short wheelIndex)
 
 void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
 {
-  // simulate suspension
+  std::vector<btVector3> forces(wheels.size());
+
   const btTransform &bt = chassisBody->getCenterOfMassTransform();
   const btMatrix3x3 &br = bt.getBasis();
   for (unsigned int i = 0; i < wheels.size(); ++i)
@@ -436,6 +440,12 @@ void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar t
       wheels[i]->updateFriction(timeStep, chassisBody);
       wheels[i]->updateRotation(timeStep, chassisBody);
       btVector3 f = wheels[i]->sumForces();
+      forces[i] = f;
+    }
+
+  for (unsigned int i = 0; i < wheels.size(); ++i)
+    {
+      btVector3 f = forces[i];
       if (f.length()) // TODO: better to check if wheel is airborne
 	{
 	  assert(not std::isnan(f.x()));
@@ -456,15 +466,15 @@ Ogre::SceneNode *Car::createWheel(const std::string &prefix,
                                   const btVector3 &globalTranslation,
                                   const btVector3 &globalRotation,
                                   Ogre::SceneManager *mgr,
-                                  Ogre::SceneNode *parent)
+                                  Ogre::SceneNode *parent,
+                                  RayCaster &rayCaster)
 {
   Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
   Ogre::SceneNode *tnode = parent->createChildSceneNode(prefix + wd.name + "_node");
   tnode->attachObject(tent);
   btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
   tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-  wheelNodes.push_back(tnode);
-  rayCastVehicle->addWheel(wd);
+  wheelNodes.insert(std::make_pair(rayCaster.addWheel(wd), tnode));
   return tnode;
 }
 
@@ -479,7 +489,8 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                                             const btVector3 &globalRotation,
                                             Ogre::SceneManager *mgr,
                                             Ogre::SceneNode *parent,
-                                            btRigidBody *bParent)
+                                            btRigidBody *bParent,
+                                            RayCaster *rayCaster)
 {
   if (not parent)
     parent = mgr->getRootSceneNode();
@@ -510,9 +521,13 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
   tr.getBasis().setEulerZYX(globalRotation.x(), globalRotation.y(), globalRotation.z());
 
   auto b = Physics::CreateRigidBody(data.mass, tr, shape, n);
-  if (not bodies.size())
-    rayCastVehicle = createRaycastVehicle(b);
   bodies.push_back(b);
+
+  if (data.isRaycaster)
+    {
+      rayCaster = createRaycastVehicle(b);
+      rayCasters.push_back(rayCaster);
+    }
 
   if (bParent)
     {
@@ -529,19 +544,42 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
     }
 
   for (auto wd : data.suspensionWheels)
-    createWheel(prefix + data.name + ".", wd, globalTranslation, globalRotation, mgr, n);
+    createWheel(prefix + data.name + ".",
+                wd,
+                globalTranslation,
+                globalRotation,
+                mgr,
+                n,
+                *rayCaster);
 
   for (auto wd : data.wheels)
-    createSpinWheel(prefix + data.name + ".", static_cast<const WheelData &>(wd),
-                    globalTranslation, globalRotation, mgr, n);
+    createSpinWheel(prefix + data.name + ".",
+                    static_cast<const WheelData &>(wd),
+                    globalTranslation,
+                    globalRotation,
+                    mgr,
+                    n,
+                    *rayCaster);
 
   for (auto wd : data.driveWheels)
-    this->createDriveWheel(prefix + data.name + ".", static_cast<const DriveWheelData &>(wd),
-                           globalTranslation, globalRotation, mgr, n);
+    this->createDriveWheel(prefix + data.name + ".",
+                           static_cast<const DriveWheelData &>(wd),
+                           globalTranslation,
+                           globalRotation,
+                           mgr,
+                           n,
+                           *rayCaster);
 
 
   for (auto cd : data.children)
-    createBodiesAndWheels(prefix + data.name + ".", cd, localTranslation, globalRotation, mgr, n, b);
+    createBodiesAndWheels(prefix + data.name + ".",
+                          cd,
+                          localTranslation,
+                          globalRotation,
+                          mgr,
+                          n,
+                          b,
+                          rayCaster);
 
   return n;
 }
@@ -621,13 +659,17 @@ void Car::finishPhysicsConfiguration(Physics *phys)
   for (auto c : constraints)
     phys->addConstraint(c, true);
 
-  phys->addAction(dynamic_cast<btActionInterface*>(rayCastVehicle));
+  for (auto rc : rayCasters)
+    phys->addAction(dynamic_cast<btActionInterface*>(rc));
 
-  for (unsigned int i = 0; i != wheelNodes.size(); ++i)
+
+  for (auto wn : wheelNodes)
     {
-      btTransform wheel_trans(rayCastVehicle->getWheel(i)->getTransform());
-      HeloMotionState *ms = new HeloMotionState(wheel_trans, wheelNodes[i]);
-      rayCastVehicle->getWheel(i)->setMotionState(ms);
+      auto wheel = wn.first;
+      auto node = wn.second;
+      btTransform wheel_trans(wheel->getTransform());
+      HeloMotionState *ms = new HeloMotionState(wheel_trans, node);
+      wheel->setMotionState(ms);
       phys->addMotionState(ms);
     }
 
@@ -774,14 +816,14 @@ CBRaycastVehicle::Wheel *CBRaycastVehicle::getWheel(unsigned int i)
 
 Ogre::Vector3 Car::getPosition()
 {
-  btRigidBody *b = rayCastVehicle->getRigidBody();
+  btRigidBody *b = rayCasters[0]->getRigidBody();
   btVector3 pos(b->getCenterOfMassPosition());
   return Ogre::Vector3(pos[0], pos[1], pos[2]);
 }
 
 Ogre::Vector3 Car::getVelocity()
 {
-  btRigidBody *b = rayCastVehicle->getRigidBody();
+  btRigidBody *b = rayCasters[0]->getRigidBody();
   btVector3 vel(b->getLinearVelocity());
   return Ogre::Vector3(vel[0], vel[1], vel[2]);
 }
@@ -800,15 +842,19 @@ Ogre::Vector3 Car::getVelocity()
 
 void Car::setSteer(Ogre::Real radians_right)
 {
-  rayCastVehicle->setSteer(btScalar(radians_right));
+  for (auto rc : rayCasters)
+    rc->setSteer(btScalar(radians_right));
 }
 
 void Car::setThrottle(Ogre::Real fraction)
 {
-  std::vector<btScalar> torques;
-  for (unsigned int i = 0; i < wheelNodes.size(); ++i)
-    torques.push_back(fraction * 1000);
-  rayCastVehicle->setDriveTorques(torques);
+  for (auto rc : rayCasters)
+    {
+      std::vector<btScalar> torques;
+      for (unsigned int i = 0; i < rc->getNumWheels(); ++i)
+        torques.push_back(fraction * 1000);
+      rc->setDriveTorques(torques);
+    }
 }
 
 void Car::update(void)

@@ -73,7 +73,7 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
 
   bodies.push_back(Physics::CreateRigidBody(data.bodies[0].mass, tr, shape, node));
   airplane = new AirplaneVehicle(bodies[0], DataToAirplaneVehicleData(data));
-  rayCastVehicle = airplane;
+  rayCasters.push_back(airplane);
 
   for (unsigned int i = 0; i < data.bodies[0].suspensionWheels.size(); ++i)
     {
@@ -83,8 +83,7 @@ Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
       tnode->attachObject(tent);
       btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
       tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      wheelNodes.push_back(tnode);
-      rayCastVehicle->addWheel(wd);
+      wheelNodes.insert(std::make_pair(rayCasters[0]->addWheel(wd), tnode));
     }
 }
 

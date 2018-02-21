@@ -10,7 +10,6 @@
         weight="55000" >
       <relativePosition x="0.0" y="0.0" z="0.0"/>
       <size x="3.66" y="1.02" z="7.93"/>
-      <!--collisionShapeOffset x="0.0" y="-0.05" z="0.0"/-->
       <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
       <body
           name="Turrent"

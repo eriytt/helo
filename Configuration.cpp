@@ -195,6 +195,7 @@ Car::BodyData loadBody(TiXmlNode *n)
   data.size = XMLUtils::GetVectorParam<Ogre::Vector3>("size", n);
   data.relativePosition = XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", n);
   data.colShapeOffset = XMLUtils::GetVectorParam<Ogre::Vector3>("collisionShapeOffset", n);
+  data.isRaycaster = false;
 
   TiXmlNode *c = NULL;
   for (int i = 0; (c = n->IterateChildren("body", c)); ++i)
@@ -202,6 +203,7 @@ Car::BodyData loadBody(TiXmlNode *n)
 
   for (int i = 0; (c = n->IterateChildren("wheel", c)); ++i)
     {
+      data.isRaycaster = true;
       std::string type = XMLUtils::GetAttribute<std::string>("type", c);
       if (type == "spin")
         data.wheels.push_back(loadSpinWheel(c));

@@ -1,11 +1,12 @@
 #include "Tank.h"
 
 Ogre::SceneNode *Tank::createSpinWheel(const std::string &prefix,
-                                      const WheelData &wd,
-                                      const btVector3 &globalTranslation,
-                                      const btVector3 &globalRotation,
-                                      Ogre::SceneManager *mgr,
-                                      Ogre::SceneNode *parent)
+                                       const WheelData &wd,
+                                       const btVector3 &globalTranslation,
+                                       const btVector3 &globalRotation,
+                                       Ogre::SceneManager *mgr,
+                                       Ogre::SceneNode *parent,
+                                       CBRaycastVehicle &rayCaster)
 {
 
   Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
@@ -14,23 +15,24 @@ Ogre::SceneNode *Tank::createSpinWheel(const std::string &prefix,
   btVector3 wheelpos(wd.relPos);
   tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
   spinWheelNodes.push_back(tnode);
-  static_cast<RaycastTank*>(rayCastVehicle)->addSpinWheel(wd);
+  static_cast<RaycastTank&>(rayCaster).addSpinWheel(wd);
   return tnode;
 }
 
 Ogre::SceneNode *Tank::createDriveWheel(const std::string &prefix,
-                                      const DriveWheelData &wd,
-                                      const btVector3 &globalTranslation,
-                                      const btVector3 &globalRotation,
-                                      Ogre::SceneManager *mgr,
-                                      Ogre::SceneNode *parent)
+                                        const DriveWheelData &wd,
+                                        const btVector3 &globalTranslation,
+                                        const btVector3 &globalRotation,
+                                        Ogre::SceneManager *mgr,
+                                        Ogre::SceneNode *parent,
+                                        CBRaycastVehicle &rayCaster)
 {
   Ogre::Entity *tent = mgr->createEntity(prefix + wd.name  + "_ent", wd.meshname);
   Ogre::SceneNode *tnode = parent->createChildSceneNode(prefix + wd.name + "_node");
   tnode->attachObject(tent);
   tnode->setPosition(HeloUtils::Bullet2OgreVector(wd.realRelPos));
   driveWheelNodes.push_back(tnode);
-  static_cast<RaycastTank*>(rayCastVehicle)->addDriveWheel(wd);
+  static_cast<RaycastTank&>(rayCaster).addDriveWheel(wd);
   return tnode;
 }
 
@@ -52,7 +54,7 @@ void Tank::finishPhysicsConfiguration(class Physics *phys)
 {
   Car::finishPhysicsConfiguration(phys);
 
-  RaycastTank *rc_tank = dynamic_cast<RaycastTank*>(rayCastVehicle);
+  RaycastTank *rc_tank = dynamic_cast<RaycastTank*>(rayCasters[0]);
 
   for (unsigned int i = 0; i != driveWheelNodes.size(); ++i)
     {
@@ -290,9 +292,10 @@ void RaycastTank::setSteer(btScalar radians_right)
   currentSteerAngle = radians_right;
 }
 
-void RaycastTank::addWheel(const SuspensionWheelData &data)
+CBRaycastVehicle::Wheel *RaycastTank::addWheel(const SuspensionWheelData &data)
 {
   wheels.push_back(new SuspensionWheel(dynamic_cast<const SuspensionWheelData &>(data)));
+  return wheels.back();
 }
 
 RaycastTank::DriveWheel *RaycastTank::getDriveWheel(unsigned int i)

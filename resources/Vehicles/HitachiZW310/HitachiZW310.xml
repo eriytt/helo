@@ -3,101 +3,102 @@
     weight="22400">
   <bodies>
     <body
-        name="Front"
-        meshname="frontbody.mesh"
-        weight="11200">
-
-      <size x="1.0" y="1.0" z="1.0"/>
-      <relativePosition x="0.0" y="0.0" z="2.0"/>
-
-      <wheel
-          type="suspension"
-          name="Wheel1"
-          meshname="wheel.mesh"
-          spring="400000"
-          dampUp="2000"
-          dampDown="2000"
-          suspensionLength="1.0"
-          maxLengthUp="0.50"
-          maxLengthDown="1.5."
-          radius="0.4572"
-          steerCoeff="0.0"
-          driveCoeff="1.0"
-          brakeCoeff="1.0"
-          momentOfInertia="100">
-        <relativePosition x="-0.925" y="0.131" z="1.785"/>
-        <direction x="0" y="-1" z="0"/>
-        <axle x="1" y="0" z="0"/>
-      </wheel>
-
-      <wheel
-          type="suspension"
-          name="wheel2"
-          meshname="wheel.mesh"
-          spring="400000"
-          dampUp="2000"
-          dampDown="2000"
-          suspensionLength="1.0"
-          maxLengthUp="0.50"
-          maxLengthDown="1.5."
-          radius="0.4572"
-          steerCoeff="0.0"
-          driveCoeff="1.0"
-          brakeCoeff="1.0"
-          momentOfInertia="100">
-        <relativePosition x="0.925" y="0.131" z="1.785"/>
-        <direction x="0" y="-1" z="0"/>
-        <axle x="1" y="0" z="0"/>
-      </wheel>
-    </body>
-
-    <body
         name="Back"
-        meshname="backbody.mesh"
+        meshname="BackBody.mesh"
         weight="11200">
-
-      <size x="1.0" y="1.0" z="1.0"/>
-      <relativePosition x="0.0" y="0.0" z="-2.0"/>
+      <size x="1.2" y="1.5" z="5.0"/>
+      <relativePosition x="0.0" y="0.0" z="0.0"/>
+      <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
 
       <wheel
           type="suspension"
-          name="Wheel3"
-          meshname="wheel.mesh"
-          spring="400000"
-          dampUp="2000"
-          dampDown="2000"
+          name="WheelR"
+          meshname="Wheel.mesh"
+          spring="350000"
+          dampUp="10000"
+          dampDown="10000"
           suspensionLength="1.0"
           maxLengthUp="0.50"
           maxLengthDown="1.5."
-          radius="0.4572"
-          steerCoeff="0.0"
-          driveCoeff="1.0"
+          radius="0.91"
+          steerCoeff="-0.3"
+          driveCoeff="10.0"
           brakeCoeff="1.0"
-          momentOfInertia="100">
-        <relativePosition x="-0.925" y="0.131" z="-1.785"/>
+          momentOfInertia="1000">
+        <relativePosition x="-1.10905" y="-0.17" z="-0.17"/>
         <direction x="0" y="-1" z="0"/>
         <axle x="1" y="0" z="0"/>
       </wheel>
 
       <wheel
           type="suspension"
-          name="Wheel4"
-          meshname="wheel.mesh"
-          spring="400000"
-          dampUp="2000"
-          dampDown="2000"
+          name="WheelL"
+          meshname="Wheel.mesh"
+          spring="350000"
+          dampUp="10000"
+          dampDown="10000"
           suspensionLength="1.0"
           maxLengthUp="0.50"
           maxLengthDown="1.5."
-          radius="0.4572"
-          steerCoeff="0.0"
-          driveCoeff="1.0"
+          radius="0.91"
+          steerCoeff="-0.3"
+          driveCoeff="10.0"
           brakeCoeff="1.0"
-          momentOfInertia="100">
-        <relativePosition x="0.925" y="0.131" z="-1.785"/>
+          momentOfInertia="1000">
+        <relativePosition x="1.10905" y="-0.17" z="-0.17"/>
         <direction x="0" y="-1" z="0"/>
         <axle x="1" y="0" z="0"/>
       </wheel>
+
+      <body
+          name="Front"
+          meshname="FrontBody.mesh"
+          weight="11200">
+        <size x="1.5" y="1.0" z="2.0"/>
+        <relativePosition x="0.0" y="-0.57" z="3.18"/>
+        <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+
+        <wheel
+            type="suspension"
+            name="WheelR"
+            meshname="Wheel.mesh"
+            spring="300000"
+            dampUp="5000"
+            dampDown="5000"
+            suspensionLength="1.0"
+            maxLengthUp="0.50"
+            maxLengthDown="1.5."
+            radius="0.91"
+            steerCoeff="0.3"
+            driveCoeff="10.0"
+            brakeCoeff="1.0"
+            momentOfInertia="1000">
+          <relativePosition x="-1.10905" y="0.43" z="0.4255"/>
+          <direction x="0" y="-1" z="0"/>
+          <axle x="1" y="0" z="0"/>
+        </wheel>
+
+        <wheel
+            type="suspension"
+            name="WheelL"
+            meshname="Wheel.mesh"
+            spring="300000"
+            dampUp="5000"
+            dampDown="5000"
+            suspensionLength="1.0"
+            maxLengthUp="0.50"
+            maxLengthDown="1.5."
+            radius="0.91"
+            steerCoeff="0.3"
+            driveCoeff="10.0"
+            brakeCoeff="1.0"
+            momentOfInertia="1000">
+          <relativePosition x="1.10905" y="0.43" z="0.4255"/>
+          <direction x="0" y="-1" z="0"/>
+          <axle x="1" y="0" z="0"/>
+        </wheel>
+      </body>
+
     </body>
   </bodies>
 </Vehicle>

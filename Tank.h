@@ -55,7 +55,7 @@ public:
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar timeStep);
   void setDriveTorques(const std::vector<btScalar> &torques);
   void setSteer(btScalar radians_right);
-  void addWheel(const SuspensionWheelData &data);
+  Wheel *addWheel(const SuspensionWheelData &data);
   void addDriveWheel(const DriveWheelData &data);
   void addSpinWheel(const WheelData &data);
   DriveWheel *getDriveWheel(unsigned int);
@@ -73,14 +73,16 @@ protected:
                                            const btVector3 &globalTranslation,
                                            const btVector3 &globalRotation,
                                            Ogre::SceneManager *mgr,
-                                           Ogre::SceneNode *parent);
+                                           Ogre::SceneNode *parent,
+                                           RayCaster &rayCaster);
 
   virtual Ogre::SceneNode *createDriveWheel(const std::string &prefix,
                                             const DriveWheelData &wd,
                                             const btVector3 &globalTranslation,
                                             const btVector3 &globalRotation,
                                             Ogre::SceneManager *mgr,
-                                            Ogre::SceneNode *parent);
+                                            Ogre::SceneNode *parent,
+                                            RayCaster &rayCaster);
 
 public:
   class TankData : public Car::CarData

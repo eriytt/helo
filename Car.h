@@ -158,7 +158,7 @@ public:
     btVector3 realRelPos;
   };
 
-protected:
+public:
   class Wheel
   {
   protected:
@@ -229,7 +229,7 @@ protected:
 public:
   CBRaycastVehicle(btRigidBody* chassis);
 
-  virtual void addWheel(const SuspensionWheelData &data);
+  virtual Wheel *addWheel(const SuspensionWheelData &data);
   virtual void setAccelerationTorque(unsigned short wheel_index, btScalar acceleration_torque);
   virtual void setBrakeTorque(btScalar brake_torque) {brakingTorque = brake_torque;}
   virtual btScalar getWheelRotationSpeed(unsigned short wheelIndex);
@@ -242,9 +242,10 @@ public:
   virtual void setSteer(btScalar radians_right);
   virtual void setDriveTorques(const std::vector<btScalar> &torques);
   virtual Wheel *getWheel(unsigned int);
+  virtual int getNumWheels() const { return int (wheels.size());}
+
 
 protected:
-  virtual int getNumWheels() const { return int (m_wheelInfo.size());}
   virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
 
@@ -266,6 +267,7 @@ public:
     std::vector<WheelData> wheels;
     std::vector<SuspensionWheelData> suspensionWheels;
     std::vector<DriveWheelData> driveWheels;
+    bool isRaycaster;
   };
 
   struct CarData
@@ -289,7 +291,8 @@ public:
   // } CarData;
 
  protected:
-  CBRaycastVehicle *rayCastVehicle;
+  typedef CBRaycastVehicle RayCaster;
+  std::vector<RayCaster*> rayCasters;
 
   // Ogre
   Ogre::SceneNode *node;
@@ -297,7 +300,9 @@ public:
   // Bullet
   btCollisionShape *shape;
   std::vector<btRigidBody*> bodies;
-  std::vector<Ogre::SceneNode*> wheelNodes;
+  std::map<RayCaster::Wheel*, Ogre::SceneNode*> wheelNodes;
+
+
   std::vector<btTypedConstraint *> constraints;
 
 
@@ -307,7 +312,8 @@ protected:
                                const btVector3 &globalTranslation,
                                const btVector3 &globalRotation,
                                Ogre::SceneManager *mgr,
-                               Ogre::SceneNode *parent);
+                               Ogre::SceneNode *parent,
+                               RayCaster &rayCaster);
 
   virtual CBRaycastVehicle *createRaycastVehicle(btRigidBody *b);
 
@@ -316,14 +322,16 @@ protected:
                                            const btVector3 &globalTranslation,
                                            const btVector3 &globalRotation,
                                            Ogre::SceneManager *mgr,
-                                           Ogre::SceneNode *parent) {return nullptr;}
+                                           Ogre::SceneNode *parent,
+                                           RayCaster &rayCaster) {return nullptr;}
 
   virtual Ogre::SceneNode *createDriveWheel(const std::string &prefix,
                                             const DriveWheelData &wd,
                                             const btVector3 &globalTranslation,
                                             const btVector3 &globalRotation,
                                             Ogre::SceneManager *mgr,
-                                            Ogre::SceneNode *parent) { return nullptr; }
+                                            Ogre::SceneNode *parent,
+                                            RayCaster &rayCaster) { return nullptr; }
 
   Ogre::SceneNode *createBodiesAndWheels(const std::string &prefix,
                                          const BodyData &data,
@@ -331,7 +339,8 @@ protected:
                                          const btVector3 &globalRotation,
                                          Ogre::SceneManager *mgr,
                                          Ogre::SceneNode *parent = nullptr,
-                                         btRigidBody *bParent = nullptr);
+                                         btRigidBody *bParent = nullptr,
+                                         RayCaster *rayCaster = nullptr);
 
 public:
   Car();
