@@ -3,6 +3,17 @@
 
 #include <OIS/OIS.h>
 
+class Control
+{
+  float val;
+
+public:
+  Control(): val(0.0f) {}
+  virtual float getValue() {return val;};
+  virtual void setValue(float value) {val = value;}
+};
+
+
 class Controller
 {
  protected:
@@ -35,9 +46,10 @@ class CarKeyController : public Controller, public OIS::KeyListener
 protected:
   OIS::Keyboard &keyboard;
   Car &car;
+  Control steer, accel;
 
 public:
-  CarKeyController(OIS::Keyboard &kb, Car &c) : keyboard(kb), car(c) {}
+  CarKeyController(OIS::Keyboard &kb, Car &c);
   bool keyPressed(const OIS::KeyEvent&);
   bool keyReleased(const OIS::KeyEvent&);
   void update(float timeDelta);

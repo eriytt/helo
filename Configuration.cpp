@@ -185,6 +185,63 @@ Car::SuspensionWheelData loadSuspensionWheel(TiXmlNode *wn)
   return wd;
 }
 
+Car::HingeConstraint *loadHingeConstraint(TiXmlNode *c)
+{
+  auto hc = new Car::HingeConstraint;
+
+  hc->relativePositionParent = XMLUtils::GetVectorParam<Ogre::Vector3>("parentTranslation", c);
+  hc->relativePositionChild = XMLUtils::GetVectorParam<Ogre::Vector3>("childTranslation", c);
+  hc->parentAxis = XMLUtils::GetVectorParam<Ogre::Vector3>("parentAxis", c);
+  hc->childAxis = XMLUtils::GetVectorParam<Ogre::Vector3>("childAxis", c);
+
+  hc->upperLimit = 0;
+  hc->lowerLimit = 0;
+  hc->motorMaxImpulse = 0;
+
+  TiXmlNode *limit = XMLUtils::GetNode(c, "limit");
+  if (limit)
+    {
+      hc->upperLimit = XMLUtils::GetAttribute<float>("high", limit);
+      hc->lowerLimit = XMLUtils::GetAttribute<float>("low", limit);
+    }
+
+  TiXmlNode *actuator = XMLUtils::GetNode(c, "actuator");
+  if (actuator)
+    {
+      hc->name = XMLUtils::GetAttribute<std::string>("name", actuator);
+      hc->motorMaxImpulse = XMLUtils::GetAttribute<float>("maxImpulse", actuator);
+      hc->motorInitialTarget = XMLUtils::GetAttribute<float>("initialTarget", actuator);
+      hc->motorDT = XMLUtils::GetAttribute<float>("dt", actuator);
+    }
+
+  return hc;
+}
+
+Car::Constraint *loadFixedConstraint(TiXmlNode *c)
+{
+  auto fc = new Car::Constraint;
+  fc->relativePositionParent = XMLUtils::GetVectorParam<Ogre::Vector3>("parentTranslation", c);
+  fc->relativePositionChild = XMLUtils::GetVectorParam<Ogre::Vector3>("childTranslation", c);
+  return fc;
+}
+
+
+Car::Constraint *loadConstraint(TiXmlNode *c)
+{
+  if (not c)
+    return nullptr;
+
+  auto type = XMLUtils::GetAttribute<Ogre::String>("type", c);
+  if (type == "hinge")
+    return loadHingeConstraint(c);
+  else if (type == "fixed")
+    return loadFixedConstraint(c);
+  else
+    throw Configuration::ConfigurationError(c->GetDocument()->ValueStr(), std::string(c->ValueStr()) + " has unsupported type '" + type + "'");
+
+  return nullptr; // suppress warning
+}
+
 Car::BodyData loadBody(TiXmlNode *n)
 {
   Car::BodyData data;
@@ -196,6 +253,7 @@ Car::BodyData loadBody(TiXmlNode *n)
   data.relativePosition = XMLUtils::GetVectorParam<Ogre::Vector3>("relativePosition", n);
   data.colShapeOffset = XMLUtils::GetVectorParam<Ogre::Vector3>("collisionShapeOffset", n);
   data.isRaycaster = false;
+  data.constraint = loadConstraint(XMLUtils::GetNode(n, "joint"));
 
   TiXmlNode *c = NULL;
   for (int i = 0; (c = n->IterateChildren("body", c)); ++i)
@@ -216,6 +274,23 @@ Car::BodyData loadBody(TiXmlNode *n)
           (c->GetDocument()->ValueStr(),
            std::string("Wheel cannot have type '") + type + "'");
     }
+
+    for (int i = 0; (c = n->IterateChildren("actuator", c)); ++i)
+    {
+      std::string type = XMLUtils::GetAttribute<std::string>("type", c);
+      if (type == "wheeltorque")
+        {
+          Car::Actuator a;
+          a.type = type;
+          a.name = XMLUtils::GetAttribute<std::string>("name", c);
+          data.actuators.push_back(a);
+        }
+      else
+        throw Configuration::ConfigurationError
+          (c->GetDocument()->ValueStr(),
+           std::string("Actuator cannot have type '") + type + "'");
+    }
+
   return data;
 }
 

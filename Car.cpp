@@ -21,6 +21,37 @@ inline btScalar SlipAngle(btScalar speed, btScalar slip_speed)
   return atan(slip_speed / speed);
 }
 
+void WheelAngleActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar radians_right = control->getValue() * HeloUtils::PI_4;
+  for (auto w : wheels)
+    w->setSteer(radians_right);
+}
+
+void WheelTorqueActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar throttleValue = control->getValue();
+  for (auto w : wheels)
+    w->setTorque(throttleValue * 1000);
+}
+
+
+void HingeActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar radians_right = control->getValue() * HeloUtils::PI_4;
+  hinge->setMotorTarget(-radians_right / 2.0, 0.1);
+}
+
+
 CBRaycastVehicle::Wheel::Wheel(const SuspensionWheelData &data)
 {
   d = data;
@@ -306,18 +337,19 @@ btWheelInfo& CBRaycastVehicle::getWheelInfo(int index)
   return m_wheelInfo[index];
 }
 
-void CBRaycastVehicle::setSteer(btScalar radians_right)
-{
-  for (unsigned int i = 0; i < wheels.size(); i++)
-    wheels[i]->setSteer(radians_right);
-}
-
 void CBRaycastVehicle::setDriveTorques(const std::vector<btScalar> &torques)
 {
   for (unsigned int i = 0; i < torques.size(); i++)
     if (i < wheels.size())
       wheels[i]->setTorque(torques[i]);
 }
+
+Actuator *CBRaycastVehicle::getActuator(const std::string &name)
+{
+  auto a = actuators.find(name);
+  return a != actuators.end() ? a->second : nullptr;
+}
+
 
 void CBRaycastVehicle::setAccelerationTorque(unsigned short wheel_index,
 					     btScalar acceleration_torque)
@@ -429,6 +461,9 @@ btScalar CBRaycastVehicle::getWheelRotationSpeed(unsigned short wheelIndex)
 
 void CBRaycastVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
 {
+  for (auto a: actuators)
+    a.second->actuate(timeStep);
+
   std::vector<btVector3> forces(wheels.size());
 
   const btTransform &bt = chassisBody->getCenterOfMassTransform();
@@ -483,6 +518,52 @@ CBRaycastVehicle *Car::createRaycastVehicle(btRigidBody *b)
  return new CBRaycastVehicle(b);
 }
 
+btTypedConstraint *Car::createConstraint(const std::string &prefix,
+                                         Car::Constraint *c,
+                                         btRigidBody *parent,
+                                         btRigidBody *child)
+{
+
+  btVector3 pt(HeloUtils::Ogre2BulletVector(c->relativePositionParent));
+  btVector3 ct(HeloUtils::Ogre2BulletVector(c->relativePositionChild));
+
+  Car::HingeConstraint *hc;
+  if ((hc = dynamic_cast<Car::HingeConstraint*>(c)) != nullptr)
+    {
+      auto btc = new btHingeConstraint(*parent, // A
+                                       *child,  // B
+                                       pt, // pivotInA
+                                       ct, // pivotInB,
+                                       HeloUtils::Ogre2BulletVector(hc->parentAxis),    // axisInA,
+                                       HeloUtils::Ogre2BulletVector(hc->childAxis),    // axisInB,
+                                       true); // useReferenceFrameA (parent)
+      if (hc->upperLimit != 0.0 or hc->lowerLimit != 0.0)
+        btc->setLimit(HeloUtils::Deg2Rad(hc->lowerLimit),
+                      HeloUtils::Deg2Rad(hc->upperLimit));
+      if (hc->motorMaxImpulse)
+        {
+          auto act = new HingeActuator(nullptr, btc);
+          rayCasters.back()->addActuator(prefix.substr(prefix.find('.') + 1) + c->name, act);
+          btc->setMaxMotorImpulse(hc->motorMaxImpulse);
+          btc->setMotorTarget(hc->motorInitialTarget, hc->motorDT);
+          btc->enableMotor(true);
+        }
+      return btc;
+    }
+  else
+    {
+      btTransform pTrans(btMatrix3x3(1.0, 0.0, 0.0,
+                                      0.0, 1.0, 0.0,
+                                      0.0, 0.0, 1.0),
+                         pt);
+      btTransform cTrans(btMatrix3x3(1.0, 0.0, 0.0,
+                                     0.0, 1.0, 0.0,
+                                     0.0, 0.0, 1.0),
+                         ct);
+      return new btFixedConstraint(*parent, *child, pTrans, cTrans);
+    }
+}
+
 Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                                             const BodyData &data,
                                             const btVector3 &globalTranslation,
@@ -495,9 +576,11 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
   if (not parent)
     parent = mgr->getRootSceneNode();
 
-  Ogre::Entity *ent = mgr->createEntity(prefix + data.name + "_ent", data.meshname);
+  const std::string thisName(prefix + data.name);
 
-  Ogre::SceneNode *n = mgr->getRootSceneNode()->createChildSceneNode(prefix + data.name + "_node");
+  Ogre::Entity *ent = mgr->createEntity(thisName + "_ent", data.meshname);
+
+  Ogre::SceneNode *n = mgr->getRootSceneNode()->createChildSceneNode(thisName + "_node");
   n->attachObject(ent);
 
   btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.size.x / 2.0,
@@ -529,22 +612,19 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
       rayCasters.push_back(rayCaster);
     }
 
-  if (bParent)
+  if (bParent and data.constraint)
     {
-      btTransform pTrans(btMatrix3x3(1.0, 0.0, 0.0,
-                                     0.0, 1.0, 0.0,
-                                     0.0, 0.0, 1.0),
-                         HeloUtils::Ogre2BulletVector(data.relativePosition));
-      btTransform cTrans(btMatrix3x3(1.0, 0.0, 0.0,
-                                     0.0, 1.0, 0.0,
-                                     0.0, 0.0, 1.0),
-                         btVector3(0.0, 0.0, 0.0));
-
-      constraints.push_back(new btFixedConstraint(*bParent, *b, pTrans, cTrans));
+      auto c = createConstraint(thisName + ".",
+                                data.constraint,
+                                bParent,
+                                b);
+      delete data.constraint;
+      constraints.push_back(c);
+      pivot = static_cast<btHingeConstraint*>(c);
     }
 
   for (auto wd : data.suspensionWheels)
-    createWheel(prefix + data.name + ".",
+    createWheel(thisName + ".",
                 wd,
                 globalTranslation,
                 globalRotation,
@@ -553,7 +633,7 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                 *rayCaster);
 
   for (auto wd : data.wheels)
-    createSpinWheel(prefix + data.name + ".",
+    createSpinWheel(thisName + ".",
                     static_cast<const WheelData &>(wd),
                     globalTranslation,
                     globalRotation,
@@ -562,13 +642,22 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                     *rayCaster);
 
   for (auto wd : data.driveWheels)
-    this->createDriveWheel(prefix + data.name + ".",
+    this->createDriveWheel(thisName + ".",
                            static_cast<const DriveWheelData &>(wd),
                            globalTranslation,
                            globalRotation,
                            mgr,
                            n,
                            *rayCaster);
+
+  for (auto a : data.actuators)
+    {
+      if (a.type == "wheeltorque")
+        {
+          auto wta = new WheelTorqueActuator(rayCaster->getWheels());
+          rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, wta);
+        }
+    }
 
 
   for (auto cd : data.children)
@@ -828,152 +917,32 @@ Ogre::Vector3 Car::getVelocity()
   return Ogre::Vector3(vel[0], vel[1], vel[2]);
 }
 
-// const irr::core::matrix4 Car::getTransformation()
-// {
-//   return body_sn->getRelativeTransformation();
-// }
-
-
-// inline void MatrixBullet2Irrlicht(const btTransform &btTrans, matrix4 &irrTrans)
-// {
-//   assert(sizeof(btScalar) == sizeof(irr::f32));
-//   btTrans.getOpenGLMatrix(irrTrans.pointer());
-// }
-
 void Car::setSteer(Ogre::Real radians_right)
 {
-  for (auto rc : rayCasters)
-    rc->setSteer(btScalar(radians_right));
+  // for (auto rc : rayCasters)
+  //   rc->setSteer(btScalar(radians_right));
+  // pivot->setMotorTarget(-radians_right / 2.0, 0.1);
 }
 
 void Car::setThrottle(Ogre::Real fraction)
 {
-  for (auto rc : rayCasters)
-    {
-      std::vector<btScalar> torques;
-      for (unsigned int i = 0; i < rc->getNumWheels(); ++i)
-        torques.push_back(fraction * 1000);
-      rc->setDriveTorques(torques);
-    }
+  // for (auto rc : rayCasters)
+  //   {
+  //     std::vector<btScalar> torques;
+  //     for (unsigned int i = 0; i < rc->getNumWheels(); ++i)
+  //       torques.push_back(fraction * 1000);
+  //     rc->setDriveTorques(torques);
+  //   }
 }
 
 void Car::update(void)
 {
-//   for (int i = 0; i < 4; ++i)
-//     {
-// #warning set position of wheels
-//       //matrix4 mw, rot;
-//       //MatrixBullet2Irrlicht(rayCastVehicle->getWheelInfo(i).m_worldTransform, mw);
-//       //wheel_sn[i]->setPosition();
-//       //wheel_sn[i]->setRotation();
-//     }
-
-//   //matrix4 m, rot;
-//   btTransform hull_transform;
-//   const btTransform &ct = rayCastVehicle->getChassisWorldTransform();
-//   hull_transform.setIdentity();
-//   hull_transform.setOrigin(btVector3(0.0f, 0.0f, btScalar(wheel_distance_z
-// 						       + hull_offset_z)));
-//   //MatrixBullet2Irrlicht(ct * hull_transform, m);
-//   //body_sn->setPosition(m.getTranslation());
-//   //body_sn->setRotation(m.getRotationDegrees());
-//   motor_rpm = engine->getRPM();
 }
 
 
 void Car::setInput(control_data_t &cdata)
 {
-  /*********************Get the wheel input***********************/
-  /*NORMAL STEERING*/
-  // wheel_angle = cdata.steer_angle;
-  // if (wheel_angle > max_wheel_angle)
-  //   wheel_angle = max_wheel_angle;
-  // if (wheel_angle < -max_wheel_angle)
-  //   wheel_angle = -max_wheel_angle;
-  // rayCastVehicle->setSteeringValue(-wheel_angle, FRONT_RIGHT);
-  // rayCastVehicle->setSteeringValue(-wheel_angle, FRONT_LEFT);
-
-  /*QUADRATIC SENSITIVITY */
-  //wheel_angle=pow(((wheel)/(float)WHEEL_MAX),2)*(M_PI/(/*2**/4));
-  //if(*wheel<0)
-  //  wheel_angle=-wheel_angle;
-
-
-  /*SPEED SENSITIVITY*/
-  //wheel_angle= wheel/(float)WHEEL_MAX * M_PI/(2*4)   *   (float)(55.5-car_speed/55.5 );
-
-
-  /*QUADRATIC SPEED SENSITIVITY*/
-  //wheel_angle= pow(((wheel)/(float)WHEEL_MAX),2) * M_PI/(2*4)  *   (float)( (55.5-velocity.Length())/55.5);
-  //if(wheel<0)
-  //  wheel_angle=-wheel_angle;
-
-  //printf("Wheel_angle: %f\n", wheel_angle);
-  // printf("car_speed: %f  car_angle: %f\n",car_speed,wheel_angle);
-  //printf("clutch_position: %d\n",*clutch);
-  /**************************Get the shifting input**************************/
-
-//   if(cdata.shift_gear > 0)
-//     {
-//       gearbox->shiftUp();
-//       //controller->UpShiftDone();
-// #ifdef AUTO_CLUTCH
-//       clutch_counter=0;
-// #endif
-//       //printf("current_gear: %d\n", current_gear);
-//     }
-//   else if(cdata.shift_gear < 0)
-//     {
-//       gearbox->shiftDown();
-//       //controller->DownShiftDone();
-// #ifdef AUTO_CLUTCH
-//       clutch_counter = 0;
-// #endif
-//     }
-
-
-  /******************Get the clutch input*************************/
-#ifndef AUTO_CLUTCH
-  //clutch_force=(0.8*CLUTCH_MAX+(clutch))/(0.8*CLUTCH_MAX);
-  //clutch_force = clutch;
-//   float clutch = cdata.clutch;
-//   if(cdata.clutch < 0.0)
-//     clutch = 0.0;
-//   if(cdata.clutch > 1.0)
-//     clutch = 1.0;
-//   // printf("clutch_force: %d\n",clutch_force);
-//   clutchObj->setClutch(clutch);
-// #else
-//   clutch_force=(clutch_counter/AUTO_CLUTCH_TIME)*CLUTCH_MAX_FORCE;
-//   clutch_counter+=time_delta;
-//   if(clutch_counter>AUTO_CLUTCH_TIME)
-//     clutch_counter=AUTO_CLUTCH_TIME;
-#endif
-
-  /****************Get the brake input*******************************/
-  //brake = cdata.brake;
-  // rayCastVehicle->setBrakeTorque(cdata.brake * 20000.0);
-  // engine->setThrottle(cdata.throttle_power);
-  // float drive_force = CalculateDriveForce();
-  // rayCastVehicle->setAccelerationTorque(BACK_RIGHT, drive_force / 2.0);
-  // rayCastVehicle->setAccelerationTorque(BACK_LEFT, drive_force / 2.0);
 }
-
-// float Car::CalculateDriveForce(void)
-// {
-//   // float wheel_rpm_bl = rayCastVehicle->getWheelRotationSpeed(BACK_LEFT);
-//   // float wheel_rpm_br = rayCastVehicle->getWheelRotationSpeed(BACK_RIGHT);
-
-//   // wheel_rpm_bl = wheel_rpm_bl / (2 * M_PI) * 60;
-//   // wheel_rpm_br = wheel_rpm_br / (2 * M_PI) * 60;
-
-//   // //printf("rpm: %f\n",(wheel_rpm_br + wheel_rpm_bl) / 2.0);
-//   // differential->setRPM((wheel_rpm_br + wheel_rpm_bl) / 2.0);
-//   // speed = (wheel_rpm_br + wheel_rpm_bl) * M_PI * TIRE_RADIUS / 60.0;
-
-//   // return differential->getTorque();
-//   return 0;
-// }
 
 static float long_mu_max = 1.0;
 static float lat_mu_max = 1.0;
@@ -1029,6 +998,18 @@ float Car::getSpeed()
   return static_cast<float>(bodies[0]->getLinearVelocity().length());
 }
 
+::Actuator *Car::getActuator(const std::string &id)
+{
+
+  for (auto rc : rayCasters)
+    {
+      auto a = rc->getActuator(id);
+      if (a)
+        return a;
+    }
+  return nullptr;
+}
+
 Controller *Car::createController(OIS::Object *dev)
 {
   if (dynamic_cast<OIS::JoyStick*>(dev))
@@ -1036,7 +1017,10 @@ Controller *Car::createController(OIS::Object *dev)
   else if (dynamic_cast<OIS::Mouse*>(dev))
     return NULL;
   else if (dynamic_cast<OIS::Keyboard*>(dev))
-    return controller = new CarKeyController(*static_cast<OIS::Keyboard*>(dev), *this);
+    {
+      controller = new CarKeyController(*static_cast<OIS::Keyboard*>(dev), *this);
+      return controller;
+    }
   else
     return NULL;
 }
@@ -1057,16 +1041,21 @@ void CarKeyController::update(float timeDelta)
     return;
 
   if (keyboard.isKeyDown(OIS::KC_A))
-    car.setSteer(Ogre::Real(-HeloUtils::PI_4));
+    //car.setSteer(Ogre::Real(-HeloUtils::PI_4));
+    steer.setValue(-1.0);
   else if (keyboard.isKeyDown(OIS::KC_D))
-    car.setSteer(Ogre::Real(HeloUtils::PI_4));
+    //car.setSteer(Ogre::Real(HeloUtils::PI_4));
+    steer.setValue(1.0);
   else
-    car.setSteer(Ogre::Real(0.0));
+    //car.setSteer(Ogre::Real(0.0));
+    steer.setValue(0.0);
 
   if (keyboard.isKeyDown(OIS::KC_W))
-    car.setThrottle(HeloUtils::Fraction(1, 1));
+    //car.setThrottle(HeloUtils::Fraction(1, 1));
+    accel.setValue(1.0);
   else
-    car.setThrottle(HeloUtils::Fraction(0, 1));
+    //car.setThrottle(HeloUtils::Fraction(0, 1));
+    accel.setValue(0.0);
 
   // if (mKeyboard->isKeyDown(OIS::KC_S))
   //   car->setThrottle(Ogre::Fraction(0, 1));

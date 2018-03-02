@@ -21,3 +21,19 @@ void SimpleCarAutoController::update(float timeDelta)
   else
     car->setThrottle(0.0);
 }
+
+CarKeyController::CarKeyController(OIS::Keyboard &kb, Car &c)
+  : keyboard(kb), car(c)
+{
+  Actuator *act = car.getActuator("Back.Front.steer");
+  if (act)
+    act->setControl(&steer);
+
+  act = car.getActuator("Back.BackWheelDrive");
+  if (act)
+    act->setControl(&accel);
+
+  act = car.getActuator("Back.Front.FrontWheelDrive");
+  if (act)
+    act->setControl(&accel);
+}

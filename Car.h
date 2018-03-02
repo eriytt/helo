@@ -125,6 +125,18 @@ inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
     }
 }
 
+class Actuator
+{
+protected:
+  Control *control;
+
+public:
+  Actuator(): control(nullptr) {}
+  Actuator(Control *control): control(control) {}
+  void setControl(Control *c) {control = c;}
+  virtual void actuate(btScalar step) = 0;
+};
+
 
 class CBRaycastVehicle : public btActionInterface
 {
@@ -224,6 +236,7 @@ protected:
   btAlignedObjectArray<btWheelInfo> m_wheelInfo;
 
   std::vector<btScalar> accelerationTorque;
+  std::map<const std::string, Actuator*> actuators;
   btScalar brakingTorque;
 
 public:
@@ -239,15 +252,51 @@ public:
   virtual void setCoordinateSystem(int rightIndex,int upIndex,int forwardIndex);
   virtual btWheelInfo& getWheelInfo(int index);
   virtual const btTransform& getChassisWorldTransform() const {return chassisBody->getCenterOfMassTransform();}
-  virtual void setSteer(btScalar radians_right);
+  //virtual void setSteer(btScalar radians_right);
   virtual void setDriveTorques(const std::vector<btScalar> &torques);
   virtual Wheel *getWheel(unsigned int);
   virtual int getNumWheels() const { return int (wheels.size());}
-
+  const std::vector<Wheel*> &getWheels() {return wheels;}
+  void addActuator(const std::string &name, Actuator *act) {actuators.insert(std::make_pair(name,act));}
+  Actuator *getActuator(const std::string &name);
 
 protected:
   virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
+
+class WheelAngleActuator: public Actuator
+{
+private:
+  std::vector<CBRaycastVehicle::Wheel*> wheels;
+
+public:
+  WheelAngleActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
+class WheelTorqueActuator: public Actuator
+{
+private:
+  std::vector<CBRaycastVehicle::Wheel*> wheels;
+
+public:
+  WheelTorqueActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
+
+class HingeActuator: public Actuator
+{
+private:
+  btHingeConstraint *hinge;
+
+public:
+  HingeActuator(Control *c, btHingeConstraint *h) : Actuator(c), hinge(h) {}
+  virtual void actuate(btScalar step);
+};
+
 
 class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackable, public Vehicle
 {
@@ -255,6 +304,29 @@ public:
   typedef CBRaycastVehicle::WheelData WheelData;
   typedef CBRaycastVehicle::SuspensionWheelData SuspensionWheelData;
   typedef CBRaycastVehicle::DriveWheelData DriveWheelData;
+
+  struct Actuator {
+    std::string name;
+    std::string type;
+  };
+
+  struct Constraint {
+    std::string name;
+    Ogre::Vector3 relativePositionParent;
+    Ogre::Vector3 relativePositionChild;
+    virtual ~Constraint() {}
+  };
+
+  struct HingeConstraint : public Constraint {
+    Ogre::Vector3 parentAxis;
+    Ogre::Vector3 childAxis;
+    float upperLimit;
+    float lowerLimit;
+    float motorMaxImpulse;
+    float motorInitialTarget;
+    float motorDT;
+    virtual ~HingeConstraint() {}
+  };
 
   struct BodyData {
     std::string name;
@@ -268,6 +340,8 @@ public:
     std::vector<SuspensionWheelData> suspensionWheels;
     std::vector<DriveWheelData> driveWheels;
     bool isRaycaster;
+    Constraint *constraint;
+    std::vector<Actuator> actuators;
   };
 
   struct CarData
@@ -301,6 +375,7 @@ public:
   btCollisionShape *shape;
   std::vector<btRigidBody*> bodies;
   std::map<RayCaster::Wheel*, Ogre::SceneNode*> wheelNodes;
+  btHingeConstraint *pivot;
 
 
   std::vector<btTypedConstraint *> constraints;
@@ -333,6 +408,11 @@ protected:
                                             Ogre::SceneNode *parent,
                                             RayCaster &rayCaster) { return nullptr; }
 
+  btTypedConstraint *createConstraint(const std::string &prefix,
+                                      Car::Constraint *c,
+                                      btRigidBody *parent,
+                                      btRigidBody *child);
+
   Ogre::SceneNode *createBodiesAndWheels(const std::string &prefix,
                                          const BodyData &data,
                                          const btVector3 &globalTranslation,
@@ -358,6 +438,7 @@ public:
   virtual void update(void);
   virtual void physicsUpdate(float step) {}
   Controller *createController(OIS::Object *dev);
+  ::Actuator *getActuator(const std::string &id);
 };
 
 #endif /*CAR_H*/

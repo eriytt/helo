@@ -9,19 +9,22 @@
       <size x="1.2" y="1.5" z="5.0"/>
       <relativePosition x="0.0" y="0.0" z="0.0"/>
       <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+      <actuator
+          name="BackWheelDrive"
+          type="wheeltorque"/>
 
       <wheel
           type="suspension"
           name="WheelR"
           meshname="Wheel.mesh"
           spring="350000"
-          dampUp="10000"
-          dampDown="10000"
+          dampUp="20000"
+          dampDown="20000"
           suspensionLength="1.0"
           maxLengthUp="0.50"
           maxLengthDown="1.5."
           radius="0.91"
-          steerCoeff="-0.3"
+          steerCoeff="0.0"
           driveCoeff="10.0"
           brakeCoeff="1.0"
           momentOfInertia="1000">
@@ -35,13 +38,13 @@
           name="WheelL"
           meshname="Wheel.mesh"
           spring="350000"
-          dampUp="10000"
-          dampDown="10000"
+          dampUp="20000"
+          dampDown="20000"
           suspensionLength="1.0"
           maxLengthUp="0.50"
           maxLengthDown="1.5."
           radius="0.91"
-          steerCoeff="-0.3"
+          steerCoeff="0.0"
           driveCoeff="10.0"
           brakeCoeff="1.0"
           momentOfInertia="1000">
@@ -57,19 +60,36 @@
         <size x="1.5" y="1.0" z="2.0"/>
         <relativePosition x="0.0" y="-0.57" z="3.18"/>
         <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+        <actuator
+            name="FrontWheelDrive"
+            type="wheeltorque"/>
+
+        <joint
+            type="hinge">
+          <parentTranslation x="0.0" y="-0.57" z="2.18"/>
+          <parentAxis x="0" y="1.0" z="0"/>
+          <childTranslation x="0.0" y="0.0" z="-1.0"/>
+          <childAxis x="0" y="1.0" z="0"/>
+          <limit high="45" low="-45"/>
+          <actuator
+              name = "steer"
+              maxImpulse="1000"
+              initialTarget="0"
+              dt="1.0"/>
+        </joint>
 
         <wheel
             type="suspension"
             name="WheelR"
             meshname="Wheel.mesh"
             spring="300000"
-            dampUp="5000"
-            dampDown="5000"
+            dampUp="10000"
+            dampDown="10000"
             suspensionLength="1.0"
             maxLengthUp="0.50"
             maxLengthDown="1.5."
             radius="0.91"
-            steerCoeff="0.3"
+            steerCoeff="0.0"
             driveCoeff="10.0"
             brakeCoeff="1.0"
             momentOfInertia="1000">
@@ -83,13 +103,13 @@
             name="WheelL"
             meshname="Wheel.mesh"
             spring="300000"
-            dampUp="5000"
-            dampDown="5000"
+            dampUp="10000"
+            dampDown="10000"
             suspensionLength="1.0"
             maxLengthUp="0.50"
             maxLengthDown="1.5."
             radius="0.91"
-            steerCoeff="0.3"
+            steerCoeff="0.0"
             driveCoeff="10.0"
             brakeCoeff="1.0"
             momentOfInertia="1000">
@@ -101,4 +121,11 @@
 
     </body>
   </bodies>
+  <control
+      type="steering"
+      actuators="Back.Front.steer"/>
+  <control
+      type="acceleration"
+      actuators="Back.BackWheelDrives,Back.Front.FrontWheelDrives"/>
+
 </Vehicle>

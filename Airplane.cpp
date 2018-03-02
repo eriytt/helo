@@ -236,7 +236,7 @@ bool AirplaneJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
   cd.rudder = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
 
   airplane.setInput();
-  airplane.setSteer(cd.rudder * -0.5);
+  //airplane.setSteer(cd.rudder * -0.5);
    return true;
 }
 
@@ -335,5 +335,5 @@ void AirplaneKeyController::update(float timeDelta)
 
   airplane.setInput();
 
-  airplane.setSteer(cd.rudder * -0.5);
+  //airplane.setSteer(cd.rudder * -0.5);
 }
