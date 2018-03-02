@@ -10,6 +10,12 @@
       <relativePosition x="0.0" y="0.0" z="0.0"/>
       <size x="2.1" y="1.5" z="4.6"/>
       <collisionShapeOffset x="0.0" y="0.5" z="0.0"/>
+      <actuator
+          name="Drive"
+          type="wheeltorque"/>
+      <actuator
+          name="Steer"
+          type="wheelangle"/>
 
       <wheel
           type="suspension"
@@ -92,4 +98,12 @@
       </wheel>
     </body>
   </bodies>
+
+  <control
+      type="steer"
+      actuators="Body.Steer"/>
+  <control
+      type="acceleration"
+      actuators="Body.Drive"/>
+
 </Vehicle>

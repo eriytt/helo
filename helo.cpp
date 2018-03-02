@@ -116,6 +116,7 @@ int heloApp::main(int argc, char *argv[])
 	}
       catch (Configuration::ConfigurationError e)
 	{
+          std::cerr << "Error loading mission: " << e.what() << std::endl;
 	  Error::ErrMessage(e.what());
 	  exit(-1);
 	}

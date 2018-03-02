@@ -657,6 +657,12 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
           auto wta = new WheelTorqueActuator(rayCaster->getWheels());
           rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, wta);
         }
+      if (a.type == "wheelangle")
+        {
+          auto waa = new WheelAngleActuator(rayCaster->getWheels());
+          rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, waa);
+        }
+
     }
 
 

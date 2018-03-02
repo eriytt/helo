@@ -36,4 +36,13 @@ CarKeyController::CarKeyController(OIS::Keyboard &kb, Car &c)
   act = car.getActuator("Back.Front.FrontWheelDrive");
   if (act)
     act->setControl(&accel);
+
+  act = car.getActuator("Body.Drive");
+  if (act)
+    act->setControl(&accel);
+
+  act = car.getActuator("Body.Steer");
+  if (act)
+    act->setControl(&steer);
+
 }

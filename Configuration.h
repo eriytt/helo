@@ -33,7 +33,7 @@ public:
     virtual const char* what() const throw()
     {
       if (file != "")
-        return std::string(file + ": " + reason).c_str();
+        return (new std::string(file + ": " + reason))->c_str();
       return reason.c_str();
     }
   };

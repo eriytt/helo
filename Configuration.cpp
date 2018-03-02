@@ -278,17 +278,15 @@ Car::BodyData loadBody(TiXmlNode *n)
     for (int i = 0; (c = n->IterateChildren("actuator", c)); ++i)
     {
       std::string type = XMLUtils::GetAttribute<std::string>("type", c);
-      if (type == "wheeltorque")
-        {
-          Car::Actuator a;
-          a.type = type;
-          a.name = XMLUtils::GetAttribute<std::string>("name", c);
-          data.actuators.push_back(a);
-        }
-      else
+      if (type != "wheeltorque" and type != "wheelangle")
         throw Configuration::ConfigurationError
           (c->GetDocument()->ValueStr(),
            std::string("Actuator cannot have type '") + type + "'");
+
+      Car::Actuator a;
+      a.type = type;
+      a.name = XMLUtils::GetAttribute<std::string>("name", c);
+      data.actuators.push_back(a);
     }
 
   return data;
@@ -575,14 +573,14 @@ void Configuration::loadMission(std::string mission_name)
       //   std::cout << *i << std::endl;
 
       TinyXMLPtr xml = TinyXMLResourceManager::getSingleton().createResource( m->name + ".xml", m->name).staticCast<TinyXMLResource>();
- 
+
       // actually load our xml file
       xml->load();
- 
+
       if(xml->getError())
         {
           Ogre::LogManager::getSingletonPtr()
-            ->logMessage("An error occured in file " + xml->getName() + 
+            ->logMessage("An error occured in file " + xml->getName() +
                          " : " + Ogre::String(xml->getErrorDesc()));
           throw ConfigurationError(xml->getName(), xml->getErrorDesc());
         }
@@ -590,7 +588,7 @@ void Configuration::loadMission(std::string mission_name)
         {
           TiXmlNode* node = xml->getXMLData();
           node = node->FirstChild();
-     
+
           TiXmlNode *child = NULL;
           while((child = node->IterateChildren("Vehicles", child)))
             {
@@ -599,6 +597,9 @@ void Configuration::loadMission(std::string mission_name)
                 {
                   const std::string type(XMLUtils::GetAttribute<std::string>("type", v));
                   const std::string name(XMLUtils::GetAttribute<std::string>("name", v));
+                  if (name.find('.') != std::string::npos)
+                    throw ConfigurationError(xml->getName(), name + ": '.' is not allowed in the object name");
+
                   const Ogre::Vector3 pos = XMLUtils::GetVectorParam<Ogre::Vector3>("position", v);
                   Ogre::Vector3 rot;
                   if (XMLUtils::GetNumChildren(v, "rotation"))
@@ -612,7 +613,7 @@ void Configuration::loadMission(std::string mission_name)
                       std::string cfgname = type + XMLUtils::GetAttribute<std::string>("hardpointConfig", arms);
                       vehicle->setHardpointConfig(Hardpoint::GetConfig(cfgname));
                       vehicle->addArmament(new DumbBomb, 0);
-                        
+
                       TiXmlNode *arm = NULL;
                       for (int i = 0; (arm = arms->IterateChildren(std::string("armament"), arm)); ++i)
                         {
@@ -623,7 +624,7 @@ void Configuration::loadMission(std::string mission_name)
                 }
             }
         }
-    } 
+    }
   catch (XMLUtils::XMLError e)
     {
       throw ConfigurationError("Error loading mission '" + mission_name + "': " + e.what());
