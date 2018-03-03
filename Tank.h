@@ -5,7 +5,7 @@
 
 class RaycastTank : public CBRaycastVehicle
 {
-protected:
+public:
   class DriveWheel : public CBRaycastVehicle::Wheel
   {
   protected:
@@ -46,21 +46,40 @@ protected:
   std::vector<DriveWheel*> driveWheels;
   std::vector<SpinWheel*> spinWheels;
 
-  btScalar currentSteerAngle;
-  btScalar currentDriveTorque;
-  btScalar steerSensitivity; // Hmm, perhaps reuse any of the wheel's sensitivity...
-
 public:
   RaycastTank(btRigidBody *chassis);
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar timeStep);
-  void setDriveTorques(const std::vector<btScalar> &torques);
-  void setSteer(btScalar radians_right);
   Wheel *addWheel(const SuspensionWheelData &data);
   void addDriveWheel(const DriveWheelData &data);
   void addSpinWheel(const WheelData &data);
   DriveWheel *getDriveWheel(unsigned int);
+  const std::vector<DriveWheel*> &getDriveWheels() {return driveWheels;}
   SpinWheel *getSpinWheel(unsigned int);
 };
+
+
+class TreadTorqueActuator: public Actuator
+{
+private:
+  std::vector<RaycastTank::DriveWheel*> wheels;
+
+public:
+  TreadTorqueActuator(const std::vector<RaycastTank::DriveWheel*> &wheels)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
+class TreadTorqueDiffActuator: public Actuator
+{
+private:
+  std::vector<RaycastTank::DriveWheel*> wheels;
+
+public:
+  TreadTorqueDiffActuator(const std::vector<RaycastTank::DriveWheel*> &wheels)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
 
 
 class Tank : public Car
@@ -83,6 +102,8 @@ protected:
                                             Ogre::SceneManager *mgr,
                                             Ogre::SceneNode *parent,
                                             RayCaster &rayCaster);
+
+  virtual ::Actuator *createActuator(const Actuator &actuator);
 
 public:
   class TankData : public Car::CarData

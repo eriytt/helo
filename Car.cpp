@@ -88,6 +88,11 @@ void CBRaycastVehicle::Wheel::setTorque(btScalar torque)
     currentDriveTorque = d.driveCoeff * torque;
 }
 
+btScalar CBRaycastVehicle::Wheel::getTorque()
+{
+  return currentDriveTorque;
+}
+
 const btTransform &CBRaycastVehicle::Wheel::getTransform() const
 {
   return currentTransform;
@@ -337,12 +342,6 @@ btWheelInfo& CBRaycastVehicle::getWheelInfo(int index)
   return m_wheelInfo[index];
 }
 
-void CBRaycastVehicle::setDriveTorques(const std::vector<btScalar> &torques)
-{
-  for (unsigned int i = 0; i < torques.size(); i++)
-    if (i < wheels.size())
-      wheels[i]->setTorque(torques[i]);
-}
 
 Actuator *CBRaycastVehicle::getActuator(const std::string &name)
 {
@@ -564,6 +563,15 @@ btTypedConstraint *Car::createConstraint(const std::string &prefix,
     }
 }
 
+Actuator *Car::createActuator(const Actuator &actuator)
+{
+  if (actuator.type == "wheeltorque")
+    return new WheelTorqueActuator(rayCasters.back()->getWheels());
+  else if (actuator.type == "wheelangle")
+    return new WheelAngleActuator(rayCasters.back()->getWheels());
+  return nullptr;
+}
+
 Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                                             const BodyData &data,
                                             const btVector3 &globalTranslation,
@@ -652,17 +660,9 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
 
   for (auto a : data.actuators)
     {
-      if (a.type == "wheeltorque")
-        {
-          auto wta = new WheelTorqueActuator(rayCaster->getWheels());
-          rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, wta);
-        }
-      if (a.type == "wheelangle")
-        {
-          auto waa = new WheelAngleActuator(rayCaster->getWheels());
-          rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, waa);
-        }
-
+      auto act = createActuator(a);
+      if (act)
+        rayCaster->addActuator(thisName.substr(thisName.find('.') + 1) + "." + a.name, act);
     }
 
 
@@ -923,24 +923,6 @@ Ogre::Vector3 Car::getVelocity()
   return Ogre::Vector3(vel[0], vel[1], vel[2]);
 }
 
-void Car::setSteer(Ogre::Real radians_right)
-{
-  // for (auto rc : rayCasters)
-  //   rc->setSteer(btScalar(radians_right));
-  // pivot->setMotorTarget(-radians_right / 2.0, 0.1);
-}
-
-void Car::setThrottle(Ogre::Real fraction)
-{
-  // for (auto rc : rayCasters)
-  //   {
-  //     std::vector<btScalar> torques;
-  //     for (unsigned int i = 0; i < rc->getNumWheels(); ++i)
-  //       torques.push_back(fraction * 1000);
-  //     rc->setDriveTorques(torques);
-  //   }
-}
-
 void Car::update(void)
 {
 }
@@ -1047,20 +1029,15 @@ void CarKeyController::update(float timeDelta)
     return;
 
   if (keyboard.isKeyDown(OIS::KC_A))
-    //car.setSteer(Ogre::Real(-HeloUtils::PI_4));
     steer.setValue(-1.0);
   else if (keyboard.isKeyDown(OIS::KC_D))
-    //car.setSteer(Ogre::Real(HeloUtils::PI_4));
     steer.setValue(1.0);
   else
-    //car.setSteer(Ogre::Real(0.0));
     steer.setValue(0.0);
 
   if (keyboard.isKeyDown(OIS::KC_W))
-    //car.setThrottle(HeloUtils::Fraction(1, 1));
     accel.setValue(1.0);
   else
-    //car.setThrottle(HeloUtils::Fraction(0, 1));
     accel.setValue(0.0);
 
   // if (mKeyboard->isKeyDown(OIS::KC_S))
@@ -1073,9 +1050,9 @@ bool CarJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
   if (not active)
     return true;
 
-   car.setSteer(e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS) * 0.5);
-   car.setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
-   return true;
+  //car.setSteer(e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS) * 0.5);
+  //car.setThrottle(-e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS));
+  return true;
 }
 
 void CarJoystickController::setActive(bool a)

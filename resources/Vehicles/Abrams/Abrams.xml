@@ -11,6 +11,14 @@
       <relativePosition x="0.0" y="0.0" z="0.0"/>
       <size x="3.66" y="1.02" z="7.93"/>
       <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+
+      <actuator
+          name="Drive"
+          type="treadtorque"/>
+      <actuator
+          name="Steer"
+          type="treadtorquediff"/>
+
       <body
           name="Turrent"
           meshname="Turret.mesh"
@@ -19,6 +27,20 @@
         <size x="2.83" y="0.83" z="3.962"/>
         <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
 
+        <joint
+            type="hinge">
+          <parentTranslation x="0.0" y="0.84" z="0.0"/>
+          <parentAxis x="0" y="1.0" z="0"/>
+          <childTranslation x="0.0" y="0.0" z="0.0"/>
+          <childAxis x="0" y="1.0" z="0"/>
+          <!--limit high="45" low="-45"/-->
+          <actuator
+              name = "turret"
+              maxImpulse="1000"
+              initialTarget="0"
+              dt="1.0"/>
+        </joint>
+
         <body
             name="Barrel"
             meshname="Barrel.mesh"
@@ -26,6 +48,21 @@
           <relativePosition x="0.0" y="-0.064" z="3.187"/>
           <size x="0.151" y="0.226" z="3.207"/>
           <collisionShapeOffset x="0.0" y="0.0" z="0.0"/>
+
+          <joint
+              type="hinge">
+            <parentTranslation x="0.0" y="-0.064" z="1.5"/>
+            <parentAxis x="1.0" y="0.0" z="0.0"/>
+            <childTranslation x="0.0" y="0.0" z="-1.686"/>
+            <childAxis x="1.0" y="0.0" z="0"/>
+            <!--limit high="45" low="-45"/-->
+            <actuator
+                name = "barell"
+                maxImpulse="1000"
+                initialTarget="0"
+                dt="1.0"/>
+          </joint>
+
         </body>
       </body>
 

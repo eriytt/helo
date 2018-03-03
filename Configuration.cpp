@@ -278,7 +278,10 @@ Car::BodyData loadBody(TiXmlNode *n)
     for (int i = 0; (c = n->IterateChildren("actuator", c)); ++i)
     {
       std::string type = XMLUtils::GetAttribute<std::string>("type", c);
-      if (type != "wheeltorque" and type != "wheelangle")
+      if (type != "wheeltorque"
+          and type != "wheelangle"
+          and type != "treadtorque"
+          and type != "treadtorquediff")
         throw Configuration::ConfigurationError
           (c->GetDocument()->ValueStr(),
            std::string("Actuator cannot have type '") + type + "'");

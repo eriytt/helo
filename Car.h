@@ -211,6 +211,7 @@ public:
     virtual void updateMotionState();
     void setSteer(btScalar right_radians);
     void setTorque(btScalar torque);
+    btScalar getTorque();
     const btVector3 &getContactPoint();
     const btTransform &getTransform() const;
     void setMotionState(btMotionState *ms) {motionState = ms;}
@@ -252,8 +253,6 @@ public:
   virtual void setCoordinateSystem(int rightIndex,int upIndex,int forwardIndex);
   virtual btWheelInfo& getWheelInfo(int index);
   virtual const btTransform& getChassisWorldTransform() const {return chassisBody->getCenterOfMassTransform();}
-  //virtual void setSteer(btScalar radians_right);
-  virtual void setDriveTorques(const std::vector<btScalar> &torques);
   virtual Wheel *getWheel(unsigned int);
   virtual int getNumWheels() const { return int (wheels.size());}
   const std::vector<Wheel*> &getWheels() {return wheels;}
@@ -408,6 +407,8 @@ protected:
                                             Ogre::SceneNode *parent,
                                             RayCaster &rayCaster) { return nullptr; }
 
+  virtual ::Actuator *createActuator(const Actuator &actuator);
+
   btTypedConstraint *createConstraint(const std::string &prefix,
                                       Car::Constraint *c,
                                       btRigidBody *parent,
@@ -427,8 +428,6 @@ public:
   virtual Car *load(const CarData &data, Ogre::Root *root);
   virtual void finishPhysicsConfiguration(Physics *phys);
   virtual Ogre::SceneNode *getSceneNode() const {return node;}
-  virtual void setSteer(Ogre::Real radians_right);
-  virtual void setThrottle(Ogre::Real fraction);
   virtual Ogre::Vector3 getPosition();
   virtual Ogre::Vector3 getVelocity();
   virtual float getRPM();

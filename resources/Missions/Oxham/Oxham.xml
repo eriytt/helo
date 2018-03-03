@@ -1,5 +1,10 @@
 <Mission>
   <Vehicles>
+    <Vehicle type="Abrams" name="abrams:0">
+      <position x="1790.96" y="2.0" z="1640.0"/>
+      <rotation x="0" y="70" z="0"/>
+    </Vehicle>
+
     <Vehicle type="HMMWV" name="hmmwv:0">
       <position x="1780.96" y="2.0" z="1630.0"/>
       <rotation x="0" y="70" z="0"/>

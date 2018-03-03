@@ -16,10 +16,10 @@ void SimpleCarAutoController::update(float timeDelta)
 {
   float s = car->getSpeed();
 
-  if (s < targetSpeed)
-    car->setThrottle(0.3);
-  else
-    car->setThrottle(0.0);
+  // if (s < targetSpeed)
+  //   car->setThrottle(0.3);
+  // else
+  //   car->setThrottle(0.0);
 }
 
 CarKeyController::CarKeyController(OIS::Keyboard &kb, Car &c)

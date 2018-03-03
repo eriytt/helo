@@ -1,5 +1,27 @@
 #include "Tank.h"
 
+void TreadTorqueActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar throttleValue = control->getValue();
+  for (auto w : wheels)
+    w->setTorque(w->getTorque() + throttleValue * 30000);
+}
+
+void TreadTorqueDiffActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar steerValue = control->getValue();
+  for (unsigned int i = 0; i < wheels.size(); ++i)
+    wheels[i]->setTorque(wheels[i]->getTorque()
+                         +  (i & 1 ? 1.0 : -1.0) * steerValue * 50000);
+}
+
+
 Ogre::SceneNode *Tank::createSpinWheel(const std::string &prefix,
                                        const WheelData &wd,
                                        const btVector3 &globalTranslation,
@@ -35,6 +57,17 @@ Ogre::SceneNode *Tank::createDriveWheel(const std::string &prefix,
   static_cast<RaycastTank&>(rayCaster).addDriveWheel(wd);
   return tnode;
 }
+
+Actuator *Tank::createActuator(const Actuator &actuator)
+{
+  if (actuator.type == "treadtorque")
+    return new TreadTorqueActuator(static_cast<RaycastTank*>(rayCasters.back())->getDriveWheels());
+  else if (actuator.type == "treadtorquediff")
+    return new TreadTorqueDiffActuator(static_cast<RaycastTank*>(rayCasters.back())->getDriveWheels());
+
+  return Car::createActuator(actuator);
+}
+
 
 CBRaycastVehicle *Tank::createRaycastVehicle(btRigidBody *b)
 {
@@ -76,9 +109,6 @@ void Tank::finishPhysicsConfiguration(class Physics *phys)
 
 RaycastTank::RaycastTank(btRigidBody *chassis) : CBRaycastVehicle(chassis)
 {
-  currentSteerAngle = 0.0;
-  currentDriveTorque = 0.0;
-  steerSensitivity = 100000.0;
 }
 
 void RaycastTank::addDriveWheel(const DriveWheelData &data)
@@ -197,6 +227,13 @@ void RaycastTank::SpinWheel::updateMotionState()
 
 void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
 {
+  // Reset drive torques, actuators will add to the value
+  for (auto w : driveWheels)
+    w->setTorque(0);
+
+  for (auto a: actuators)
+    a.second->actuate(timeStep);
+
   const btTransform &bt = chassisBody->getCenterOfMassTransform();
   const btMatrix3x3 &br = bt.getBasis();
 
@@ -220,16 +257,13 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
 
   for (unsigned int i = 0; i < driveWheels.size(); ++i)
     {
-      btScalar steerTorque = currentSteerAngle * steerSensitivity;
       bool airborne = i & 1 ? (left_side_force == 0.0) : (right_side_force == 0.0);
-      steerTorque *= i & 1 ? 1.0 : -1.0;
 
       driveWheels[i]->updateContact(collisionWorld, chassisBody);
       /* To short suspension length on drive wheel? */
       assert((not airborne) ? (not driveWheels[i]->isAirborne()) : true);
 
       driveWheels[i]->setSuspensionForce(i & 1 ? left_side_force : right_side_force);
-      driveWheels[i]->setTorque((currentDriveTorque * 40.0) + steerTorque);
       driveWheels[i]->setAirborne(airborne);
       driveWheels[i]->updateTread(timeStep, chassisBody);
     }
@@ -280,16 +314,6 @@ void RaycastTank::updateAction(btCollisionWorld* collisionWorld, btScalar timeSt
   assert(not (std::isnan(chassisBody->getAngularVelocity()[0])
 	      or std::isnan(chassisBody->getAngularVelocity()[1])
 	      or std::isnan(chassisBody->getAngularVelocity()[2])));
-}
-
-void RaycastTank::setDriveTorques(const std::vector<btScalar> &torques)
-{
-  currentDriveTorque = torques[0] * 2.0;
-}
-
-void RaycastTank::setSteer(btScalar radians_right)
-{
-  currentSteerAngle = radians_right;
 }
 
 CBRaycastVehicle::Wheel *RaycastTank::addWheel(const SuspensionWheelData &data)
