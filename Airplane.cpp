@@ -32,84 +32,28 @@ AirplaneVehicle::AirplaneData Airplane::DataToAirplaneVehicleData(const Airplane
   return d;
 }
 
-Airplane::Airplane(const AirplaneData &data, Ogre::Root *root)
+Airplane::Airplane() : Car() {}
+
+Airplane *Airplane::load(const AirplaneData &data, Ogre::Root *root)
 {
-  controlData.thrust = 0.0;
-  controlData.rudder = 0.0;
-  controlData.elevator = 0.0;
-  controlData.rudder = 0.0;
-  controlData.aileron = 0.0;
+  Car::load(static_cast<const CarData &>(data), root);
+
+  AirplaneVehicle::AirplaneData d = DataToAirplaneVehicleData(data);
+  static_cast<AirplaneVehicle*>(rayCasters.back())->setData(d);
+
   hardpoints = NULL;
-
-  Ogre::SceneManager *mgr = root->getSceneManager("SceneManager");
-
-  // create entity
-  Ogre::Entity *ent = mgr->createEntity(data.name + "_ent", data.bodies[0].meshname);
-
-  //ent->setMaterialName("shadow", "Terrain/Default");
-
-  // create scene node
-  node = mgr->getRootSceneNode()->createChildSceneNode(data.bodies[0].name + "_node");
-  node->attachObject(ent);
-
-  // create collision shape
-  btCollisionShape* chassis_shape = new btBoxShape(btVector3(data.bodies[0].size.x / 2.0,
-							     data.bodies[0].size.y / 2.0,
-							     data.bodies[0].size.z / 2.0));
-  btCompoundShape *comp = new btCompoundShape();
-
-  // Transform of hull collision shape
-  btTransform chassis_shape_trans;
-  chassis_shape_trans.setIdentity();
-  chassis_shape_trans.setOrigin(btVector3(0.0, 0.0, 0.0));
-  comp->addChildShape(chassis_shape_trans, chassis_shape);
-  shape = comp;
-
-  // create fuselage rigid body
-  btTransform tr;
-  tr.setIdentity();
-  tr.setOrigin(btVector3(data.position.x, data.position.y, data.position.z));
-  tr.getBasis().setEulerZYX(data.rotation.x, data.rotation.y, data.rotation.z);
-
-  bodies.push_back(Physics::CreateRigidBody(data.bodies[0].mass, tr, shape, node));
-  airplane = new AirplaneVehicle(bodies[0], DataToAirplaneVehicleData(data));
-  rayCasters.push_back(airplane);
-
-  for (unsigned int i = 0; i < data.bodies[0].suspensionWheels.size(); ++i)
-    {
-      const SuspensionWheelData &wd = data.bodies[0].suspensionWheels[i];
-      Ogre::Entity *tent = mgr->createEntity(data.bodies[0].name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_ent", "a10-tire.mesh");
-      Ogre::SceneNode *tnode = node->createChildSceneNode(data.bodies[0].name + "tire" + Ogre::String(1, static_cast<char>(i + 39)) + "_node");
-      tnode->attachObject(tent);
-      btVector3 wheelpos(wd.relPos + (wd.direction * wd.suspensionLength));
-      tnode->setPosition(Ogre::Vector3(wheelpos.x(), wheelpos.y(), wheelpos.z()));
-      wheelNodes.insert(std::make_pair(rayCasters[0]->addWheel(wd), tnode));
-    }
+  return this;
 }
 
-AirplaneVehicle::AirplaneVehicle(btRigidBody *fuselage, const AirplaneData &data) :
-    CBRaycastVehicle(fuselage), d(data)
+CBRaycastVehicle *Airplane::createRaycastVehicle(btRigidBody *b)
 {
-  controlData.thrust = 0.0;
-  controlData.rudder = 0.0;
-  controlData.elevator = 0.0;
-  controlData.rudder = 0.0;
-  controlData.aileron = 0.0;
+ return new AirplaneVehicle(b);
 }
 
-void AirplaneVehicle::applyThrust(btScalar timeStep)
-{
-  // TODO: use apply central impulse
-  //unsigned short num_engines = d.engines.size();
-  btScalar thrust(0);
-  for (std::vector<Engine>::const_iterator i = d.engines.begin(); i != d.engines.end(); ++i)
-    {
-      const Engine *e = &(*i);
-      thrust += controlData.thrust * e->maxThrust;
-    }
 
-  HeloUtils::LocalApplyImpulse(chassisBody, btVector3(0.0, 0.0, thrust * timeStep),
-                               btVector3(0.0, 0.0, 0.0));
+AirplaneVehicle::AirplaneVehicle(btRigidBody *fuselage) :
+    CBRaycastVehicle(fuselage)
+{
 }
 
 void AirplaneVehicle::applyLift(btScalar timeStep, const btVector3 &localVelocity)
@@ -132,11 +76,10 @@ void AirplaneVehicle::applyLift(btScalar timeStep, const btVector3 &localVelocit
   btVector3 liftVec(fw_vel.cross(btVector3(1.0, 0.0, 0.0)));
   liftVec.normalize();
 
-  //std::cout << "Lift force: " << lift_force << std::endl;
+  // std::cout << "Lift force: " << lift_force << std::endl;
   HeloUtils::LocalApplyImpulse(chassisBody,
                                liftVec * lift_force * timeStep,
                                btVector3(0.0, 0.0, 0.0));
-
 }
 
 void AirplaneVehicle::applyDrag(btScalar timeStep, const btVector3 &localVelocity)
@@ -167,25 +110,22 @@ void AirplaneVehicle::applyRudders(btScalar timeStep, const btVector3 &localVelo
   btScalar dpitch(localAngularVelocity.getX());
   btScalar dyaw(localAngularVelocity.getY());
 
-  btScalar elevator = localVelocity.getZ() * d.elevatorSensitivity * controlData.elevator;
   btScalar pitch_correction((localVelocity.getY() * -d.pitchStability1)
                             + (HeloUtils::POW2(dpitch) * d.pitchStability2
                                * (dpitch < 0.0 ? 1.0 : -1.0)));
   HeloUtils::LocalApplyTorqueImpulse(chassisBody,
-                                     btVector3((elevator + pitch_correction) * timeStep, 0, 0));
+                                     btVector3(pitch_correction * timeStep, 0, 0));
 
-  btScalar rudder(localVelocity.getZ() * d.rudderSensitivity * controlData.rudder);
   btScalar yaw_correction((localVelocity.getX() * d.yawStability1)
                           + (HeloUtils::POW2(dyaw) * d.yawStability2
                              * (dyaw < 0.0 ? 1.0 : -1.0)));
   HeloUtils::LocalApplyTorqueImpulse(chassisBody,
-                                     btVector3(0, (rudder + yaw_correction)* timeStep, 0));
+                                     btVector3(0, yaw_correction * timeStep, 0));
 
-  btScalar aileron(localVelocity.getZ() * d.aileronSensitivity * controlData.aileron);
   btScalar roll_correction(HeloUtils::POW2(droll) * d.rollStability
                            * (droll < 0.0 ? 1.0 : -1.0));
   HeloUtils::LocalApplyTorqueImpulse(chassisBody,
-                                     btVector3(0, 0, (aileron + roll_correction) * timeStep));
+                                     btVector3(0, 0, roll_correction * timeStep));
 }
 
 void AirplaneVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar timeStep)
@@ -198,17 +138,9 @@ void AirplaneVehicle::updateAction(btCollisionWorld* collisionWorld, btScalar ti
 
   const btVector3 local_vel(inv_trans * vel);
   const btVector3 local_avel(inv_trans * avel);
-  applyThrust(timeStep);
   applyLift(timeStep, local_vel);
   applyDrag(timeStep, local_vel);
   applyRudders(timeStep, local_vel, local_avel);
-}
-
-void AirplaneVehicle::setInput(const AirplaneVehicle::ControlData &cd)
-{
-  // Does it matter ?
-#warning Not thread safe, AirplaneVehicle lives in physics thread
-  controlData = cd;
 }
 
 Controller *Airplane::createController(OIS::Object *dev)
@@ -229,14 +161,12 @@ bool AirplaneJoystickController::axisMoved(const OIS::JoyStickEvent &e, int)
   if (not active)
     return true;
 
-  AirplaneVehicle::ControlData &cd = airplane.getControlData();
-  cd.thrust = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  cd.aileron = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  cd.elevator = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
-  cd.rudder = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  // AirplaneVehicle::ControlData &cd = airplane.getControlData();
+  // cd.thrust = -e.state.mAxes[1].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  // cd.aileron = e.state.mAxes[3].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  // cd.elevator = -e.state.mAxes[2].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
+  // cd.rudder = -e.state.mAxes[0].abs / static_cast<float>(OIS::JoyStick::MAX_AXIS);
 
-  airplane.setInput();
-  //airplane.setSteer(cd.rudder * -0.5);
    return true;
 }
 
@@ -248,50 +178,6 @@ void AirplaneJoystickController::setActive(bool a)
 
 bool AirplaneKeyController::keyPressed(const OIS::KeyEvent& e)
 {
-  AirplaneVehicle::ControlData &cd = airplane.getControlData();
-  if (e.key == OIS::KC_W)
-    cd.thrust += 0.1;
-  else if (e.key == OIS::KC_S)
-    cd.thrust -= 0.1;
-
-  if (cd.thrust > 1.0)
-    cd.thrust = 1.0;
-  else if (cd.thrust < -0.0)
-    cd.thrust = 0.0;
-
-  if (e.key == OIS::KC_A)
-    cd.aileron += 0.1;
-  else if (e.key == OIS::KC_D)
-    cd.aileron -= 0.1;
-
-  if (cd.aileron > 1.0)
-    cd.aileron = 1.0;
-  else if (cd.aileron < -0.0)
-    cd.aileron = 0.0;
-
-  if (e.key == OIS::KC_L)
-    cd.rudder += 0.1;
-  else if (e.key == OIS::KC_J)
-    cd.rudder -= 0.1;
-
-  if (cd.rudder > 1.0)
-    cd.rudder = 1.0;
-  else if (cd.rudder < -0.0)
-    cd.rudder = 0.0;
-
-
-  if (e.key == OIS::KC_I)
-    cd.elevator += 0.1;
-  else if (e.key == OIS::KC_K)
-    cd.elevator -= 0.1;
-
-  if (cd.elevator > 1.0)
-    cd.elevator = 1.0;
-  else if (cd.elevator < -0.0)
-    cd.elevator = 0.0;
-
-  airplane.setInput();
-
   return true;
 }
 
@@ -305,35 +191,48 @@ void AirplaneKeyController::update(float timeDelta)
   if (not active)
     return;
 
-  AirplaneVehicle::ControlData &cd = airplane.getControlData();
+  if (keyboard.isKeyDown(OIS::KC_1))
+    throttle.setValue(0.1f);
+  else if (keyboard.isKeyDown(OIS::KC_2))
+    throttle.setValue(0.2f);
+  else if (keyboard.isKeyDown(OIS::KC_3))
+    throttle.setValue(0.3f);
+  else if (keyboard.isKeyDown(OIS::KC_4))
+    throttle.setValue(0.4f);
+  else if (keyboard.isKeyDown(OIS::KC_5))
+    throttle.setValue(0.5f);
+  else if (keyboard.isKeyDown(OIS::KC_6))
+    throttle.setValue(0.6f);
+  else if (keyboard.isKeyDown(OIS::KC_7))
+    throttle.setValue(0.7f);
+  else if (keyboard.isKeyDown(OIS::KC_8))
+    throttle.setValue(0.8f);
+  else if (keyboard.isKeyDown(OIS::KC_9))
+    throttle.setValue(0.9f);
+  else if (keyboard.isKeyDown(OIS::KC_0))
+    throttle.setValue(1.0f);
+  else if (keyboard.isKeyDown(OIS::KC_2))
+    throttle.setValue(0.2f);
 
   if (keyboard.isKeyDown(OIS::KC_W))
-    cd.thrust = 1.0;
+    pitch.setValue(1.0);
+  else if (keyboard.isKeyDown(OIS::KC_S))
+    pitch.setValue(-1.0);
   else
-    cd.thrust = 0.0;
-
-  if (keyboard.isKeyDown(OIS::KC_A))
-    cd.rudder = 1.0;
-  else if (keyboard.isKeyDown(OIS::KC_D))
-    cd.rudder = -1.0;
-  else
-    cd.rudder = 0.0;
-
-  if (keyboard.isKeyDown(OIS::KC_I))
-    cd.elevator = 1.0;
-  else if (keyboard.isKeyDown(OIS::KC_K))
-    cd.elevator = -1.0;
-  else
-    cd.elevator = 0.0;
+    pitch.setValue(0.0);
 
   if (keyboard.isKeyDown(OIS::KC_J))
-    cd.aileron = -1.0;
+    yaw.setValue(1.0);
   else if (keyboard.isKeyDown(OIS::KC_L))
-    cd.aileron = 1.0;
+    yaw.setValue(-1.0);
   else
-    cd.aileron = 0.0;
+    yaw.setValue(0.0);
 
-  airplane.setInput();
+  if (keyboard.isKeyDown(OIS::KC_D))
+    roll.setValue(1.0);
+  else if (keyboard.isKeyDown(OIS::KC_A))
+    roll.setValue(-1.0);
+  else
+    roll.setValue(0.0);
 
-  //airplane.setSteer(cd.rudder * -0.5);
 }

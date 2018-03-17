@@ -1,8 +1,105 @@
 <Vehicle
    class="Airplane"
-   meshname="a10.mesh"
    weight="11321">
-  <size x="17.53" y="2.47" z="16.26"/>
+
+  <bodies>
+    <body
+        name="Fuselage"
+        meshname="a10.mesh"
+        weight="11321">
+      <relativePosition x="0.0" y="0.0" z="0.0"/>
+      <size x="17.53" y="2.47" z="16.26"/>
+      <collisionShapeOffset x="0.0" y="0.5" z="0.0"/>
+
+      <actuator
+          name="Throttle"
+          type="objectforce">
+        <param name="force" value="80640"/>
+        <vparam name="direction" x="0" y="0" z="1.0"/>
+      </actuator>
+
+      <actuator
+          name="Yaw"
+          type="objecttorque">
+        <param name="torque" value="30000"/>
+        <vparam name="axis" x="0" y="1.0" z="0.0"/>
+      </actuator>
+
+      <actuator
+          name="Pitch"
+          type="objecttorque">
+        <param name="torque" value="200000"/>
+        <vparam name="axis" x="1.0" y="0.0" z="0.0"/>
+      </actuator>
+
+      <actuator
+          name="Roll"
+          type="objecttorque">
+        <param name="torque" value="500000"/>
+        <vparam name="axis" x="0.0" y="0.0" z="1.0"/>
+      </actuator>
+
+      <wheel
+          type="suspension"
+          name="FrontWheel"
+          meshname="a10-tire.mesh"
+          spring="50000"
+          dampUp="5000"
+          dampDown="5000"
+          suspensionLength="2.5"
+          maxLengthUp="1.0"
+          maxLengthDown="3.5"
+          radius="0.4572"
+          steerCoeff="1.0"
+          driveCoeff="0.0"
+          brakeCoeff="1.0"
+          momentOfInertia="100">
+        <relativePosition x="0.0" y="-0.1" z="5.785"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
+
+      <wheel
+          type="suspension"
+          name="RightWheel"
+          meshname="a10-tire.mesh"
+          spring="200000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="2.5"
+          maxLengthUp="1.0"
+          maxLengthDown="3.5"
+          radius="0.4572"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="1.0"
+          momentOfInertia="100">
+        <relativePosition x="-2.65" y="-0.1" z="-0.5"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
+
+      <wheel
+          name="LeftWheel"
+          type="suspension"
+          meshname="a10-tire.mesh"
+          spring="200000"
+          dampUp="50000"
+          dampDown="50000"
+          suspensionLength="2.5"
+          maxLengthUp="1.0"
+          maxLengthDown="3.5"
+          radius="0.4572"
+          steerCoeff="0.0"
+          driveCoeff="0.0"
+          brakeCoeff="1.0"
+          momentOfInertia="100">
+        <relativePosition x="2.65" y="-0.1" z="-0.5"/>
+        <direction x="0" y="-1" z="0"/>
+        <axle x="1" y="0" z="0"/>
+      </wheel>
+    </body>
+  </bodies>
 
   <engines>
     <engine maxthrust="40320">
@@ -54,57 +151,4 @@
       </hardpoint>
     </conf>
   </hardpoints>
-
-  <wheels>
-    <wheel
-       spring="50000"
-       dampUp="5000"
-       dampDown="5000"
-       suspensionLength="2.5"
-       maxLengthUp="1.0"
-       maxLengthDown="3.5"
-       radius="0.4572"
-       steerCoeff="1.0"
-       driveCoeff="0.0"
-       brakeCoeff="1.0"
-       momentOfInertia="100">
-      <relativePosition x="0.0" y="-0.1" z="5.785"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
-
-    <wheel
-       spring="200000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="2.5"
-       maxLengthUp="1.0"
-       maxLengthDown="3.5"
-       radius="0.4572"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="1.0"
-       momentOfInertia="100">
-      <relativePosition x="-2.65" y="-0.1" z="-0.5"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
-
-    <wheel
-       spring="200000"
-       dampUp="50000"
-       dampDown="50000"
-       suspensionLength="2.5"
-       maxLengthUp="1.0"
-       maxLengthDown="3.5"
-       radius="0.4572"
-       steerCoeff="0.0"
-       driveCoeff="0.0"
-       brakeCoeff="1.0"
-       momentOfInertia="100">
-      <relativePosition x="2.65" y="-0.1" z="-0.5"/>
-      <direction x="0" y="-1" z="0"/>
-      <axle x="1" y="0" z="0"/>
-    </wheel>
-  </wheels>
 </Vehicle>

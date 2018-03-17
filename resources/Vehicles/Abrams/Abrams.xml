@@ -38,6 +38,8 @@
               name = "turret"
               maxImpulse="1000"
               initialTarget="0"
+              maxAngle="360"
+              minAngle="-360"
               dt="1.0"/>
         </joint>
 
@@ -55,11 +57,13 @@
             <parentAxis x="1.0" y="0.0" z="0.0"/>
             <childTranslation x="0.0" y="0.0" z="-1.686"/>
             <childAxis x="1.0" y="0.0" z="0"/>
-            <!--limit high="45" low="-45"/-->
+            <limit high="30" low="-1"/>
             <actuator
                 name = "barell"
                 maxImpulse="1000"
                 initialTarget="0"
+                maxAngle="30"
+                minAngle="-1"
                 dt="1.0"/>
           </joint>
 

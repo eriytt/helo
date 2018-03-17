@@ -212,6 +212,8 @@ Car::HingeConstraint *loadHingeConstraint(TiXmlNode *c)
       hc->motorMaxImpulse = XMLUtils::GetAttribute<float>("maxImpulse", actuator);
       hc->motorInitialTarget = XMLUtils::GetAttribute<float>("initialTarget", actuator);
       hc->motorDT = XMLUtils::GetAttribute<float>("dt", actuator);
+      hc->motorMaxAngle = XMLUtils::GetAttribute<float>("maxAngle", actuator);
+      hc->motorMinAngle = XMLUtils::GetAttribute<float>("minAngle", actuator);
     }
 
   return hc;
@@ -275,13 +277,15 @@ Car::BodyData loadBody(TiXmlNode *n)
            std::string("Wheel cannot have type '") + type + "'");
     }
 
-    for (int i = 0; (c = n->IterateChildren("actuator", c)); ++i)
+    for (;(c = n->IterateChildren("actuator", c));)
     {
       std::string type = XMLUtils::GetAttribute<std::string>("type", c);
       if (type != "wheeltorque"
           and type != "wheelangle"
           and type != "treadtorque"
-          and type != "treadtorquediff")
+          and type != "treadtorquediff"
+          and type != "objecttorque"
+          and type != "objectforce")
         throw Configuration::ConfigurationError
           (c->GetDocument()->ValueStr(),
            std::string("Actuator cannot have type '") + type + "'");
@@ -289,6 +293,22 @@ Car::BodyData loadBody(TiXmlNode *n)
       Car::Actuator a;
       a.type = type;
       a.name = XMLUtils::GetAttribute<std::string>("name", c);
+
+      TiXmlNode *p = NULL;
+      for (; (p = c->IterateChildren("param", p));)
+        {
+          std::string pname = XMLUtils::GetAttribute<std::string>("name", p);
+          Ogre::Real pval = XMLUtils::GetAttribute<float>("value", p);
+          a.params.push_back(Car::Actuator::ScalarParam(pname, pval));
+        }
+
+      for (; (p = c->IterateChildren("vparam", p));)
+        {
+          std::string pname = XMLUtils::GetAttribute<std::string>("name", p);
+          Ogre::Vector3 pval = XMLUtils::GetVectorParam<Ogre::Vector3>(p);
+          a.vParams.push_back(Car::Actuator::VectorParam(pname, pval));
+        }
+
       data.actuators.push_back(a);
     }
 
@@ -404,10 +424,19 @@ void Configuration::ParsePointList(TiXmlNode *parent, std::vector<std::pair<Ogre
 
 Vehicle *Configuration::loadAirplane(TiXmlNode *n, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)
 {
-  // Airplane::AirplaneData ad;
-  // ad.position = position;
-  // ad.rotation = rotation;
-  // ad.name = name;
+  Airplane::AirplaneData ad;
+  ad.position = position;
+  ad.rotation = rotation;
+  ad.name = name;
+
+  TiXmlNode *bsn = n->IterateChildren("bodies", NULL);
+  if (not bsn)
+    throw ConfigurationError(n->GetDocument()->ValueStr(),
+			     n->ValueStr() + " has no child child named 'bodies'");
+  TiXmlNode *bn = NULL;
+  for (int i = 0; (bn = bsn->IterateChildren(std::string("body"), bn)); ++i)
+    ad.bodies.push_back(loadBody(bn));
+
 
   // ad.meshname = XMLUtils::GetAttribute<std::string>("meshname", n);
   // ad.weight = XMLUtils::GetAttribute<float>("weight", n);
@@ -446,24 +475,24 @@ Vehicle *Configuration::loadAirplane(TiXmlNode *n, const std::string &name, cons
   //       ad.engineData[i].maxThrust = XMLUtils::GetAttribute<float>("maxthrust", en);
   //     }
 
-  //   TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
-  //   ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
-  //   ad.dragPolarD0 = XMLUtils::GetAttribute<float>("dragPolarD0", dyn);
-  //   ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
-  //   ad.wingAngle = XMLUtils::GetAttribute<float>("wingangle", dyn);
-  //   ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
-  //   ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
-  //   ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);
+    TiXmlNode *dyn = XMLUtils::AssertGetNode(n, "aerodynamics");
+    ad.dragPolarK = XMLUtils::GetAttribute<float>("dragPolarK", dyn);
+    ad.dragPolarD0 = XMLUtils::GetAttribute<float>("dragPolarD0", dyn);
+    ad.wingArea = XMLUtils::GetAttribute<float>("wingarea", dyn);
+    ad.wingAngle = XMLUtils::GetAttribute<float>("wingangle", dyn);
+    ad.rudderSensitivity = XMLUtils::GetAttribute<float>("rudderSensitivity", dyn);
+    ad.elevatorSensitivity = XMLUtils::GetAttribute<float>("elevatorSensitivity", dyn);
+    ad.aileronSensitivity = XMLUtils::GetAttribute<float>("aileronSensitivity", dyn);
 
-  //   TiXmlNode *stab = XMLUtils::AssertGetNode(n, "aerodynamics", "stability");
-  //   ad.pitchStability1 = XMLUtils::GetAttribute<float>("pitch1", stab);
-  //   ad.pitchStability2 = XMLUtils::GetAttribute<float>("pitch2", stab);
-  //   ad.yawStability1 = XMLUtils::GetAttribute<float>("yaw1", stab);
-  //   ad.yawStability2 = XMLUtils::GetAttribute<float>("yaw2", stab);
-  //   ad.rollStability = XMLUtils::GetAttribute<float>("roll", stab);
-      
-  //   ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
-  //                  ad.cl_alpha_values);
+    TiXmlNode *stab = XMLUtils::AssertGetNode(n, "aerodynamics", "stability");
+    ad.pitchStability1 = XMLUtils::GetAttribute<float>("pitch1", stab);
+    ad.pitchStability2 = XMLUtils::GetAttribute<float>("pitch2", stab);
+    ad.yawStability1 = XMLUtils::GetAttribute<float>("yaw1", stab);
+    ad.yawStability2 = XMLUtils::GetAttribute<float>("yaw2", stab);
+    ad.rollStability = XMLUtils::GetAttribute<float>("roll", stab);
+
+    ParsePointList(XMLUtils::AssertGetNode(n, "aerodynamics", "liftcoefficient"),
+                   ad.cl_alpha_values);
 
   //   TiXmlNode *hpsn = XMLUtils::AssertGetNode(n, "hardpoints");
   //   TiXmlNode *hpcfg = NULL;
@@ -485,11 +514,10 @@ Vehicle *Configuration::loadAirplane(TiXmlNode *n, const std::string &name, cons
 
     
 
-  // Airplane *airplane = new Airplane(ad, root);
-  // physics->addObject(airplane);
-  // controllables.push_back(airplane);
-  // return airplane;
-  return nullptr;
+  Airplane *airplane = (new Airplane)->load(ad, root);
+  physics->addObject(airplane);
+  controllables.push_back(airplane);
+  return airplane;
 }
 
 Vehicle *Configuration::loadVehicle(const std::string &type, const std::string &name, const Ogre::Vector3 &position, const Ogre::Vector3 &rotation)

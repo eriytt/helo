@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "Car.h"
+#include "Airplane.h"
 
 SimpleCarAutoController::SimpleCarAutoController(Vehicle *v) : targetSpeed(0.0)
 {
@@ -20,6 +21,27 @@ void SimpleCarAutoController::update(float timeDelta)
   //   car->setThrottle(0.3);
   // else
   //   car->setThrottle(0.0);
+}
+
+AirplaneKeyController::AirplaneKeyController(OIS::Keyboard &kb, Airplane &ap)
+  : keyboard(kb), airplane(ap)
+{
+  Actuator *act = ap.getActuator("Fuselage.Throttle");
+  if (act)
+    act->setControl(&throttle);
+
+  act = ap.getActuator("Fuselage.Yaw");
+  if (act)
+    act->setControl(&yaw);
+
+  act = ap.getActuator("Fuselage.Pitch");
+  if (act)
+    act->setControl(&pitch);
+
+  act = ap.getActuator("Fuselage.Roll");
+  if (act)
+    act->setControl(&roll);
+
 }
 
 CarKeyController::CarKeyController(OIS::Keyboard &kb, Car &c)
@@ -44,5 +66,14 @@ CarKeyController::CarKeyController(OIS::Keyboard &kb, Car &c)
   act = car.getActuator("Body.Steer");
   if (act)
     act->setControl(&steer);
+
+
+  act = car.getActuator("Back.Front.Hoe.hoe");
+  if (act)
+    act->setControl(&hoe);
+
+  act = car.getActuator("Back.Front.Hoe.Bucket.bucket");
+  if (act)
+    act->setControl(&bucket);
 
 }

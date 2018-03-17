@@ -125,18 +125,7 @@ inline btScalar LongitudinalSlip(btScalar speed, btScalar tire_speed)
     }
 }
 
-class Actuator
-{
-protected:
-  Control *control;
-
-public:
-  Actuator(): control(nullptr) {}
-  Actuator(Control *control): control(control) {}
-  void setControl(Control *c) {control = c;}
-  virtual void actuate(btScalar step) = 0;
-};
-
+class Actuator;
 
 class CBRaycastVehicle : public btActionInterface
 {
@@ -263,39 +252,6 @@ protected:
   virtual void updateWheelTransformsWS(btWheelInfo& wheel, bool interpolatedTransform);
 };
 
-class WheelAngleActuator: public Actuator
-{
-private:
-  std::vector<CBRaycastVehicle::Wheel*> wheels;
-
-public:
-  WheelAngleActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels)
-    : Actuator(), wheels(wheels) {}
-  virtual void actuate(btScalar step);
-};
-
-class WheelTorqueActuator: public Actuator
-{
-private:
-  std::vector<CBRaycastVehicle::Wheel*> wheels;
-
-public:
-  WheelTorqueActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels)
-    : Actuator(), wheels(wheels) {}
-  virtual void actuate(btScalar step);
-};
-
-
-class HingeActuator: public Actuator
-{
-private:
-  btHingeConstraint *hinge;
-
-public:
-  HingeActuator(Control *c, btHingeConstraint *h) : Actuator(c), hinge(h) {}
-  virtual void actuate(btScalar step);
-};
-
 
 class Car : public PhysicsObject, public Controllable, public HeloUtils::Trackable, public Vehicle
 {
@@ -305,8 +261,25 @@ public:
   typedef CBRaycastVehicle::DriveWheelData DriveWheelData;
 
   struct Actuator {
+    struct Param {
+      std::string name;
+      Param(const std::string &name) : name(name) {}
+    };
+
+    struct ScalarParam : Param {
+      Ogre::Real value;
+      ScalarParam(const std::string &name, Ogre::Real value) : Param(name), value(value) {}
+    };
+
+    struct VectorParam : Param {
+      Ogre::Vector3 value;
+      VectorParam(const std::string &name, Ogre::Vector3 value) : Param(name), value(value) {}
+    };
+
     std::string name;
     std::string type;
+    std::vector<ScalarParam> params;
+    std::vector<VectorParam> vParams;
   };
 
   struct Constraint {
@@ -316,6 +289,9 @@ public:
     virtual ~Constraint() {}
   };
 
+  typedef  std::vector<Car::Actuator::ScalarParam> ActuatorParamList;
+  typedef  std::vector<Car::Actuator::VectorParam> ActuatorVParamList;
+
   struct HingeConstraint : public Constraint {
     Ogre::Vector3 parentAxis;
     Ogre::Vector3 childAxis;
@@ -324,6 +300,8 @@ public:
     float motorMaxImpulse;
     float motorInitialTarget;
     float motorDT;
+    float motorMaxAngle;
+    float motorMinAngle;
     virtual ~HingeConstraint() {}
   };
 
@@ -374,8 +352,6 @@ public:
   btCollisionShape *shape;
   std::vector<btRigidBody*> bodies;
   std::map<RayCaster::Wheel*, Ogre::SceneNode*> wheelNodes;
-  btHingeConstraint *pivot;
-
 
   std::vector<btTypedConstraint *> constraints;
 
@@ -438,6 +414,85 @@ public:
   virtual void physicsUpdate(float step) {}
   Controller *createController(OIS::Object *dev);
   ::Actuator *getActuator(const std::string &id);
+};
+
+class Actuator
+{
+protected:
+  Control *control;
+
+public:
+  Actuator(): control(nullptr) {}
+  Actuator(Control *control): control(control) {}
+  void setControl(Control *c) {control = c;}
+  virtual void actuate(btScalar step) = 0;
+};
+
+class ObjectForceActuator: public Actuator
+{
+private:
+  btRigidBody *object;
+  btVector3 at;
+  btVector3 direction;
+  btScalar force;
+
+public:
+  ObjectForceActuator(btRigidBody *b,
+                      const Car::ActuatorParamList &params,
+                      const Car::ActuatorVParamList &vParams);
+  virtual void actuate(btScalar step);
+};
+
+class ObjectTorqueActuator: public Actuator
+{
+private:
+  btRigidBody *object;
+  btVector3 axle;
+  btScalar torque;
+
+public:
+  ObjectTorqueActuator(btRigidBody *b,
+                       const Car::ActuatorParamList &params,
+                       const Car::ActuatorVParamList &vParams);
+  virtual void actuate(btScalar step);
+};
+
+class WheelAngleActuator: public Actuator
+{
+private:
+  std::vector<CBRaycastVehicle::Wheel*> wheels;
+
+public:
+  WheelAngleActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels,
+                     const Car::ActuatorParamList &params,
+                     const Car::ActuatorVParamList &vParams)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
+class WheelTorqueActuator: public Actuator
+{
+private:
+  std::vector<CBRaycastVehicle::Wheel*> wheels;
+
+public:
+  WheelTorqueActuator(const std::vector<CBRaycastVehicle::Wheel*> &wheels,
+                      const Car::ActuatorParamList &params,
+                      const Car::ActuatorVParamList &vParams)
+    : Actuator(), wheels(wheels) {}
+  virtual void actuate(btScalar step);
+};
+
+
+class HingeActuator: public Actuator
+{
+private:
+  btHingeConstraint *hinge;
+  float max, min;
+
+public:
+  HingeActuator(btHingeConstraint *h, float max, float min) : Actuator(), hinge(h), max(max), min(min) {}
+  virtual void actuate(btScalar step);
 };
 
 #endif /*CAR_H*/

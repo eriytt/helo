@@ -221,6 +221,17 @@ nosuchattribute:
      return res;
   }
 
+  template <typename T>
+  T GetVectorParam(TiXmlNode* node)
+  {
+     T res;
+     res.x = GetAttribute<float>("x", node);
+     res.y = GetAttribute<float>("y", node);
+     res.z = GetAttribute<float>("z", node);
+
+     return res;
+  }
+
   unsigned int GetNumChildren(const TiXmlNode *parent, const std::string &name = std::string(""))
   {
     const TiXmlNode *node = NULL;

@@ -1,5 +1,18 @@
 <Mission>
   <Vehicles>
+        <Vehicle type="A10" name="a10:0">
+      <position x="1880.96" y="4.0" z="1750.3"/>
+      <rotation x="5" y="130" z="0"/>
+      <armaments hardpointConfig="0">
+        <armament type="DumbBomb" hardpoint="0"/>
+      </armaments>
+    </Vehicle>
+
+    <Vehicle type="HitachiZW310" name="hitachi">
+      <position x="1785.00" y="2.5" z="1635.0"/>
+      <rotation x="0" y="0" z="0"/>
+    </Vehicle>
+
     <Vehicle type="Abrams" name="abrams:0">
       <position x="1790.96" y="2.0" z="1640.0"/>
       <rotation x="0" y="70" z="0"/>
@@ -10,9 +23,5 @@
       <rotation x="0" y="70" z="0"/>
     </Vehicle>
 
-    <Vehicle type="HitachiZW310" name="hitachi">
-      <position x="1785.00" y="2.5" z="1635.0"/>
-      <rotation x="0" y="0" z="0"/>
-    </Vehicle>
   </Vehicles>
 </Mission>

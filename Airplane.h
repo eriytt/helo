@@ -37,30 +37,19 @@ public:
     btScalar rollStability;
   };
 
-public:
-  typedef struct {
-    float thrust;
-    float rudder;
-    float elevator;
-    float aileron;
-  } ControlData;
-
-
 protected:
   AirplaneData d;
-  ControlData controlData;
 
 protected:
-  virtual void applyThrust(btScalar timeStep);
   virtual void applyLift(btScalar timeStep, const btVector3 &localVelocity);
   virtual void applyDrag(btScalar timeStep, const btVector3 &localVelocity);
   virtual void applyRudders(btScalar timeStep, const btVector3 &localVelocity,
                             const btVector3 &localAngularVelocity);
 
 public:
-  AirplaneVehicle(btRigidBody *fuselage, const AirplaneData &data);
+  AirplaneVehicle(btRigidBody *fuselage);
   virtual void updateAction(btCollisionWorld* collisionWorld, btScalar step);
-  void setInput(const ControlData &cd);
+  void setData(const AirplaneData &data) {d = data;}
 };
 
 
@@ -80,14 +69,13 @@ private:
 
 protected:
   AirplaneVehicle *airplane;
-  AirplaneVehicle::ControlData controlData;
 
+protected:
+    virtual CBRaycastVehicle *createRaycastVehicle(btRigidBody *b);
 public:
-  Airplane(const AirplaneData &data, Ogre::Root *root);
-  //  void setThrottle(Ogre::Real fraction);
+  Airplane();
+  virtual Airplane *load(const AirplaneData &data, Ogre::Root *root);
   virtual Controller *createController(OIS::Object *dev);
-  void setInput() {airplane->setInput(controlData);}
-  AirplaneVehicle::ControlData &getControlData() {return controlData;}
 };
 
 #endif // AIRPLANE_H

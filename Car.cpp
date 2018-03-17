@@ -21,6 +21,57 @@ inline btScalar SlipAngle(btScalar speed, btScalar slip_speed)
   return atan(slip_speed / speed);
 }
 
+template<typename R, typename LT>
+R GetParam(const std::string &name, const LT &pList, const R &defaultValue)
+{
+  decltype(pList.end()) v;
+  if ((v = std::find_if(pList.begin(), pList.end(),
+                        [&name](auto p){return p.name == name;})) != pList.end())
+    return (*v).value;
+  return defaultValue;
+}
+
+ObjectForceActuator::ObjectForceActuator(btRigidBody *b,
+                                         const Car::ActuatorParamList &params,
+                                         const Car::ActuatorVParamList &vParams)
+  : Actuator(), object(b)
+{
+  force = GetParam("force", params, 0.0f);
+  at = HeloUtils::Ogre2BulletVector(GetParam("at", vParams, Ogre::Vector3(0.0, 0.0, 0.0)));
+  direction = HeloUtils::Ogre2BulletVector(GetParam("at", vParams, Ogre::Vector3(0.0, 0.0, 1.0)));
+  direction.normalize();
+}
+
+
+void ObjectForceActuator::actuate(btScalar step)
+{
+  if (not control)
+    return;
+
+  btScalar v = control->getValue();
+  HeloUtils::LocalApplyImpulse(object, v * force * step * direction, at);
+}
+
+ObjectTorqueActuator::ObjectTorqueActuator(btRigidBody *b,
+                                           const Car::ActuatorParamList &params,
+                                           const Car::ActuatorVParamList &vParams)
+    : Actuator(), object(b)
+{
+  torque = GetParam("torque", params, 0.0f);
+  axle = HeloUtils::Ogre2BulletVector(GetParam("axis", vParams, Ogre::Vector3(0.0, 1.0, 0.0)));
+  axle.normalize();
+}
+
+
+void ObjectTorqueActuator::actuate(btScalar step) {
+  if (not control)
+    return;
+
+  btScalar v = control->getValue();
+  //std::cout << "Applying torque: " << v << std::endl;
+  HeloUtils::LocalApplyTorqueImpulse(object, v * torque * step * axle);
+}
+
 void WheelAngleActuator::actuate(btScalar step)
 {
   if (not control)
@@ -47,8 +98,8 @@ void HingeActuator::actuate(btScalar step)
   if (not control)
     return;
 
-  btScalar radians_right = control->getValue() * HeloUtils::PI_4;
-  hinge->setMotorTarget(-radians_right / 2.0, 0.1);
+  auto v = control->getValue();
+  hinge->setMotorTarget(HeloUtils::Deg2Rad(v * (v >= 0.0 ? max : -min)) , 0.1);
 }
 
 
@@ -541,11 +592,11 @@ btTypedConstraint *Car::createConstraint(const std::string &prefix,
                       HeloUtils::Deg2Rad(hc->upperLimit));
       if (hc->motorMaxImpulse)
         {
-          auto act = new HingeActuator(nullptr, btc);
+          auto act = new HingeActuator(btc, hc->motorMaxAngle, hc->motorMinAngle);
           rayCasters.back()->addActuator(prefix.substr(prefix.find('.') + 1) + c->name, act);
           btc->setMaxMotorImpulse(hc->motorMaxImpulse);
-          btc->setMotorTarget(hc->motorInitialTarget, hc->motorDT);
           btc->enableMotor(true);
+          btc->setMotorTarget(hc->motorInitialTarget, hc->motorDT);
         }
       return btc;
     }
@@ -566,9 +617,13 @@ btTypedConstraint *Car::createConstraint(const std::string &prefix,
 Actuator *Car::createActuator(const Actuator &actuator)
 {
   if (actuator.type == "wheeltorque")
-    return new WheelTorqueActuator(rayCasters.back()->getWheels());
+    return new WheelTorqueActuator(rayCasters.back()->getWheels(), actuator.params, actuator.vParams);
   else if (actuator.type == "wheelangle")
-    return new WheelAngleActuator(rayCasters.back()->getWheels());
+    return new WheelAngleActuator(rayCasters.back()->getWheels(), actuator.params, actuator.vParams);
+  else if (actuator.type == "objectforce")
+    return new ObjectForceActuator(rayCasters.back()->getRigidBody(), actuator.params, actuator.vParams);
+  else if (actuator.type == "objecttorque")
+    return new ObjectTorqueActuator(rayCasters.back()->getRigidBody(), actuator.params, actuator.vParams);
   return nullptr;
 }
 
@@ -628,7 +683,6 @@ Ogre::SceneNode *Car::createBodiesAndWheels(const std::string &prefix,
                                 b);
       delete data.constraint;
       constraints.push_back(c);
-      pivot = static_cast<btHingeConstraint*>(c);
     }
 
   for (auto wd : data.suspensionWheels)
@@ -1029,9 +1083,9 @@ void CarKeyController::update(float timeDelta)
     return;
 
   if (keyboard.isKeyDown(OIS::KC_A))
-    steer.setValue(-1.0);
-  else if (keyboard.isKeyDown(OIS::KC_D))
     steer.setValue(1.0);
+  else if (keyboard.isKeyDown(OIS::KC_D))
+    steer.setValue(-1.0);
   else
     steer.setValue(0.0);
 
@@ -1039,6 +1093,21 @@ void CarKeyController::update(float timeDelta)
     accel.setValue(1.0);
   else
     accel.setValue(0.0);
+
+
+  if (keyboard.isKeyDown(OIS::KC_K))
+    hoe.setValue(1.0);
+  else if (keyboard.isKeyDown(OIS::KC_I))
+    hoe.setValue(-1.0);
+  else
+    hoe.setValue(0.0);
+
+  if (keyboard.isKeyDown(OIS::KC_J))
+    bucket.setValue(1.0);
+  else if (keyboard.isKeyDown(OIS::KC_U))
+    bucket.setValue(-1.0);
+  else
+    bucket.setValue(0.0);
 
   // if (mKeyboard->isKeyDown(OIS::KC_S))
   //   car->setThrottle(Ogre::Fraction(0, 1));

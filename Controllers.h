@@ -46,7 +46,7 @@ class CarKeyController : public Controller, public OIS::KeyListener
 protected:
   OIS::Keyboard &keyboard;
   Car &car;
-  Control steer, accel;
+  Control steer, accel, hoe, bucket;
 
 public:
   CarKeyController(OIS::Keyboard &kb, Car &c);
@@ -162,9 +162,10 @@ class AirplaneKeyController : public Controller, public OIS::KeyListener
 protected:
   OIS::Keyboard &keyboard;
   Airplane &airplane;
+  Control throttle, yaw, pitch, roll;
 
 public:
-  AirplaneKeyController(OIS::Keyboard &kb, Airplane &ap) : keyboard(kb), airplane(ap) {}
+  AirplaneKeyController(OIS::Keyboard &kb, Airplane &ap);
   bool keyPressed(const OIS::KeyEvent&);
   bool keyReleased(const OIS::KeyEvent&);
   void update(float timeDelta);
